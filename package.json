@@ -1,9 +1,9 @@
 {
-  "name": "typescript-action",
+  "name": "return-dispatch",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeScript template action",
-  "main": "lib/main.js",
+  "description": "Dispatch an action and output the run ID.",
+  "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
     "format:check": "prettier --check **/*.ts",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/Codex-/return-dispatch.git"
   },
   "keywords": [
     "actions",
     "node",
     "setup"
   ],
-  "author": "",
+  "author": "Alex Miller",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.4.0",
