@@ -1,11 +1,32 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: "Return Dispatch"
+description: "Return the run ID for a dispatched action."
+author: "Alex Miller"
+branding:
+  icon: "refresh-cw"
+  color: "green"
 inputs:
   milliseconds: # change this
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: "input description here"
+    default: "default value if applicable"
+  token:
+    description: "GitHub API token for making requests"
+    required: true
+  ref:
+    description: "The git reference for the workflow. The reference can be a branch or tag name."
+    required: true
+  repo:
+    description: "Repository of the action to dispatch"
+    required: true
+  owner:
+    description: "Owner of the given repository"
+    required: true
+  workflow:
+    description: "Workflow to return an ID for. Can be the ID or the workflow filename"
+    required: true
+  workflowTimeoutSeconds:
+    description: "Time until giving up on the completion of an action"
+    default: 60
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: "node14"
+  main: "dist/index.js"
