@@ -1,0 +1,251 @@
+import * as fs from "fs";
+import * as path from "path";
+import * as core from "@actions/core";
+import * as github from "@actions/github";
+
+import {
+  dispatchWorkflow,
+  getWorkflowId,
+  getWorkflowRunIds,
+  getWorkflowRunLogs,
+  init,
+  retryOrDie,
+} from "../src/api";
+
+interface MockResponse {
+  data: any;
+  // headers: { [header: string]: string | number | undefined };
+  status: number;
+}
+
+const mockOctokit = {
+  rest: {
+    actions: {
+      createWorkflowDispatch: async (): Promise<MockResponse> => {
+        throw new Error("Should be mocked");
+      },
+      listRepoWorkflows: async (): Promise<MockResponse> => {
+        throw new Error("Should be mocked");
+      },
+      listWorkflowRuns: async (): Promise<MockResponse> => {
+        throw new Error("Should be mocked");
+      },
+      downloadWorkflowRunLogs: async (): Promise<MockResponse> => {
+        throw new Error("Should be mocked");
+      },
+    },
+  },
+};
+
+describe("API", () => {
+  beforeEach(() => {
+    jest.spyOn(core, "getInput").mockReturnValue("");
+    jest.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
+    init();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  describe("dispatchWorkflow", () => {
+    it("should resolve after a successful dispatch", async () => {
+      jest
+        .spyOn(mockOctokit.rest.actions, "createWorkflowDispatch")
+        .mockReturnValue(
+          Promise.resolve({
+            data: undefined,
+            status: 204,
+          })
+        );
+
+      await dispatchWorkflow();
+    });
+
+    it("should throw if a non-204 status is returned", async () => {
+      const errorStatus = 401;
+      jest
+        .spyOn(mockOctokit.rest.actions, "createWorkflowDispatch")
+        .mockReturnValue(
+          Promise.resolve({
+            data: undefined,
+            status: errorStatus,
+          })
+        );
+
+      await expect(dispatchWorkflow()).rejects.toThrow(
+        `Failed to dispatch action, expected 204 but received ${errorStatus}`
+      );
+    });
+  });
+
+  describe("getWorkflowId", () => {
+    it("should return the workflow ID for a given workflow name", async () => {
+      const mockData = {
+        total_count: 3,
+        workflows: [
+          {
+            id: 0,
+            name: "cake",
+          },
+          {
+            id: 1,
+            name: "pie",
+          },
+          {
+            id: 2,
+            name: "slice",
+          },
+        ],
+      };
+      jest.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        })
+      );
+
+      expect(await getWorkflowId("slice")).toStrictEqual(
+        mockData.workflows[2].id
+      );
+    });
+
+    it("should throw if a non-200 status is returned", async () => {
+      const errorStatus = 401;
+      jest.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+        Promise.resolve({
+          data: undefined,
+          status: errorStatus,
+        })
+      );
+
+      await expect(getWorkflowId("implode")).rejects.toThrow(
+        `Failed to get workflows, expected 200 but received ${errorStatus}`
+      );
+    });
+
+    it("should throw if a given workflow name cannot be found in the response", async () => {
+      const workflowName = "slice";
+      jest.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+        Promise.resolve({
+          data: {
+            total_count: 0,
+            workflows: [],
+          },
+          status: 200,
+        })
+      );
+
+      await expect(getWorkflowId(workflowName)).rejects.toThrow(
+        `Unable to find ID for Workflow: ${workflowName}`
+      );
+    });
+  });
+
+  describe("getWorkflowRunIds", () => {
+    it("should get the run IDs for a given workflow ID", async () => {
+      const mockData = {
+        total_count: 3,
+        workflow_runs: [{ id: 0 }, { id: 1 }, { id: 2 }],
+      };
+      jest.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        })
+      );
+
+      expect(await getWorkflowRunIds(0)).toStrictEqual(
+        mockData.workflow_runs.map((run) => run.id)
+      );
+    });
+
+    it("should throw if a non-200 status is returned", async () => {
+      const errorStatus = 401;
+      jest.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
+        Promise.resolve({
+          data: undefined,
+          status: errorStatus,
+        })
+      );
+
+      await expect(getWorkflowRunIds(0)).rejects.toThrow(
+        `Failed to get Workflow runs, expected 200 but received ${errorStatus}`
+      );
+    });
+
+    it("should return an empty array if there are no runs", async () => {
+      const mockData = {
+        total_count: 0,
+        workflow_runs: [],
+      };
+      jest.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        })
+      );
+
+      expect(await getWorkflowRunIds(0)).toStrictEqual([]);
+    });
+  });
+
+  describe("getWorkflowRunLogs", () => {
+    const zipPath = path.join(__dirname, "static", "logs.zip");
+    const zipData = fs.readFileSync(zipPath);
+
+    it("should return the data as a raw string", async () => {
+      jest
+        .spyOn(mockOctokit.rest.actions, "downloadWorkflowRunLogs")
+        .mockReturnValue(
+          Promise.resolve({
+            data: zipData.toString(),
+            /**
+             * Documentation states that this should be 302 but
+             * I only got 200 when testing against the live API.
+             */
+            status: 200,
+          })
+        );
+
+      expect(await getWorkflowRunLogs(0)).toStrictEqual(zipData.toString());
+    });
+  });
+
+  describe("retryOrDie", () => {
+    it("should return a populated array", async () => {
+      const attempt = async () => {
+        return [0];
+      };
+
+      expect(await retryOrDie(attempt, 1000)).toHaveLength(1);
+    });
+
+    it("should throw if the given timeout is exceeded", async () => {
+      // Never return data.
+      const attempt = async () => [];
+
+      await expect(retryOrDie(attempt, 1000)).rejects.toThrow(
+        "Timed out while attempting to fetch data"
+      );
+    });
+
+    it("should retry to get a populated array", async () => {
+      let attemptNo = 0;
+      const attempt = async () => {
+        switch (attemptNo) {
+          case 0:
+            attemptNo++;
+            return [];
+          case 1:
+            attemptNo++;
+            return [];
+        }
+
+        return [0];
+      };
+
+      expect(await retryOrDie(attempt, 1500)).toHaveLength(1);
+    });
+  });
+});
