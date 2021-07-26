@@ -5,7 +5,7 @@
   "parserOptions": {
     "ecmaVersion": 10,
     "sourceType": "module",
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.lint.json"
   },
   "env": {
     "node": true,
@@ -26,6 +26,7 @@
       "warn",
       { "argsIgnorePattern": "^_" }
     ],
+    "camelcase": "off",
     "import/no-extraneous-dependencies": [
       "error",
       {
@@ -34,6 +35,8 @@
         "peerDependencies": true
       }
     ],
+    "import/no-namespace": "off",
+    "import/order": "warn",
     "import/prefer-default-export": "off",
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "no-param-reassign": "off",
