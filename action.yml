@@ -27,5 +27,5 @@ inputs:
     description: "Time until giving up waiting for the start of the workflow run."
     default: 300
 runs:
-  using: "node14"
+  using: "node12"
   main: "dist/index.js"
