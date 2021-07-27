@@ -122,7 +122,9 @@ export async function getWorkflowRunLogs(runId: number): Promise<Buffer> {
      * Actual response status: 200
      */
 
-    // Octokit returns the zip data in an ArrayBuffer
+    /**
+     * Octokit returns an ArrayBuffer, which is a narrowed type of Buffer.
+     */
     const data = response.data as ArrayBuffer;
     return Buffer.from(data);
   } catch (error) {
