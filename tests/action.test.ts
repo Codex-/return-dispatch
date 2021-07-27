@@ -64,7 +64,7 @@ describe("Action", () => {
       const config: ActionConfig = getConfig();
       mockEnvConfig.workflowTimeoutSeconds = originalWorkflowTimeout;
 
-      expect(config.workflowTimeoutSeconds).toStrictEqual(60);
+      expect(config.workflowTimeoutSeconds).toStrictEqual(300);
     });
   });
 });
