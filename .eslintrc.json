@@ -21,6 +21,7 @@
       "warn",
       { "ignoreIIFE": true, "ignoreVoid": false }
     ],
+    "@typescript-eslint/no-shadow": ["error"],
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-unused-vars": [
       "warn",
@@ -38,10 +39,12 @@
     "import/no-namespace": "off",
     "import/order": "warn",
     "import/prefer-default-export": "off",
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-console": ["warn"],
     "no-param-reassign": "off",
     "no-plusplus": "off",
+    "no-shadow": "off",
     "no-unused-vars": "off",
+    "object-shorthand": "off",
     "prettier/prettier": "warn",
     "radix": ["error", "as-needed"]
   }
