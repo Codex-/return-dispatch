@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import { v4 as uuid } from "uuid";
 
 import {
   dispatchWorkflow,
@@ -14,7 +15,6 @@ import {
 
 interface MockResponse {
   data: any;
-  // headers: { [header: string]: string | number | undefined };
   status: number;
 }
 
@@ -59,7 +59,7 @@ describe("API", () => {
           })
         );
 
-      await dispatchWorkflow();
+      await dispatchWorkflow("");
     });
 
     it("should throw if a non-204 status is returned", async () => {
@@ -73,9 +73,27 @@ describe("API", () => {
           })
         );
 
-      await expect(dispatchWorkflow()).rejects.toThrow(
+      await expect(dispatchWorkflow("")).rejects.toThrow(
         `Failed to dispatch action, expected 204 but received ${errorStatus}`
       );
+    });
+
+    it("should dispatch with a distinctId in the inputs", async () => {
+      const distinctId = uuid();
+      let dispatchedId: string | undefined;
+      jest
+        .spyOn(mockOctokit.rest.actions, "createWorkflowDispatch")
+        .mockImplementation(async (req?: any) => {
+          dispatchedId = req.inputs.distinctId;
+
+          return {
+            data: undefined,
+            status: 204,
+          };
+        });
+
+      await dispatchWorkflow(distinctId);
+      expect(dispatchedId).toStrictEqual(distinctId);
     });
   });
 

@@ -13,7 +13,7 @@ export function init() {
   octokit = github.getOctokit(config.token);
 }
 
-export async function dispatchWorkflow(): Promise<void> {
+export async function dispatchWorkflow(distinctId: string): Promise<void> {
   try {
     // https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
     const response = await octokit.rest.actions.createWorkflowDispatch({
@@ -21,6 +21,9 @@ export async function dispatchWorkflow(): Promise<void> {
       repo: config.repo,
       workflow_id: config.workflow,
       ref: config.ref,
+      inputs: {
+        distinctId: distinctId,
+      },
     });
 
     if (response.status !== 204) {
@@ -33,7 +36,8 @@ export async function dispatchWorkflow(): Promise<void> {
       "Successfully dispatched workflow:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch: ${config.ref}\n` +
-        `  Workflow ID: ${config.workflow}`
+        `  Workflow ID: ${config.workflow}\n` +
+        `  Distinct ID: ${distinctId}`
     );
   } catch (error) {
     core.error(
