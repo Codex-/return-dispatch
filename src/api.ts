@@ -103,7 +103,7 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
   }
 }
 
-export async function getWorkflowRunLogs(runId: number): Promise<string> {
+export async function getWorkflowRunLogs(runId: number): Promise<Buffer> {
   try {
     // https://docs.github.com/en/rest/reference/actions#download-workflow-run-logs
     const response = await octokit.rest.actions.downloadWorkflowRunLogs({
@@ -122,7 +122,9 @@ export async function getWorkflowRunLogs(runId: number): Promise<string> {
      * Actual response status: 200
      */
 
-    return response.data as string;
+    // Octokit returns the zip data in an ArrayBuffer
+    const data = response.data as ArrayBuffer;
+    return Buffer.from(data);
   } catch (error) {
     core.error(
       `getWorkflowRunLogs: An unexpected error has occurred: ${error.message}`

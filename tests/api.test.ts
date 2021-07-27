@@ -192,14 +192,24 @@ describe("API", () => {
 
   describe("getWorkflowRunLogs", () => {
     const zipPath = path.join(__dirname, "static", "logs.zip");
-    const zipData = fs.readFileSync(zipPath);
+    let zipData: ArrayBuffer;
+
+    beforeAll(() => {
+      const zipBuffer = fs.readFileSync(zipPath);
+
+      // Octokit returns an ArrayBuffer
+      zipData = zipBuffer.buffer.slice(
+        zipBuffer.byteOffset,
+        zipBuffer.byteOffset + zipBuffer.byteLength
+      );
+    });
 
     it("should return the data as a raw string", async () => {
       jest
         .spyOn(mockOctokit.rest.actions, "downloadWorkflowRunLogs")
         .mockReturnValue(
           Promise.resolve({
-            data: zipData.toString(),
+            data: zipData,
             /**
              * Documentation states that this should be 302 but
              * I only got 200 when testing against the live API.
@@ -208,7 +218,13 @@ describe("API", () => {
           })
         );
 
-      expect(await getWorkflowRunLogs(0)).toStrictEqual(zipData.toString());
+      const zipBuffer = await getWorkflowRunLogs(0);
+      expect(zipBuffer.byteLength).toStrictEqual(zipData.byteLength);
+      /**
+       * Because one is of type Buffer and the other ArrayBuffer,
+       * create primitive collections of their data.
+       */
+      expect(new Uint8Array(zipBuffer)).toEqual(new Uint8Array(zipData));
     });
   });
 
