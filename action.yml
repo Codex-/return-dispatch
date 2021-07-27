@@ -4,25 +4,28 @@ author: "Alex Miller"
 branding:
   icon: "refresh-cw"
   color: "green"
+outputs:
+  run_id:
+    description: "The identified Run ID."
 inputs:
   token:
-    description: "GitHub API token for making requests"
+    description: "GitHub API token for making requests."
     required: true
   ref:
     description: "The git reference for the workflow. The reference can be a branch or tag name."
     required: true
   repo:
-    description: "Repository of the action to dispatch"
+    description: "Repository of the action to dispatch."
     required: true
   owner:
-    description: "Owner of the given repository"
+    description: "Owner of the given repository."
     required: true
   workflow:
     description: "Workflow to return an ID for. Can be the ID or the workflow filename."
     required: true
   workflowTimeoutSeconds:
     description: "Time until giving up waiting for the start of the workflow run."
-    default: 60
+    default: 300
 runs:
   using: "node14"
   main: "dist/index.js"

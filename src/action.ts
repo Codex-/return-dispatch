@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 
-const WORKFLOW_TIMEOUT_SECONDS = 60;
+const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
 
 /**
  * action.yaml definition.
@@ -34,7 +34,7 @@ export interface ActionConfig {
   /**
    * Time until giving up waiting for the start of the workflow run.
    */
-  workflowTimeoutSeconds?: number;
+  workflowTimeoutSeconds: number;
 }
 
 export function getConfig(): ActionConfig {
