@@ -1,6 +1,6 @@
 import core from "@actions/core";
 import { v4 as uuid } from "uuid";
-import { getConfig } from "./action";
+import { ActionOutputs, getConfig } from "./action";
 import {
   dispatchWorkflow,
   getWorkflowId,
@@ -10,12 +10,7 @@ import {
 } from "./api";
 import { LogZip } from "./zip";
 
-enum Outputs {
-  runId = "run_id",
-}
-
 const DISTINCT_ID = uuid();
-const TIMEOUT = 5 * 60 * 1000;
 
 async function run(): Promise<void> {
   try {
@@ -35,7 +30,7 @@ async function run(): Promise<void> {
 
     let attemptNo = 0;
     let elapsedTime = 0;
-    while (elapsedTime < TIMEOUT) {
+    while (elapsedTime < config.workflowTimeoutSeconds) {
       attemptNo++;
       elapsedTime = Date.now() - startTime;
 
@@ -56,7 +51,7 @@ async function run(): Promise<void> {
         for (const file of logs.getFiles()) {
           if (logs.fileContainsStr(file, DISTINCT_ID)) {
             core.info(`Successfully identified remote Run ID: ${id}`);
-            core.setOutput(Outputs.runId, id);
+            core.setOutput(ActionOutputs.runId, id);
             return;
           }
         }

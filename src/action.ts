@@ -37,6 +37,10 @@ export interface ActionConfig {
   workflowTimeoutSeconds: number;
 }
 
+export enum ActionOutputs {
+  runId = "runId",
+}
+
 export function getConfig(): ActionConfig {
   return {
     token: core.getInput("token", { required: true }),

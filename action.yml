@@ -5,7 +5,7 @@ branding:
   icon: "refresh-cw"
   color: "green"
 outputs:
-  run_id:
+  runId:
     description: "The identified Run ID."
 inputs:
   token:
