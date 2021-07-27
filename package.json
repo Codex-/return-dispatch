@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Dispatch an action and output the run ID.",
-  "main": "dist/main.js",
+  "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
     "format:check": "prettier --check **/*.ts",
@@ -27,12 +27,13 @@
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.4.0",
-    "@actions/github": "^5.0.0"
+    "@actions/github": "^5.0.0",
+    "jszip": "^3.7.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.24",
-    "@types/node": "^16.4.1",
-    "@typescript-eslint/parser": "^4.28.4",
+    "@types/node": "^16.4.3",
+    "@typescript-eslint/parser": "^4.28.5",
     "@vercel/ncc": "^0.29.0",
     "eslint": "^7.31.0",
     "eslint-config-airbnb-typescript": "^12.3.1",
