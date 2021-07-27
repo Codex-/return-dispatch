@@ -5,10 +5,6 @@ branding:
   icon: "refresh-cw"
   color: "green"
 inputs:
-  milliseconds: # change this
-    required: true
-    description: "input description here"
-    default: "default value if applicable"
   token:
     description: "GitHub API token for making requests"
     required: true
@@ -22,10 +18,10 @@ inputs:
     description: "Owner of the given repository"
     required: true
   workflow:
-    description: "Workflow to return an ID for. Can be the ID or the workflow filename"
+    description: "Workflow to return an ID for. Can be the ID or the workflow filename."
     required: true
   workflowTimeoutSeconds:
-    description: "Time until giving up on the completion of an action"
+    description: "Time until giving up waiting for the start of the workflow run."
     default: 60
 runs:
   using: "node14"
