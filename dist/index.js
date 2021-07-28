@@ -26,9 +26,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getConfig = void 0;
+exports.getConfig = exports.ActionOutputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
+var ActionOutputs;
+(function (ActionOutputs) {
+    ActionOutputs["runId"] = "runId";
+})(ActionOutputs = exports.ActionOutputs || (exports.ActionOutputs = {}));
 function getConfig() {
     return {
         token: core.getInput("token", { required: true }),
@@ -236,21 +240,32 @@ exports.retryOrDie = retryOrDie;
 
 "use strict";
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core_1 = __importDefault(__nccwpck_require__(2186));
+const core = __importStar(__nccwpck_require__(2186));
 const uuid_1 = __nccwpck_require__(5840);
 const action_1 = __nccwpck_require__(9139);
 const api_1 = __nccwpck_require__(8947);
 const zip_1 = __nccwpck_require__(3458);
-var Outputs;
-(function (Outputs) {
-    Outputs["runId"] = "run_id";
-})(Outputs || (Outputs = {}));
 const DISTINCT_ID = uuid_1.v4();
-const TIMEOUT = 5 * 60 * 1000;
 async function run() {
     try {
         const config = action_1.getConfig();
@@ -267,7 +282,7 @@ async function run() {
         await api_1.dispatchWorkflow(DISTINCT_ID);
         let attemptNo = 0;
         let elapsedTime = 0;
-        while (elapsedTime < TIMEOUT) {
+        while (elapsedTime < config.workflowTimeoutSeconds) {
             attemptNo++;
             elapsedTime = Date.now() - startTime;
             // Get all runs for a given workflow ID
@@ -281,21 +296,21 @@ async function run() {
                 await logs.init(await api_1.getWorkflowRunLogs(id));
                 for (const file of logs.getFiles()) {
                     if (logs.fileContainsStr(file, DISTINCT_ID)) {
-                        core_1.default.info(`Successfully identified remote Run ID: ${id}`);
-                        core_1.default.setOutput(Outputs.runId, id);
+                        core.info(`Successfully identified remote Run ID: ${id}`);
+                        core.setOutput(action_1.ActionOutputs.runId, id);
                         return;
                     }
                 }
             }
-            core_1.default.info(`Exhausted fetched logs for known runs, attempt ${attemptNo}...`);
+            core.info(`Exhausted fetched logs for known runs, attempt ${attemptNo}...`);
             await new Promise((resolve) => setTimeout(resolve, 1000));
         }
         throw new Error("Timeout exceeded while attempting to get Run ID");
     }
     catch (error) {
-        core_1.default.error(`Failed to complete: ${error.message}`);
-        error.stack && core_1.default.debug(error.stack);
-        core_1.default.setFailed(error.message);
+        core.error(`Failed to complete: ${error.message}`);
+        error.stack && core.debug(error.stack);
+        core.setFailed(error.message);
     }
 }
 (() => run())();
