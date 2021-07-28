@@ -15,7 +15,9 @@ async function run(): Promise<void> {
     let workflowId: number;
     // Get the workflow ID if give a string
     if (typeof config.workflow === "string") {
+      core.info(`Fetching Workflow ID for ${config.workflow}...`);
       workflowId = await api.getWorkflowId(config.workflow);
+      core.info(`Fetched Workflow ID: ${workflowId}`);
     } else {
       workflowId = config.workflow;
     }
@@ -25,6 +27,7 @@ async function run(): Promise<void> {
 
     let attemptNo = 0;
     let elapsedTime = 0;
+    core.info("Attempt to extract run ID from logs...");
     while (elapsedTime < config.workflowTimeoutSeconds) {
       attemptNo++;
       elapsedTime = Date.now() - startTime;
