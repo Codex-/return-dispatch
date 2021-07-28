@@ -32,13 +32,22 @@ export interface ActionConfig {
   workflow: string | number;
 
   /**
+   * A flat JSON object, only supports strings (as per workflow inputs API).
+   */
+  workflow_inputs?: ActionWorkflowInputs;
+
+  /**
    * Time until giving up waiting for the start of the workflow run.
    */
   workflowTimeoutSeconds: number;
 }
 
+interface ActionWorkflowInputs {
+  [input: string]: string;
+}
+
 export enum ActionOutputs {
-  runId = "runId",
+  runId = "run_id",
 }
 
 export function getConfig(): ActionConfig {
@@ -48,6 +57,7 @@ export function getConfig(): ActionConfig {
     repo: core.getInput("repo", { required: true }),
     owner: core.getInput("owner", { required: true }),
     workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
+    workflow_inputs: getWorkflowInputs(core.getInput("workflow_inputs")),
     workflowTimeoutSeconds:
       getNumberFromValue(core.getInput("workflow_timeout_seconds")) ||
       WORKFLOW_TIMEOUT_SECONDS,
@@ -67,8 +77,33 @@ function getNumberFromValue(value: string): number | undefined {
     }
 
     return num;
-  } catch (error) {
+  } catch {
     throw new Error(`Unable to parse value: ${value}`);
+  }
+}
+
+function getWorkflowInputs(
+  workflowInputs: string
+): ActionWorkflowInputs | undefined {
+  if (workflowInputs === "") {
+    return undefined;
+  }
+
+  try {
+    const parsedJson = JSON.parse(workflowInputs);
+    for (const key of Object.keys(parsedJson)) {
+      const type = typeof parsedJson[key];
+      if (type !== "string") {
+        throw new Error(
+          `Expected values to be strings, ${key} value is ${type}`
+        );
+      }
+    }
+    return parsedJson;
+  } catch (error) {
+    core.error("Failed to parse workflow_inputs JSON");
+    error.stack && core.debug(error.stack);
+    throw error;
   }
 }
 

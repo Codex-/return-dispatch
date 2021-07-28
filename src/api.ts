@@ -22,6 +22,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       workflow_id: config.workflow,
       ref: config.ref,
       inputs: {
+        ...(config.workflow_inputs ? config.workflow_inputs : undefined),
         distinct_id: distinctId,
       },
     });
@@ -33,10 +34,14 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
     }
 
     core.info(
+      // eslint-disable-next-line prefer-template
       "Successfully dispatched workflow:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch: ${config.ref}\n` +
         `  Workflow ID: ${config.workflow}\n` +
+        (config.workflow_inputs
+          ? `  Workflow Inputs: ${JSON.stringify(config.workflow_inputs)}\n`
+          : ``) +
         `  Distinct ID: ${distinctId}`
     );
   } catch (error) {

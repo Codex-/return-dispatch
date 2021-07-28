@@ -31,7 +31,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
 var ActionOutputs;
 (function (ActionOutputs) {
-    ActionOutputs["runId"] = "runId";
+    ActionOutputs["runId"] = "run_id";
 })(ActionOutputs = exports.ActionOutputs || (exports.ActionOutputs = {}));
 function getConfig() {
     return {
@@ -40,7 +40,8 @@ function getConfig() {
         repo: core.getInput("repo", { required: true }),
         owner: core.getInput("owner", { required: true }),
         workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
-        workflowTimeoutSeconds: getNumberFromValue(core.getInput("workflowTimeoutSeconds")) ||
+        workflow_inputs: getWorkflowInputs(core.getInput("workflow_inputs")),
+        workflowTimeoutSeconds: getNumberFromValue(core.getInput("workflow_timeout_seconds")) ||
             WORKFLOW_TIMEOUT_SECONDS,
     };
 }
@@ -56,8 +57,28 @@ function getNumberFromValue(value) {
         }
         return num;
     }
-    catch (error) {
+    catch {
         throw new Error(`Unable to parse value: ${value}`);
+    }
+}
+function getWorkflowInputs(workflowInputs) {
+    if (workflowInputs === "") {
+        return undefined;
+    }
+    try {
+        const parsedJson = JSON.parse(workflowInputs);
+        for (const key of Object.keys(parsedJson)) {
+            const type = typeof parsedJson[key];
+            if (type !== "string") {
+                throw new Error(`Expected values to be strings, ${key} value is ${type}`);
+            }
+        }
+        return parsedJson;
+    }
+    catch (error) {
+        core.error("Failed to parse workflow_inputs JSON");
+        error.stack && core.debug(error.stack);
+        throw error;
     }
 }
 function getWorkflowValue(workflowInput) {
@@ -119,16 +140,22 @@ async function dispatchWorkflow(distinctId) {
             workflow_id: config.workflow,
             ref: config.ref,
             inputs: {
+                ...(config.workflow_inputs ? config.workflow_inputs : undefined),
                 distinct_id: distinctId,
             },
         });
         if (response.status !== 204) {
             throw new Error(`Failed to dispatch action, expected 204 but received ${response.status}`);
         }
-        core.info("Successfully dispatched workflow:\n" +
+        core.info(
+        // eslint-disable-next-line prefer-template
+        "Successfully dispatched workflow:\n" +
             `  Repository: ${config.owner}/${config.repo}\n` +
             `  Branch: ${config.ref}\n` +
             `  Workflow ID: ${config.workflow}\n` +
+            (config.workflow_inputs
+                ? `  Workflow Inputs: ${JSON.stringify(config.workflow_inputs)}\n`
+                : ``) +
             `  Distinct ID: ${distinctId}`);
     }
     catch (error) {

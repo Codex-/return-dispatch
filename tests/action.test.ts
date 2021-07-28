@@ -2,17 +2,24 @@ import * as core from "@actions/core";
 import { ActionConfig, getConfig } from "../src/action";
 
 describe("Action", () => {
+  const workflowInputs = {
+    cake: "delicious",
+  };
+
   describe("getConfig", () => {
-    const mockEnvConfig = {
-      token: "secret",
-      ref: "feature_branch",
-      repo: "repository",
-      owner: "owner",
-      workflow: "workflow_name",
-      workflowTimeoutSeconds: "60",
-    };
+    let mockEnvConfig: any;
 
     beforeEach(() => {
+      mockEnvConfig = {
+        token: "secret",
+        ref: "feature_branch",
+        repo: "repository",
+        owner: "owner",
+        workflow: "workflow_name",
+        workflowInputs: JSON.stringify(workflowInputs),
+        workflowTimeoutSeconds: "60",
+      };
+
       jest.spyOn(core, "getInput").mockImplementation((input: string) => {
         switch (input) {
           case "token":
@@ -25,6 +32,8 @@ describe("Action", () => {
             return mockEnvConfig.owner;
           case "workflow":
             return mockEnvConfig.workflow;
+          case "workflow_inputs":
+            return mockEnvConfig.workflowInputs;
           case "workflow_timeout_seconds":
             return mockEnvConfig.workflowTimeoutSeconds;
           default:
@@ -46,25 +55,42 @@ describe("Action", () => {
       expect(config.repo).toStrictEqual("repository");
       expect(config.owner).toStrictEqual("owner");
       expect(config.workflow).toStrictEqual("workflow_name");
+      expect(config.workflow_inputs).toStrictEqual(workflowInputs);
       expect(config.workflowTimeoutSeconds).toStrictEqual(60);
     });
 
     it("should have a number for a workflow when given a workflow ID", () => {
-      const originalWorkflow = mockEnvConfig.workflow;
       mockEnvConfig.workflow = "123456";
       const config: ActionConfig = getConfig();
-      mockEnvConfig.workflow = originalWorkflow;
 
       expect(config.workflow).toStrictEqual(123456);
     });
 
     it("should provide a default workflow timeout if none is supplied", () => {
-      const originalWorkflowTimeout = mockEnvConfig.workflowTimeoutSeconds;
       mockEnvConfig.workflowTimeoutSeconds = "";
       const config: ActionConfig = getConfig();
-      mockEnvConfig.workflowTimeoutSeconds = originalWorkflowTimeout;
 
       expect(config.workflowTimeoutSeconds).toStrictEqual(300);
+    });
+
+    it("should handle no inputs being provided", () => {
+      mockEnvConfig.workflowInputs = "";
+      const config: ActionConfig = getConfig();
+
+      expect(config.workflow_inputs).toBeUndefined();
+    });
+
+    it("should throw if invalid workflow inputs JSON is provided", () => {
+      mockEnvConfig.workflowInputs = "{";
+
+      expect(() => getConfig()).toThrowError();
+    });
+
+    it("should throw if a workflow inputs JSON is contains non-strings", () => {
+      mockEnvConfig.workflowInputs =
+        '{"cake":"delicious","pie":{"powerLevel":9001}}';
+
+      expect(() => getConfig()).toThrowError();
     });
   });
 });

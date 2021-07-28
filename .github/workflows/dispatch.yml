@@ -3,10 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       distinct_id:
+      cake: # Test that inputs are carried through as expected.
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: echo distinct ID.
+      - name: echo distinct ID
         run: echo ${{ github.event.inputs.distinct_id }}
+      - name: echo input passthrough
+        run: echo ${{ github.event.inputs.cake }}

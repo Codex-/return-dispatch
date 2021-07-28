@@ -1,10 +1,7 @@
 name: "build-test"
-on: # rebuild any PRs and main branch changes
+on:
   pull_request:
   push:
-    branches:
-      - main
-      - "releases/*"
 
 jobs:
   build: # make sure build/ci work properly
@@ -19,11 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./
+      - name: Dispatch and return Run ID
+        id: return_dispatch
+        uses: ./
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: main
+          ref: ${{ github.ref }}
           repo: return-dispatch
           owner: codex-
           workflow: dispatch.yml
+          workflow_inputs: "{\"cake\":\"delicious\"}"
           workflow_timeout_seconds: 300
+      - name: Output fetched Run ID
+        run: echo ${{ steps.return_dispatch.outputs.run_id}}
