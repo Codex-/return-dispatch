@@ -1,4 +1,4 @@
-name: Return Dispatch Test
+name: action-test
 on:
   workflow_dispatch:
     inputs:

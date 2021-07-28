@@ -25,5 +25,5 @@ jobs:
           ref: main
           repo: return-dispatch
           owner: codex-
-          workflow: test.yml
+          workflow: action-test
           workflowTimeoutSeconds: 300
