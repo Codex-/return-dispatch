@@ -84,7 +84,7 @@ describe("API", () => {
       jest
         .spyOn(mockOctokit.rest.actions, "createWorkflowDispatch")
         .mockImplementation(async (req?: any) => {
-          dispatchedId = req.inputs.distinctId;
+          dispatchedId = req.inputs.distinct_id;
 
           return {
             data: undefined,
