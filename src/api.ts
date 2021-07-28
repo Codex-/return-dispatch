@@ -48,7 +48,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
   }
 }
 
-export async function getWorkflowId(workflowName: string): Promise<number> {
+export async function getWorkflowId(workflowFilename: string): Promise<number> {
   try {
     // https://docs.github.com/en/rest/reference/actions#list-repository-workflows
     const response = await octokit.rest.actions.listRepoWorkflows({
@@ -62,12 +62,12 @@ export async function getWorkflowId(workflowName: string): Promise<number> {
       );
     }
 
-    const workflowId = response.data.workflows.find(
-      (workflow) => workflow.name === workflowName
+    const workflowId = response.data.workflows.find((workflow) =>
+      new RegExp(workflowFilename).test(workflow.path)
     )?.id;
 
     if (workflowId === undefined) {
-      throw new Error(`Unable to find ID for Workflow: ${workflowName}`);
+      throw new Error(`Unable to find ID for Workflow: ${workflowFilename}`);
     }
 
     return workflowId;

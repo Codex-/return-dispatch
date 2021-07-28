@@ -138,7 +138,7 @@ async function dispatchWorkflow(distinctId) {
     }
 }
 exports.dispatchWorkflow = dispatchWorkflow;
-async function getWorkflowId(workflowName) {
+async function getWorkflowId(workflowFilename) {
     var _a;
     try {
         // https://docs.github.com/en/rest/reference/actions#list-repository-workflows
@@ -149,9 +149,9 @@ async function getWorkflowId(workflowName) {
         if (response.status !== 200) {
             throw new Error(`Failed to get workflows, expected 200 but received ${response.status}`);
         }
-        const workflowId = (_a = response.data.workflows.find((workflow) => workflow.name === workflowName)) === null || _a === void 0 ? void 0 : _a.id;
+        const workflowId = (_a = response.data.workflows.find((workflow) => new RegExp(workflowFilename).test(workflow.path))) === null || _a === void 0 ? void 0 : _a.id;
         if (workflowId === undefined) {
-            throw new Error(`Unable to find ID for Workflow: ${workflowName}`);
+            throw new Error(`Unable to find ID for Workflow: ${workflowFilename}`);
         }
         return workflowId;
     }

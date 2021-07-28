@@ -98,21 +98,21 @@ describe("API", () => {
   });
 
   describe("getWorkflowId", () => {
-    it("should return the workflow ID for a given workflow name", async () => {
+    it("should return the workflow ID for a given workflow filename", async () => {
       const mockData = {
         total_count: 3,
         workflows: [
           {
             id: 0,
-            name: "cake",
+            path: ".github/workflows/cake.yml",
           },
           {
             id: 1,
-            name: "pie",
+            path: ".github/workflows/pie.yml",
           },
           {
             id: 2,
-            name: "slice",
+            path: ".github/workflows/slice.yml",
           },
         ],
       };
@@ -123,7 +123,7 @@ describe("API", () => {
         })
       );
 
-      expect(await getWorkflowId("slice")).toStrictEqual(
+      expect(await getWorkflowId("slice.yml")).toStrictEqual(
         mockData.workflows[2].id
       );
     });
