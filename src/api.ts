@@ -100,7 +100,7 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
     return response.data.workflow_runs.map((workflowRun) => workflowRun.id);
   } catch (error) {
     core.error(
-      `getCheckRuns: An unexpected error has occurred: ${error.message}`
+      `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`
     );
     error.stack && core.debug(error.stack);
     throw error;
