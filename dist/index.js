@@ -105,8 +105,8 @@ const github = __importStar(__nccwpck_require__(5438));
 const action_1 = __nccwpck_require__(9139);
 let config;
 let octokit;
-function init() {
-    config = action_1.getConfig();
+function init(cfg) {
+    config = cfg || action_1.getConfig();
     octokit = github.getOctokit(config.token);
 }
 exports.init = init;
@@ -178,7 +178,7 @@ async function getWorkflowRunIds(workflowId) {
         return response.data.workflow_runs.map((workflowRun) => workflowRun.id);
     }
     catch (error) {
-        core.error(`getCheckRuns: An unexpected error has occurred: ${error.message}`);
+        core.error(`getWorkflowRunIds: An unexpected error has occurred: ${error.message}`);
         error.stack && core.debug(error.stack);
         throw error;
     }
@@ -263,37 +263,38 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const uuid_1 = __nccwpck_require__(5840);
 const action_1 = __nccwpck_require__(9139);
-const api_1 = __nccwpck_require__(8947);
+const api = __importStar(__nccwpck_require__(8947));
 const zip_1 = __nccwpck_require__(3458);
 const DISTINCT_ID = uuid_1.v4();
 async function run() {
     try {
         const config = action_1.getConfig();
         const startTime = Date.now();
+        api.init(config);
         let workflowId;
         // Get the workflow ID if give a string
         if (typeof config.workflow === "string") {
-            workflowId = await api_1.getWorkflowId(config.workflow);
+            workflowId = await api.getWorkflowId(config.workflow);
         }
         else {
             workflowId = config.workflow;
         }
         // Dispatch the action
-        await api_1.dispatchWorkflow(DISTINCT_ID);
+        await api.dispatchWorkflow(DISTINCT_ID);
         let attemptNo = 0;
         let elapsedTime = 0;
         while (elapsedTime < config.workflowTimeoutSeconds) {
             attemptNo++;
             elapsedTime = Date.now() - startTime;
             // Get all runs for a given workflow ID
-            const workflowRunIds = await api_1.retryOrDie(() => api_1.getWorkflowRunIds(workflowId), 60 * 1000);
+            const workflowRunIds = await api.retryOrDie(() => api.getWorkflowRunIds(workflowId), 60 * 1000);
             /**
              * Attempt to read the distinct ID in the logs
              * for each existing run ID.
              */
             for (const id of workflowRunIds) {
                 const logs = new zip_1.LogZip();
-                await logs.init(await api_1.getWorkflowRunLogs(id));
+                await logs.init(await api.getWorkflowRunLogs(id));
                 for (const file of logs.getFiles()) {
                     if (logs.fileContainsStr(file, DISTINCT_ID)) {
                         core.info(`Successfully identified remote Run ID: ${id}`);
