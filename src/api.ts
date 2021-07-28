@@ -8,8 +8,8 @@ type Octokit = InstanceType<typeof GitHub>;
 let config: ActionConfig;
 let octokit: Octokit;
 
-export function init() {
-  config = getConfig();
+export function init(cfg?: ActionConfig): void {
+  config = cfg || getConfig();
   octokit = github.getOctokit(config.token);
 }
 

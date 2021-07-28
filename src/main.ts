@@ -1,13 +1,7 @@
 import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
 import { ActionOutputs, getConfig } from "./action";
-import {
-  dispatchWorkflow,
-  getWorkflowId,
-  getWorkflowRunIds,
-  getWorkflowRunLogs,
-  retryOrDie,
-} from "./api";
+import * as api from "./api";
 import { LogZip } from "./zip";
 
 const DISTINCT_ID = uuid();
@@ -16,17 +10,18 @@ async function run(): Promise<void> {
   try {
     const config = getConfig();
     const startTime = Date.now();
+    api.init(config);
 
     let workflowId: number;
     // Get the workflow ID if give a string
     if (typeof config.workflow === "string") {
-      workflowId = await getWorkflowId(config.workflow);
+      workflowId = await api.getWorkflowId(config.workflow);
     } else {
       workflowId = config.workflow;
     }
 
     // Dispatch the action
-    await dispatchWorkflow(DISTINCT_ID);
+    await api.dispatchWorkflow(DISTINCT_ID);
 
     let attemptNo = 0;
     let elapsedTime = 0;
@@ -35,8 +30,8 @@ async function run(): Promise<void> {
       elapsedTime = Date.now() - startTime;
 
       // Get all runs for a given workflow ID
-      const workflowRunIds = await retryOrDie(
-        () => getWorkflowRunIds(workflowId),
+      const workflowRunIds = await api.retryOrDie(
+        () => api.getWorkflowRunIds(workflowId),
         60 * 1000
       );
 
@@ -46,7 +41,7 @@ async function run(): Promise<void> {
        */
       for (const id of workflowRunIds) {
         const logs = new LogZip();
-        await logs.init(await getWorkflowRunLogs(id));
+        await logs.init(await api.getWorkflowRunLogs(id));
 
         for (const file of logs.getFiles()) {
           if (logs.fileContainsStr(file, DISTINCT_ID)) {
