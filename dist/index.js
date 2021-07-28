@@ -119,7 +119,7 @@ async function dispatchWorkflow(distinctId) {
             workflow_id: config.workflow,
             ref: config.ref,
             inputs: {
-                distinctId: distinctId,
+                distinct_id: distinctId,
             },
         });
         if (response.status !== 204) {

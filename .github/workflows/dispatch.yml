@@ -1,0 +1,12 @@
+name: Return Dispatch Test
+on:
+  workflow_dispatch:
+    inputs:
+      distinct_id:
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: echo distinct ID.
+        run: echo ${{ inputs.distinct_id }}

@@ -22,7 +22,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       workflow_id: config.workflow,
       ref: config.ref,
       inputs: {
-        distinctId: distinctId,
+        distinct_id: distinctId,
       },
     });
 

@@ -21,4 +21,9 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ./
         with:
-          milliseconds: 1000
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
+          repo: return-dispatch
+          owner: codex-
+          workflow: test.yml
+          workflowTimeoutSeconds: 300
