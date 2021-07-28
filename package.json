@@ -9,10 +9,9 @@
     "format:check": "prettier --check **/*.ts",
     "format:write": "npm run format:check -- --write",
     "lint": "eslint src/**/*.ts",
-    "package": "ncc build --source-map",
+    "package": "npm run build && ncc build --source-map",
     "style": "npm run lint && npm run format:check",
-    "test": "jest",
-    "all": "npm run build && npm run style && npm run package && npm test"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
