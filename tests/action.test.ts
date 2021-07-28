@@ -25,7 +25,7 @@ describe("Action", () => {
             return mockEnvConfig.owner;
           case "workflow":
             return mockEnvConfig.workflow;
-          case "workflowTimeoutSeconds":
+          case "workflow_timeout_seconds":
             return mockEnvConfig.workflowTimeoutSeconds;
           default:
             throw new Error("invalid input requested");

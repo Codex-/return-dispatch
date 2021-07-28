@@ -49,7 +49,7 @@ export function getConfig(): ActionConfig {
     owner: core.getInput("owner", { required: true }),
     workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
     workflowTimeoutSeconds:
-      getNumberFromValue(core.getInput("workflowTimeoutSeconds")) ||
+      getNumberFromValue(core.getInput("workflow_timeout_seconds")) ||
       WORKFLOW_TIMEOUT_SECONDS,
   };
 }

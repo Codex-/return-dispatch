@@ -26,4 +26,4 @@ jobs:
           repo: return-dispatch
           owner: codex-
           workflow: dispatch.yml
-          workflowTimeoutSeconds: 300
+          workflow_timeout_seconds: 300

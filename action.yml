@@ -23,7 +23,7 @@ inputs:
   workflow:
     description: "Workflow to return an ID for. Can be the ID or the workflow filename."
     required: true
-  workflowTimeoutSeconds:
+  workflow_timeout_seconds:
     description: "Time until giving up waiting for the start of the workflow run."
     default: 300
 runs:
