@@ -1,4 +1,4 @@
-import core from "@actions/core";
+import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
 import { ActionOutputs, getConfig } from "./action";
 import {
