@@ -18,7 +18,7 @@ steps:
     uses: codex-/return-dispatch@v1
     id: return-dispatch
     with:
-      token: ${{ secrets.GITHUB_TOKEN }}
+      token: ${{ secrets.TOKEN }} # Note this is NOT GITHUB_TOKEN but a PAT
       ref: Target_Branch
       repo: repository-name
       owner: repository-owner
@@ -47,6 +47,12 @@ jobs:
       - name: echo distinct ID.
         run: echo ${{ github.event.inputs.distinct_id }}
 ```
+
+## Token
+
+To be able to use dispatch we need to use a token which has `repo` permissions. `GITHUB_TOKEN` currently does not allow adding permissions for `repo` level permissions currently so a Personal Access Token (PAT) must be used.
+
+The scope required to dispatch the action is `repo:public_repo` or `repo` if the repository is private.
 
 ## Where does this help?
 
