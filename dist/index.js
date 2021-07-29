@@ -206,11 +206,13 @@ async function getWorkflowRunIds(workflowId) {
         if (response.status !== 200) {
             throw new Error(`Failed to get Workflow runs, expected 200 but received ${response.status}`);
         }
+        const runIds = response.data.workflow_runs.map((workflowRun) => workflowRun.id);
         core.debug("Fetched Workflow Runs:\n" +
             `  Repository: ${config.owner}/${config.repo}\n` +
             `  Branch: ${config.ref}\n` +
-            `  Workflow ID: ${workflowId}\n`);
-        return response.data.workflow_runs.map((workflowRun) => workflowRun.id);
+            `  Workflow ID: ${workflowId}\n` +
+            `  Runs Fetched: ${runIds}`);
+        return runIds;
     }
     catch (error) {
         core.error(`getWorkflowRunIds: An unexpected error has occurred: ${error.message}`);

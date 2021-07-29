@@ -107,14 +107,18 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
       );
     }
 
+    const runIds = response.data.workflow_runs.map(
+      (workflowRun) => workflowRun.id
+    );
     core.debug(
       "Fetched Workflow Runs:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch: ${config.ref}\n` +
-        `  Workflow ID: ${workflowId}\n`
+        `  Workflow ID: ${workflowId}\n` +
+        `  Runs Fetched: ${runIds}`
     );
 
-    return response.data.workflow_runs.map((workflowRun) => workflowRun.id);
+    return runIds;
   } catch (error) {
     core.error(
       `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`
