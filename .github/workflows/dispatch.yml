@@ -3,7 +3,9 @@ on:
   workflow_dispatch:
     inputs:
       distinct_id:
+        required: true
       cake: # Test that inputs are carried through as expected.
+        required: true
 
 jobs:
   test:
