@@ -322,8 +322,10 @@ async function run() {
         while (elapsedTime < timeoutMs) {
             attemptNo++;
             elapsedTime = Date.now() - startTime;
+            core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
             // Get all runs for a given workflow ID
             const workflowRunIds = await api.retryOrDie(() => api.getWorkflowRunIds(workflowId), workflowFetchTimeoutMs > timeoutMs ? timeoutMs : workflowFetchTimeoutMs);
+            core.debug(`Attempting to get logs for Run IDs ${workflowRunIds}`);
             /**
              * Attempt to read the distinct ID in the logs
              * for each existing run ID.
