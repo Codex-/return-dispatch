@@ -54,7 +54,7 @@ async function run(): Promise<void> {
         await logs.init(await api.getWorkflowRunLogs(id));
 
         for (const file of logs.getFiles()) {
-          if (logs.fileContainsStr(file, DISTINCT_ID)) {
+          if (await logs.fileContainsStr(file, DISTINCT_ID)) {
             core.info(`Successfully identified remote Run ID: ${id}`);
             core.setOutput(ActionOutputs.runId, id);
             return;
