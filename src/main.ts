@@ -25,17 +25,19 @@ async function run(): Promise<void> {
     // Dispatch the action
     await api.dispatchWorkflow(DISTINCT_ID);
 
+    const timeoutMs = config.workflowTimeoutSeconds * 1000;
+    const workflowFetchTimeoutMs = 60 * 1000;
     let attemptNo = 0;
     let elapsedTime = 0;
     core.info("Attempt to extract run ID from logs...");
-    while (elapsedTime < config.workflowTimeoutSeconds) {
+    while (elapsedTime < timeoutMs) {
       attemptNo++;
       elapsedTime = Date.now() - startTime;
 
       // Get all runs for a given workflow ID
       const workflowRunIds = await api.retryOrDie(
         () => api.getWorkflowRunIds(workflowId),
-        60 * 1000
+        workflowFetchTimeoutMs > timeoutMs ? timeoutMs : workflowFetchTimeoutMs
       );
 
       /**
