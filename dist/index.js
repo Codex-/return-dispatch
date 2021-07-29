@@ -195,7 +195,7 @@ async function getWorkflowId(workflowFilename) {
 exports.getWorkflowId = getWorkflowId;
 async function getWorkflowRunIds(workflowId) {
     try {
-        // https://docs.github.com/en/rest/reference/actions#list-workflow-runs-for-a-repository
+        // https://docs.github.com/en/rest/reference/actions#list-workflow-runs
         const response = await octokit.rest.actions.listWorkflowRuns({
             owner: config.owner,
             repo: config.repo,
@@ -206,6 +206,10 @@ async function getWorkflowRunIds(workflowId) {
         if (response.status !== 200) {
             throw new Error(`Failed to get Workflow runs, expected 200 but received ${response.status}`);
         }
+        core.debug("Fetched Workflow Runs:\n" +
+            `  Repository: ${config.owner}/${config.repo}\n` +
+            `  Branch: ${config.ref}\n` +
+            `  Workflow ID: ${workflowId}\n`);
         return response.data.workflow_runs.map((workflowRun) => workflowRun.id);
     }
     catch (error) {
