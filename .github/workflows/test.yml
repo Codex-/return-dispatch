@@ -14,8 +14,9 @@ jobs:
       - run: npm run format:check
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
-    permissions: # This is needed to  be able to dispatch an action.
-      actions: write
+    # permissions: # This is needed to  be able to dispatch an action.
+    #   actions: write
+    permissions: write-all
     steps:
       - uses: actions/checkout@v2
       - name: Dispatch and return Run ID
