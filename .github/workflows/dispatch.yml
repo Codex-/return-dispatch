@@ -1,4 +1,12 @@
 name: action-test
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       distinct_id:
+#         required: true
+#       cake: # Test for input passthrough.
+#         required: true
+
 on:
   workflow_dispatch:
     inputs:
