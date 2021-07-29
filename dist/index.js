@@ -147,6 +147,10 @@ async function dispatchWorkflow(distinctId) {
         if (response.status !== 204) {
             throw new Error(`Failed to dispatch action, expected 204 but received ${response.status}`);
         }
+        core.debug("response.data");
+        core.debug(response.data);
+        core.debug("response.status");
+        core.debug(`${response.status}`);
         core.info(
         // eslint-disable-next-line prefer-template
         "Successfully dispatched workflow:\n" +
