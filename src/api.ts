@@ -167,7 +167,7 @@ export async function retryOrDie<T>(
       return response;
     }
 
-    await new Promise<void>((resolve) => setTimeout(resolve, 500));
+    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
   }
 
   throw new Error("Timed out while attempting to fetch data");

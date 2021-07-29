@@ -257,7 +257,7 @@ async function retryOrDie(retryFunc, timeoutMs) {
         if (response.length > 0) {
             return response;
         }
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 1000));
     }
     throw new Error("Timed out while attempting to fetch data");
 }
