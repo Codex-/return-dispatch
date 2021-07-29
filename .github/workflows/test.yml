@@ -26,6 +26,6 @@ jobs:
           owner: codex-
           workflow: dispatch.yml
           workflow_inputs: "{\"cake\":\"delicious\"}"
-          workflow_timeout_seconds: 300
+          workflow_timeout_seconds: 30
       - name: Output fetched Run ID
         run: echo ${{ steps.return_dispatch.outputs.run_id}}
