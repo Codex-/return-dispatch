@@ -14,16 +14,13 @@ jobs:
       - run: npm run format:check
   test: # make sure the action works on a clean machine without building
     runs-on: ubuntu-latest
-    # permissions: # This is needed to  be able to dispatch an action.
-    #   actions: write
-    permissions: write-all
     steps:
       - uses: actions/checkout@v2
       - name: Dispatch and return Run ID
         id: return_dispatch
         uses: ./
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.TOKEN }}
           # ref: ${{ github.ref }}
           ref: main
           repo: return-dispatch
