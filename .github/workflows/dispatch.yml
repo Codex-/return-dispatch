@@ -4,7 +4,7 @@ on:
     inputs:
       distinct_id:
         required: true
-      cake: # Test that inputs are carried through as expected.
+      cake: # Test for input passthrough.
         required: true
 
 jobs:
