@@ -317,8 +317,9 @@ async function run() {
         const timeoutMs = config.workflowTimeoutSeconds * 1000;
         const workflowFetchTimeoutMs = 60 * 1000;
         let attemptNo = 0;
-        let elapsedTime = 0;
+        let elapsedTime = Date.now() - startTime;
         core.info("Attempt to extract run ID from logs...");
+        core.debug(`Timeout: ${timeoutMs} Elapsed: ${elapsedTime}`);
         while (elapsedTime < timeoutMs) {
             attemptNo++;
             elapsedTime = Date.now() - startTime;
