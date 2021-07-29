@@ -33,6 +33,11 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       );
     }
 
+    core.debug("response.data");
+    core.debug(response.data);
+    core.debug("response.status");
+    core.debug(`${response.status}`);
+
     core.info(
       // eslint-disable-next-line prefer-template
       "Successfully dispatched workflow:\n" +
