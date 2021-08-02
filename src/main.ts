@@ -61,15 +61,15 @@ async function run(): Promise<void> {
             }
           }
         } catch (error) {
-          if (error.message === "Not Found") {
-            /**
-             * If an attempt to fetch logs for a new run
-             */
-            core.debug(`Could not find logs for Run ID: ${id}, continuing...`);
-            continue;
+          if (error.message !== "Not Found") {
+            throw error;
           }
-
-          throw error;
+          /**
+           * If an attempt to fetch logs for a new run
+           */
+          core.debug(
+            `Could not find remote logs for run: ${id}, continuing...`
+          );
         }
       }
 
