@@ -9,7 +9,7 @@ outputs:
     description: "The identified Run ID."
 inputs:
   token:
-    description: "GitHub API token for making requests."
+    description: "GitHub Personal Access Token for making API requests."
     required: true
   ref:
     description: "The git reference for the workflow. The reference can be a branch or tag name."

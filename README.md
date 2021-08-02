@@ -19,10 +19,11 @@ steps:
     id: return-dispatch
     with:
       token: ${{ secrets.TOKEN }} # Note this is NOT GITHUB_TOKEN but a PAT
-      ref: Target_Branch
+      ref: target_branch # or refs/heads/target_branch
       repo: repository-name
       owner: repository-owner
       workflow: automation-test.yml
+      workflow_inputs: { "some_input": "value" }
       workflow_timeout_seconds: 300
 
   - name: Use the output run ID
