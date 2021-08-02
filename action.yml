@@ -1,5 +1,5 @@
 name: "Return Dispatch"
-description: "Return the run ID for a dispatched action."
+description: "Dispatch an action and return the new run ID."
 author: "Alex Miller"
 branding:
   icon: "refresh-cw"

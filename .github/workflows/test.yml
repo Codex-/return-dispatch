@@ -27,10 +27,11 @@ jobs:
           workflow: dispatch.yml
           workflow_inputs: "{\"cake\":\"delicious\"}"
           workflow_timeout_seconds: 30
-      - name: Output fetched Run ID
+      - name: Evaluate that the Run ID output has been set
         run: |
             if ["${{ steps.return_dispatch.outputs.run_id }}" == ""]; then
               echo "Failed to return Run ID"
               exit 1
             fi
+      - name: Output fetched Run ID
         run: echo ${{ steps.return_dispatch.outputs.run_id }}
