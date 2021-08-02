@@ -21,8 +21,7 @@ jobs:
         uses: ./
         with:
           token: ${{ secrets.TOKEN }}
-          # ref: ${{ github.ref }}
-          ref: main
+          ref: ${{ github.ref }}
           repo: return-dispatch
           owner: codex-
           workflow: dispatch.yml

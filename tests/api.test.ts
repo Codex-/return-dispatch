@@ -21,16 +21,16 @@ interface MockResponse {
 const mockOctokit = {
   rest: {
     actions: {
-      createWorkflowDispatch: async (): Promise<MockResponse> => {
+      createWorkflowDispatch: async (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listRepoWorkflows: async (): Promise<MockResponse> => {
+      listRepoWorkflows: async (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listWorkflowRuns: async (): Promise<MockResponse> => {
+      listWorkflowRuns: async (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      downloadWorkflowRunLogs: async (): Promise<MockResponse> => {
+      downloadWorkflowRunLogs: async (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
     },
@@ -38,8 +38,12 @@ const mockOctokit = {
 };
 
 describe("API", () => {
+  let coreGetInputSpy: jest.SpyInstance<
+    string,
+    [name: string, options?: core.InputOptions]
+  >;
   beforeEach(() => {
-    jest.spyOn(core, "getInput").mockReturnValue("");
+    coreGetInputSpy = jest.spyOn(core, "getInput").mockReturnValue("");
     jest.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
     init();
   });
@@ -161,6 +165,20 @@ describe("API", () => {
   });
 
   describe("getWorkflowRunIds", () => {
+    const workflowIdCfg = {
+      token: "secret",
+      ref: "feature_branch",
+      repo: "repository",
+      owner: "owner",
+      workflow: "workflow_name",
+      workflowInputs: {},
+      workflowTimeoutSeconds: 60,
+    };
+
+    beforeEach(() => {
+      init(workflowIdCfg);
+    });
+
     it("should get the run IDs for a given workflow ID", async () => {
       const mockData = {
         total_count: 3,
@@ -205,6 +223,69 @@ describe("API", () => {
       );
 
       expect(await getWorkflowRunIds(0)).toStrictEqual([]);
+    });
+
+    it("should filter by branch name", async () => {
+      workflowIdCfg.ref = "/refs/heads/master";
+      let parsedRef!: string;
+      jest
+        .spyOn(mockOctokit.rest.actions, "listWorkflowRuns")
+        .mockImplementation(async (req: any) => {
+          parsedRef = req.branch;
+          const mockResponse: MockResponse = {
+            data: {
+              total_count: 0,
+              workflow_runs: [],
+            },
+            status: 200,
+          };
+          return mockResponse;
+        });
+
+      await getWorkflowRunIds(0);
+      expect(parsedRef).toStrictEqual("master");
+    });
+
+    it("should not use a branch filter if using a tag ref", async () => {
+      workflowIdCfg.ref = "/refs/tags/1.5.0";
+      let parsedRef!: string;
+      jest
+        .spyOn(mockOctokit.rest.actions, "listWorkflowRuns")
+        .mockImplementation(async (req: any) => {
+          parsedRef = req.branch;
+          const mockResponse: MockResponse = {
+            data: {
+              total_count: 0,
+              workflow_runs: [],
+            },
+            status: 200,
+          };
+          return mockResponse;
+        });
+
+      await getWorkflowRunIds(0);
+      expect(parsedRef).toBeUndefined();
+    });
+
+    it("should not use a branch filter if non-standard ref", async () => {
+      workflowIdCfg.ref = "/refs/cake";
+      let parsedRef!: string;
+      jest
+        .spyOn(mockOctokit.rest.actions, "listWorkflowRuns")
+        .mockImplementation(async (req: any) => {
+          parsedRef = req.branch;
+          const mockResponse: MockResponse = {
+            data: {
+              total_count: 0,
+              workflow_runs: [],
+            },
+            status: 200,
+          };
+          return mockResponse;
+        });
+
+      await getWorkflowRunIds(0);
+      expect(parsedRef).toBeUndefined();
     });
   });
 

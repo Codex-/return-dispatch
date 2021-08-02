@@ -22,7 +22,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       workflow_id: config.workflow,
       ref: config.ref,
       inputs: {
-        ...(config.workflow_inputs ? config.workflow_inputs : undefined),
+        ...(config.workflowInputs ? config.workflowInputs : undefined),
         distinct_id: distinctId,
       },
     });
@@ -33,19 +33,13 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       );
     }
 
-    core.debug("response.data");
-    core.debug(response.data);
-    core.debug("response.status");
-    core.debug(`${response.status}`);
-
     core.info(
-      // eslint-disable-next-line prefer-template
       "Successfully dispatched workflow:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch: ${config.ref}\n` +
         `  Workflow ID: ${config.workflow}\n` +
-        (config.workflow_inputs
-          ? `  Workflow Inputs: ${JSON.stringify(config.workflow_inputs)}\n`
+        (config.workflowInputs
+          ? `  Workflow Inputs: ${JSON.stringify(config.workflowInputs)}\n`
           : ``) +
         `  Distinct ID: ${distinctId}`
     );
@@ -90,15 +84,45 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
   }
 }
 
+function getBranchNameFromRef(ref: string): string | undefined {
+  const refItems = ref.split(/\/refs\/heads\//);
+  if (refItems.length > 1 && refItems[1].length > 0) {
+    return refItems[1];
+  }
+}
+
+function isTagRef(ref: string): boolean {
+  return new RegExp(/\/refs\/tags\//).test(ref);
+}
+
 export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
   try {
+    let branchName;
+    if (!isTagRef(config.ref)) {
+      /**
+       * This request only accepts a branch name and not a ref (for some reason).
+       *
+       * Attempt to filter the branch name specifically and use that, otherwise do not
+       * filter on a branch name.
+       */
+      const ref = getBranchNameFromRef(config.ref);
+      if (ref) {
+        branchName = {
+          branch: ref,
+          per_page: 5,
+        };
+      }
+
+      core.debug(`getWorkflowRunIds: Filtered branch name: ${ref}`);
+    }
+
     // https://docs.github.com/en/rest/reference/actions#list-workflow-runs
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
-      branch: config.ref,
       workflow_id: workflowId,
       per_page: 10,
+      ...branchName,
     });
 
     if (response.status !== 200) {
@@ -110,12 +134,13 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
     const runIds = response.data.workflow_runs.map(
       (workflowRun) => workflowRun.id
     );
+
     core.debug(
       "Fetched Workflow Runs:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
-        `  Branch: ${config.ref}\n` +
+        (branchName ? `  Branch: ${branchName.branch}\n` : ``) +
         `  Workflow ID: ${workflowId}\n` +
-        `  Runs Fetched: ${runIds}`
+        `  Runs Fetched: [${runIds}]`
     );
 
     return runIds;
@@ -155,6 +180,11 @@ export async function getWorkflowRunLogs(runId: number): Promise<Buffer> {
   } catch (error) {
     core.error(
       `getWorkflowRunLogs: An unexpected error has occurred: ${error.message}`
+    );
+    core.debug(
+      "getWorkflowRunLogs: Attempted to fetch logs for:\n" +
+        `  Repository: ${config.owner}/${config.repo}\n` +
+        `  Run ID: ${runId}`
     );
     error.stack && core.debug(error.stack);
     throw error;

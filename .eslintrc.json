@@ -45,6 +45,7 @@
     "no-shadow": "off",
     "no-unused-vars": "off",
     "object-shorthand": "off",
+    "prefer-template": "off",
     "prettier/prettier": "warn",
     "radix": ["error", "as-needed"]
   }

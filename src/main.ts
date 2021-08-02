@@ -42,7 +42,7 @@ async function run(): Promise<void> {
         workflowFetchTimeoutMs > timeoutMs ? timeoutMs : workflowFetchTimeoutMs
       );
 
-      core.debug(`Attempting to get logs for Run IDs ${workflowRunIds}`);
+      core.debug(`Attempting to get logs for Run IDs: [${workflowRunIds}]`);
 
       /**
        * Attempt to read the distinct ID in the logs
@@ -50,14 +50,26 @@ async function run(): Promise<void> {
        */
       for (const id of workflowRunIds) {
         const logs = new LogZip();
-        await logs.init(await api.getWorkflowRunLogs(id));
+        try {
+          await logs.init(await api.getWorkflowRunLogs(id));
 
-        for (const file of logs.getFiles()) {
-          if (await logs.fileContainsStr(file, DISTINCT_ID)) {
-            core.info(`Successfully identified remote Run ID: ${id}`);
-            core.setOutput(ActionOutputs.runId, id);
-            return;
+          for (const file of logs.getFiles()) {
+            if (await logs.fileContainsStr(file, DISTINCT_ID)) {
+              core.info(`Successfully identified remote Run ID: ${id}`);
+              core.setOutput(ActionOutputs.runId, id);
+              return;
+            }
           }
+        } catch (error) {
+          if (error.message === "Not Found") {
+            /**
+             * If an attempt to fetch logs for a new run
+             */
+            core.debug(`Could not find logs for Run ID: ${id}, continuing...`);
+            continue;
+          }
+
+          throw error;
         }
       }
 

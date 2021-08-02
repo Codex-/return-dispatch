@@ -40,7 +40,7 @@ function getConfig() {
         repo: core.getInput("repo", { required: true }),
         owner: core.getInput("owner", { required: true }),
         workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
-        workflow_inputs: getWorkflowInputs(core.getInput("workflow_inputs")),
+        workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
         workflowTimeoutSeconds: getNumberFromValue(core.getInput("workflow_timeout_seconds")) ||
             WORKFLOW_TIMEOUT_SECONDS,
     };
@@ -140,25 +140,19 @@ async function dispatchWorkflow(distinctId) {
             workflow_id: config.workflow,
             ref: config.ref,
             inputs: {
-                ...(config.workflow_inputs ? config.workflow_inputs : undefined),
+                ...(config.workflowInputs ? config.workflowInputs : undefined),
                 distinct_id: distinctId,
             },
         });
         if (response.status !== 204) {
             throw new Error(`Failed to dispatch action, expected 204 but received ${response.status}`);
         }
-        core.debug("response.data");
-        core.debug(response.data);
-        core.debug("response.status");
-        core.debug(`${response.status}`);
-        core.info(
-        // eslint-disable-next-line prefer-template
-        "Successfully dispatched workflow:\n" +
+        core.info("Successfully dispatched workflow:\n" +
             `  Repository: ${config.owner}/${config.repo}\n` +
             `  Branch: ${config.ref}\n` +
             `  Workflow ID: ${config.workflow}\n` +
-            (config.workflow_inputs
-                ? `  Workflow Inputs: ${JSON.stringify(config.workflow_inputs)}\n`
+            (config.workflowInputs
+                ? `  Workflow Inputs: ${JSON.stringify(config.workflowInputs)}\n`
                 : ``) +
             `  Distinct ID: ${distinctId}`);
     }
@@ -193,15 +187,41 @@ async function getWorkflowId(workflowFilename) {
     }
 }
 exports.getWorkflowId = getWorkflowId;
+function getBranchNameFromRef(ref) {
+    const refItems = ref.split(/\/refs\/heads\//);
+    if (refItems.length > 1 && refItems[1].length > 0) {
+        return refItems[1];
+    }
+}
+function isTagRef(ref) {
+    return new RegExp(/\/refs\/tags\//).test(ref);
+}
 async function getWorkflowRunIds(workflowId) {
     try {
+        let branchName;
+        if (!isTagRef(config.ref)) {
+            /**
+             * This request only accepts a branch name and not a ref (for some reason).
+             *
+             * Attempt to filter the branch name specifically and use that, otherwise do not
+             * filter on a branch name.
+             */
+            const ref = getBranchNameFromRef(config.ref);
+            if (ref) {
+                branchName = {
+                    branch: ref,
+                    per_page: 5,
+                };
+            }
+            core.debug(`getWorkflowRunIds: Filtered branch name: ${ref}`);
+        }
         // https://docs.github.com/en/rest/reference/actions#list-workflow-runs
         const response = await octokit.rest.actions.listWorkflowRuns({
             owner: config.owner,
             repo: config.repo,
-            branch: config.ref,
             workflow_id: workflowId,
             per_page: 10,
+            ...branchName,
         });
         if (response.status !== 200) {
             throw new Error(`Failed to get Workflow runs, expected 200 but received ${response.status}`);
@@ -209,9 +229,9 @@ async function getWorkflowRunIds(workflowId) {
         const runIds = response.data.workflow_runs.map((workflowRun) => workflowRun.id);
         core.debug("Fetched Workflow Runs:\n" +
             `  Repository: ${config.owner}/${config.repo}\n` +
-            `  Branch: ${config.ref}\n` +
+            (branchName ? `  Branch: ${branchName.branch}\n` : ``) +
             `  Workflow ID: ${workflowId}\n` +
-            `  Runs Fetched: ${runIds}`);
+            `  Runs Fetched: [${runIds}]`);
         return runIds;
     }
     catch (error) {
@@ -246,6 +266,9 @@ async function getWorkflowRunLogs(runId) {
     }
     catch (error) {
         core.error(`getWorkflowRunLogs: An unexpected error has occurred: ${error.message}`);
+        core.debug("getWorkflowRunLogs: Attempted to fetch logs for:\n" +
+            `  Repository: ${config.owner}/${config.repo}\n` +
+            `  Run ID: ${runId}`);
         error.stack && core.debug(error.stack);
         throw error;
     }
@@ -325,27 +348,38 @@ async function run() {
         let attemptNo = 0;
         let elapsedTime = Date.now() - startTime;
         core.info("Attempt to extract run ID from logs...");
-        core.debug(`Timeout: ${timeoutMs} Elapsed: ${elapsedTime}`);
         while (elapsedTime < timeoutMs) {
             attemptNo++;
             elapsedTime = Date.now() - startTime;
             core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
             // Get all runs for a given workflow ID
             const workflowRunIds = await api.retryOrDie(() => api.getWorkflowRunIds(workflowId), workflowFetchTimeoutMs > timeoutMs ? timeoutMs : workflowFetchTimeoutMs);
-            core.debug(`Attempting to get logs for Run IDs ${workflowRunIds}`);
+            core.debug(`Attempting to get logs for Run IDs: [${workflowRunIds}]`);
             /**
              * Attempt to read the distinct ID in the logs
              * for each existing run ID.
              */
             for (const id of workflowRunIds) {
                 const logs = new zip_1.LogZip();
-                await logs.init(await api.getWorkflowRunLogs(id));
-                for (const file of logs.getFiles()) {
-                    if (logs.fileContainsStr(file, DISTINCT_ID)) {
-                        core.info(`Successfully identified remote Run ID: ${id}`);
-                        core.setOutput(action_1.ActionOutputs.runId, id);
-                        return;
+                try {
+                    await logs.init(await api.getWorkflowRunLogs(id));
+                    for (const file of logs.getFiles()) {
+                        if (await logs.fileContainsStr(file, DISTINCT_ID)) {
+                            core.info(`Successfully identified remote Run ID: ${id}`);
+                            core.setOutput(action_1.ActionOutputs.runId, id);
+                            return;
+                        }
                     }
+                }
+                catch (error) {
+                    if (error.message === "Not Found") {
+                        /**
+                         * If an attempt to fetch logs for a new run
+                         */
+                        core.debug(`Could not find logs for Run ID: ${id}, continuing...`);
+                        continue;
+                    }
+                    throw error;
                 }
             }
             core.info(`Exhausted fetched logs for known runs, attempt ${attemptNo}...`);
