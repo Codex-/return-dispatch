@@ -30,7 +30,6 @@ async function run(): Promise<void> {
     let attemptNo = 0;
     let elapsedTime = Date.now() - startTime;
     core.info("Attempt to extract run ID from logs...");
-    core.debug(`Timeout: ${timeoutMs} Elapsed: ${elapsedTime}`);
     while (elapsedTime < timeoutMs) {
       attemptNo++;
       elapsedTime = Date.now() - startTime;
