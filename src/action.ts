@@ -34,7 +34,7 @@ export interface ActionConfig {
   /**
    * A flat JSON object, only supports strings (as per workflow inputs API).
    */
-  workflow_inputs?: ActionWorkflowInputs;
+  workflowInputs?: ActionWorkflowInputs;
 
   /**
    * Time until giving up waiting for the start of the workflow run.
@@ -57,7 +57,7 @@ export function getConfig(): ActionConfig {
     repo: core.getInput("repo", { required: true }),
     owner: core.getInput("owner", { required: true }),
     workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
-    workflow_inputs: getWorkflowInputs(core.getInput("workflow_inputs")),
+    workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
     workflowTimeoutSeconds:
       getNumberFromValue(core.getInput("workflow_timeout_seconds")) ||
       WORKFLOW_TIMEOUT_SECONDS,

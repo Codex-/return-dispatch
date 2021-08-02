@@ -7,6 +7,7 @@ describe("Action", () => {
   };
 
   describe("getConfig", () => {
+    // Represent the process.env inputs.
     let mockEnvConfig: any;
 
     beforeEach(() => {
@@ -16,8 +17,8 @@ describe("Action", () => {
         repo: "repository",
         owner: "owner",
         workflow: "workflow_name",
-        workflowInputs: JSON.stringify(workflowInputs),
-        workflowTimeoutSeconds: "60",
+        workflow_inputs: JSON.stringify(workflowInputs),
+        workflow_timeout_seconds: 60,
       };
 
       jest.spyOn(core, "getInput").mockImplementation((input: string) => {
@@ -33,9 +34,9 @@ describe("Action", () => {
           case "workflow":
             return mockEnvConfig.workflow;
           case "workflow_inputs":
-            return mockEnvConfig.workflowInputs;
+            return mockEnvConfig.workflow_inputs;
           case "workflow_timeout_seconds":
-            return mockEnvConfig.workflowTimeoutSeconds;
+            return mockEnvConfig.workflow_timeout_seconds;
           default:
             throw new Error("invalid input requested");
         }
@@ -55,7 +56,7 @@ describe("Action", () => {
       expect(config.repo).toStrictEqual("repository");
       expect(config.owner).toStrictEqual("owner");
       expect(config.workflow).toStrictEqual("workflow_name");
-      expect(config.workflow_inputs).toStrictEqual(workflowInputs);
+      expect(config.workflowInputs).toStrictEqual(workflowInputs);
       expect(config.workflowTimeoutSeconds).toStrictEqual(60);
     });
 
@@ -67,27 +68,27 @@ describe("Action", () => {
     });
 
     it("should provide a default workflow timeout if none is supplied", () => {
-      mockEnvConfig.workflowTimeoutSeconds = "";
+      mockEnvConfig.workflow_timeout_seconds = "";
       const config: ActionConfig = getConfig();
 
       expect(config.workflowTimeoutSeconds).toStrictEqual(300);
     });
 
     it("should handle no inputs being provided", () => {
-      mockEnvConfig.workflowInputs = "";
+      mockEnvConfig.workflow_inputs = "";
       const config: ActionConfig = getConfig();
 
-      expect(config.workflow_inputs).toBeUndefined();
+      expect(config.workflowInputs).toBeUndefined();
     });
 
     it("should throw if invalid workflow inputs JSON is provided", () => {
-      mockEnvConfig.workflowInputs = "{";
+      mockEnvConfig.workflow_inputs = "{";
 
       expect(() => getConfig()).toThrowError();
     });
 
     it("should throw if a workflow inputs JSON is contains non-strings", () => {
-      mockEnvConfig.workflowInputs =
+      mockEnvConfig.workflow_inputs =
         '{"cake":"delicious","pie":{"powerLevel":9001}}';
 
       expect(() => getConfig()).toThrowError();
