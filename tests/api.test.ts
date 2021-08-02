@@ -38,12 +38,8 @@ const mockOctokit = {
 };
 
 describe("API", () => {
-  let coreGetInputSpy: jest.SpyInstance<
-    string,
-    [name: string, options?: core.InputOptions]
-  >;
   beforeEach(() => {
-    coreGetInputSpy = jest.spyOn(core, "getInput").mockReturnValue("");
+    jest.spyOn(core, "getInput").mockReturnValue("");
     jest.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
     init();
   });
