@@ -88,6 +88,7 @@ async function run(): Promise<void> {
     throw new Error("Timeout exceeded while attempting to get Run ID");
   } catch (error) {
     core.error(`Failed to complete: ${error.message}`);
+    core.warning("Does the token have the correct permissions?");
     error.stack && core.debug(error.stack);
     core.setFailed(error.message);
   }

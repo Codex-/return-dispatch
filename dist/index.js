@@ -326,6 +326,8 @@ const action_1 = __nccwpck_require__(9139);
 const api = __importStar(__nccwpck_require__(8947));
 const zip_1 = __nccwpck_require__(3458);
 const DISTINCT_ID = uuid_1.v4();
+const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
+const WORKFLOW_LOGS_RETRY_MS = 2500;
 async function run() {
     try {
         const config = action_1.getConfig();
@@ -344,7 +346,6 @@ async function run() {
         // Dispatch the action
         await api.dispatchWorkflow(DISTINCT_ID);
         const timeoutMs = config.workflowTimeoutSeconds * 1000;
-        const workflowFetchTimeoutMs = 60 * 1000;
         let attemptNo = 0;
         let elapsedTime = Date.now() - startTime;
         core.info("Attempt to extract run ID from logs...");
@@ -353,7 +354,9 @@ async function run() {
             elapsedTime = Date.now() - startTime;
             core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
             // Get all runs for a given workflow ID
-            const workflowRunIds = await api.retryOrDie(() => api.getWorkflowRunIds(workflowId), workflowFetchTimeoutMs > timeoutMs ? timeoutMs : workflowFetchTimeoutMs);
+            const workflowRunIds = await api.retryOrDie(() => api.getWorkflowRunIds(workflowId), WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs
+                ? timeoutMs
+                : WORKFLOW_FETCH_TIMEOUT_MS);
             core.debug(`Attempting to get logs for Run IDs: [${workflowRunIds}]`);
             /**
              * Attempt to read the distinct ID in the logs
@@ -382,12 +385,13 @@ async function run() {
                 }
             }
             core.info(`Exhausted fetched logs for known runs, attempt ${attemptNo}...`);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, WORKFLOW_LOGS_RETRY_MS));
         }
         throw new Error("Timeout exceeded while attempting to get Run ID");
     }
     catch (error) {
         core.error(`Failed to complete: ${error.message}`);
+        core.warning("Does the token have the correct permissions?");
         error.stack && core.debug(error.stack);
         core.setFailed(error.message);
     }
