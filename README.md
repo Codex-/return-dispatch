@@ -23,8 +23,8 @@ steps:
       repo: repository-name
       owner: repository-owner
       workflow: automation-test.yml
-      workflow_inputs: { "some_input": "value" }
-      workflow_timeout_seconds: 300
+      workflow_inputs: { "some_input": "value" } # Optional
+      workflow_timeout_seconds: 60 # Default: 300
 
   - name: Use the output run ID
     run: echo ${{steps.return-dispatch.outputs.runId}}
@@ -53,7 +53,41 @@ jobs:
 
 To be able to use dispatch we need to use a token which has `repo` permissions. `GITHUB_TOKEN` currently does not allow adding permissions for `repo` level permissions currently so a Personal Access Token (PAT) must be used.
 
-The scope required to dispatch the action is `repo:public_repo` or `repo` if the repository is private.
+### Permissions Required
+
+The permissions required for this action to function correctly are:
+
+- `repo` scope
+  - You may get away with simply having `repo:public_repo`
+  - `repo` is definitely needed if the repository is private.
+- `actions:read`
+- `actions:write`
+
+### APIs Used
+
+For the sake of transparency please note that this action uses the following API calls:
+
+- [Create a workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event)
+  - POST `/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`
+  - Permissions:
+    - `repo`
+    - `actions:write`
+- [List repository workflows](https://docs.github.com/en/rest/reference/actions#list-repository-workflows)
+  - GET `/repos/{owner}/{repo}/actions/workflows`
+  - Permissions:
+    - `repo`
+    - `actions:read`
+- [List workflow runs](https://docs.github.com/en/rest/reference/actions#list-workflow-runs)
+  - GET `/repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
+  - Permissions:
+    - `repo`
+- [Download workflow run logs](https://docs.github.com/en/rest/reference/actions#download-workflow-run-logs)
+  - GET `/repos/{owner}/{repo}/actions/runs/{run_id}/logs`
+  - Permissions:
+    - `repo`
+    - `actions:read`
+
+For more information please see [api.ts](./src/api.ts).
 
 ## Where does this help?
 
