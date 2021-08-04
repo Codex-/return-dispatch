@@ -1,6 +1,6 @@
 {
   "name": "return-dispatch",
-  "version": "0.0.0",
+  "version": "1.0.2",
   "private": true,
   "description": "Dispatch an action and output the run ID.",
   "main": "lib/main.js",
@@ -27,14 +27,13 @@
   "dependencies": {
     "@actions/core": "^1.4.0",
     "@actions/github": "^5.0.0",
-    "jszip": "^3.7.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@types/jest": "^26.0.24",
     "@types/node": "^16.4.10",
     "@types/uuid": "^8.3.1",
-    "@typescript-eslint/parser": "^4.28.5",
+    "@typescript-eslint/parser": "^4.29.0",
     "@vercel/ncc": "^0.29.0",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-typescript": "^12.3.1",

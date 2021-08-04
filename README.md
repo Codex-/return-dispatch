@@ -32,6 +32,8 @@ steps:
 
 ### Receiving Repository Action
 
+In the earliest possible stage for the Action, add the input into the name.
+
 Simply `echo` the input as early as possible in the run.
 
 ```yaml
@@ -81,8 +83,8 @@ For the sake of transparency please note that this action uses the following API
   - GET `/repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
   - Permissions:
     - `repo`
-- [Download workflow run logs](https://docs.github.com/en/rest/reference/actions#download-workflow-run-logs)
-  - GET `/repos/{owner}/{repo}/actions/runs/{run_id}/logs`
+- [List jobs for a workflow run](https://docs.github.com/en/rest/reference/actions#list-jobs-for-a-workflow-run)
+  - GET `/repos/{owner}/{repo}/actions/runs/{run_id}/jobs`
   - Permissions:
     - `repo`
     - `actions:read`
@@ -109,7 +111,7 @@ The consequence of not being provided with something to identify the run is that
         │
         ▼                          ┌───────────────┐
 ┌────────────────┐                 │               │
-│                │                 │ Download logs │
+│                │                 │ Request steps │
 │ Request top 10 ├────────────────►│               │
 │                │                 │ for each run  │
 │ workflow runs  │                 │               │

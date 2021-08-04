@@ -2,11 +2,10 @@ import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
 import { ActionOutputs, getConfig } from "./action";
 import * as api from "./api";
-import { LogZip } from "./zip";
 
 const DISTINCT_ID = uuid();
 const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
-const WORKFLOW_LOGS_RETRY_MS = 2500;
+const WORKFLOW_JOB_STEPS_RETRY_MS = 5000;
 
 async function run(): Promise<void> {
   try {
@@ -30,7 +29,7 @@ async function run(): Promise<void> {
     const timeoutMs = config.workflowTimeoutSeconds * 1000;
     let attemptNo = 0;
     let elapsedTime = Date.now() - startTime;
-    core.info("Attempt to extract run ID from logs...");
+    core.info("Attempt to extract run ID from steps...");
     while (elapsedTime < timeoutMs) {
       attemptNo++;
       elapsedTime = Date.now() - startTime;
@@ -45,19 +44,22 @@ async function run(): Promise<void> {
           : WORKFLOW_FETCH_TIMEOUT_MS
       );
 
-      core.debug(`Attempting to get logs for Run IDs: [${workflowRunIds}]`);
+      core.debug(
+        `Attempting to get step names for Run IDs: [${workflowRunIds}]`
+      );
+
+      const idRegex = new RegExp(DISTINCT_ID);
 
       /**
-       * Attempt to read the distinct ID in the logs
+       * Attempt to read the distinct ID in the steps
        * for each existing run ID.
        */
       for (const id of workflowRunIds) {
-        const logs = new LogZip();
         try {
-          await logs.init(await api.getWorkflowRunLogs(id));
+          const steps = await api.getWorkflowRunJobSteps(id);
 
-          for (const file of logs.getFiles()) {
-            if (await logs.fileContainsStr(file, DISTINCT_ID)) {
+          for (const step of steps) {
+            if (idRegex.test(step)) {
               core.info(`Successfully identified remote Run ID: ${id}`);
               core.setOutput(ActionOutputs.runId, id);
               return;
@@ -67,21 +69,16 @@ async function run(): Promise<void> {
           if (error.message !== "Not Found") {
             throw error;
           }
-          /**
-           * If an attempt to fetch logs for a new run
-           */
-          core.debug(
-            `Could not find remote logs for run: ${id}, continuing...`
-          );
+          core.debug(`Could not identify ID in run: ${id}, continuing...`);
         }
       }
 
       core.info(
-        `Exhausted fetched logs for known runs, attempt ${attemptNo}...`
+        `Exhausted searching IDs in known runs, attempt ${attemptNo}...`
       );
 
       await new Promise((resolve) =>
-        setTimeout(resolve, WORKFLOW_LOGS_RETRY_MS)
+        setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS)
       );
     }
 

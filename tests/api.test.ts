@@ -1,5 +1,3 @@
-import * as fs from "fs";
-import * as path from "path";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { v4 as uuid } from "uuid";
@@ -8,7 +6,7 @@ import {
   dispatchWorkflow,
   getWorkflowId,
   getWorkflowRunIds,
-  getWorkflowRunLogs,
+  getWorkflowRunJobSteps,
   init,
   retryOrDie,
 } from "../src/api";
@@ -31,6 +29,9 @@ const mockOctokit = {
         throw new Error("Should be mocked");
       },
       downloadWorkflowRunLogs: async (_req?: any): Promise<MockResponse> => {
+        throw new Error("Should be mocked");
+      },
+      listJobsForWorkflowRun: async (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
     },
@@ -285,41 +286,77 @@ describe("API", () => {
     });
   });
 
-  describe("getWorkflowRunLogs", () => {
-    const zipPath = path.join(__dirname, "static", "logs.zip");
-    let zipData: ArrayBuffer;
-
-    beforeAll(() => {
-      const zipBuffer = fs.readFileSync(zipPath);
-
-      // Octokit returns an ArrayBuffer
-      zipData = zipBuffer.buffer.slice(
-        zipBuffer.byteOffset,
-        zipBuffer.byteOffset + zipBuffer.byteLength
-      );
-    });
-
-    it("should return the data as a raw string", async () => {
+  describe("getWorkflowRunJobSteps", () => {
+    it("should get the step names for a given Workflow Run ID", async () => {
+      const mockData = {
+        total_count: 1,
+        jobs: [
+          {
+            id: 0,
+            steps: [
+              {
+                name: "Test Step 1",
+                number: 1,
+              },
+              {
+                name: "Test Step 2",
+                number: 2,
+              },
+            ],
+          },
+        ],
+      };
       jest
-        .spyOn(mockOctokit.rest.actions, "downloadWorkflowRunLogs")
+        .spyOn(mockOctokit.rest.actions, "listJobsForWorkflowRun")
         .mockReturnValue(
           Promise.resolve({
-            data: zipData,
-            /**
-             * Documentation states that this should be 302 but
-             * I only got 200 when testing against the live API.
-             */
+            data: mockData,
             status: 200,
           })
         );
 
-      const zipBuffer = await getWorkflowRunLogs(0);
-      expect(zipBuffer.byteLength).toStrictEqual(zipData.byteLength);
-      /**
-       * Because one is of type Buffer and the other ArrayBuffer,
-       * create primitive collections of their data.
-       */
-      expect(new Uint8Array(zipBuffer)).toEqual(new Uint8Array(zipData));
+      expect(await getWorkflowRunJobSteps(0)).toStrictEqual([
+        "Test Step 1",
+        "Test Step 2",
+      ]);
+    });
+
+    it("should throw if a non-200 status is returned", async () => {
+      const errorStatus = 401;
+      jest
+        .spyOn(mockOctokit.rest.actions, "listJobsForWorkflowRun")
+        .mockReturnValue(
+          Promise.resolve({
+            data: undefined,
+            status: errorStatus,
+          })
+        );
+
+      await expect(getWorkflowRunJobSteps(0)).rejects.toThrow(
+        `Failed to get Workflow Run Jobs, expected 200 but received ${errorStatus}`
+      );
+    });
+
+    it("should return an empty array if there are no steps", async () => {
+      const mockData = {
+        total_count: 1,
+        jobs: [
+          {
+            id: 0,
+            steps: undefined,
+          },
+        ],
+      };
+      jest
+        .spyOn(mockOctokit.rest.actions, "listJobsForWorkflowRun")
+        .mockReturnValue(
+          Promise.resolve({
+            data: mockData,
+            status: 200,
+          })
+        );
+
+      expect(await getWorkflowRunJobSteps(0)).toStrictEqual([]);
     });
   });
 

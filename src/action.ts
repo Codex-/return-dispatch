@@ -37,7 +37,7 @@ export interface ActionConfig {
   workflowInputs?: ActionWorkflowInputs;
 
   /**
-   * Time until giving up waiting for the start of the workflow run.
+   * Time until giving up on identifying the Run ID.
    */
   workflowTimeoutSeconds: number;
 }

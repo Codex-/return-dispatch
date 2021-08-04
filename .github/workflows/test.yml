@@ -29,7 +29,7 @@ jobs:
           workflow_timeout_seconds: 30
       - name: Evaluate that the Run ID output has been set
         run: |
-            if ["${{ steps.return_dispatch.outputs.run_id }}" == ""]; then
+            if [ "${{ steps.return_dispatch.outputs.run_id }}" == "" ]; then
               echo "Failed to return Run ID"
               exit 1
             fi

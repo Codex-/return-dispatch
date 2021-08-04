@@ -153,38 +153,40 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
   }
 }
 
-export async function getWorkflowRunLogs(runId: number): Promise<Buffer> {
+export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
   try {
-    // https://docs.github.com/en/rest/reference/actions#download-workflow-run-logs
-    const response = await octokit.rest.actions.downloadWorkflowRunLogs({
+    // https://docs.github.com/en/rest/reference/actions#list-jobs-for-a-workflow-run
+    const response = await octokit.rest.actions.listJobsForWorkflowRun({
       owner: config.owner,
       repo: config.repo,
       run_id: runId,
+      filter: "latest",
     });
 
-    /**
-     * To be consistent with the other API requests we'd assert that the returned
-     * status code was what the documentation had asserted in the specification.
-     *
-     * However, the documentation does not align with the actual status returned.
-     *
-     * Documentation states: 302
-     * Actual response status: 200
-     */
+    if (response.status !== 200) {
+      throw new Error(
+        `Failed to get Workflow Run Jobs, expected 200 but received ${response.status}`
+      );
+    }
 
-    /**
-     * Octokit returns an ArrayBuffer, which is a narrowed type of Buffer.
-     */
-    const data = response.data as ArrayBuffer;
-    return Buffer.from(data);
+    const jobs = response.data.jobs.map((job) => ({
+      id: job.id,
+      steps: job.steps?.map((step) => step.name) || [],
+    }));
+    const steps = Array.from(new Set(jobs.flatMap((job) => job.steps)));
+
+    core.debug(
+      "Fetched Workflow Run Job Steps:\n" +
+        `  Repository: ${config.owner}/${config.repo}\n` +
+        `  Workflow Run ID: ${runId}\n` +
+        `  Jobs Fetched: [${jobs.map((job) => job.id)}]` +
+        `  Steps Fetched: [${steps}]`
+    );
+
+    return steps;
   } catch (error) {
     core.error(
-      `getWorkflowRunLogs: An unexpected error has occurred: ${error.message}`
-    );
-    core.debug(
-      "getWorkflowRunLogs: Attempted to fetch logs for:\n" +
-        `  Repository: ${config.owner}/${config.repo}\n` +
-        `  Run ID: ${runId}`
+      `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`
     );
     error.stack && core.debug(error.stack);
     throw error;
