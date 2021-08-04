@@ -24,17 +24,17 @@ steps:
       owner: repository-owner
       workflow: automation-test.yml
       workflow_inputs: { "some_input": "value" } # Optional
-      workflow_timeout_seconds: 60 # Default: 300
+      workflow_timeout_seconds: 120 # Default: 300
 
   - name: Use the output run ID
-    run: echo ${{steps.return-dispatch.outputs.runId}}
+    run: echo ${{steps.return-dispatch.outputs.run_id}}
 ```
 
 ### Receiving Repository Action
 
 In the earliest possible stage for the Action, add the input into the name.
 
-Simply `echo` the input as early as possible in the run.
+As every step needs a `uses` or `run`, simply `echo` the ID or similar to satisfy this requirement.
 
 ```yaml
 name: action-test
@@ -47,7 +47,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: echo distinct ID.
+      - name: echo distinct ID ${{ github.event.inputs.distinct_id }}
         run: echo ${{ github.event.inputs.distinct_id }}
 ```
 
