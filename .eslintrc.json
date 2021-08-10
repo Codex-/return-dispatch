@@ -28,6 +28,7 @@
       { "argsIgnorePattern": "^_" }
     ],
     "camelcase": "off",
+    "i18n-text/no-en": "off",
     "import/no-extraneous-dependencies": [
       "error",
       {
@@ -47,6 +48,7 @@
     "object-shorthand": "off",
     "prefer-template": "off",
     "prettier/prettier": "warn",
-    "radix": ["error", "as-needed"]
+    "radix": ["error", "as-needed"],
+    "sort-imports": "off"
   }
 }
