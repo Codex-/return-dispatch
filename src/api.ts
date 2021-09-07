@@ -44,10 +44,12 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
         `  Distinct ID: ${distinctId}`
     );
   } catch (error) {
-    core.error(
-      `dispatchWorkflow: An unexpected error has occurred: ${error.message}`
-    );
-    error.stack && core.debug(error.stack);
+    if (error instanceof Error) {
+      core.error(
+        `dispatchWorkflow: An unexpected error has occurred: ${error.message}`
+      );
+      error.stack && core.debug(error.stack);
+    }
     throw error;
   }
 }
@@ -76,10 +78,12 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
 
     return workflowId;
   } catch (error) {
-    core.error(
-      `getWorkflowId: An unexpected error has occurred: ${error.message}`
-    );
-    error.stack && core.debug(error.stack);
+    if (error instanceof Error) {
+      core.error(
+        `getWorkflowId: An unexpected error has occurred: ${error.message}`
+      );
+      error.stack && core.debug(error.stack);
+    }
     throw error;
   }
 }
@@ -145,10 +149,12 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
 
     return runIds;
   } catch (error) {
-    core.error(
-      `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`
-    );
-    error.stack && core.debug(error.stack);
+    if (error instanceof Error) {
+      core.error(
+        `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`
+      );
+      error.stack && core.debug(error.stack);
+    }
     throw error;
   }
 }
@@ -185,10 +191,12 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
 
     return steps;
   } catch (error) {
-    core.error(
-      `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`
-    );
-    error.stack && core.debug(error.stack);
+    if (error instanceof Error) {
+      core.error(
+        `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`
+      );
+      error.stack && core.debug(error.stack);
+    }
     throw error;
   }
 }

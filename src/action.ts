@@ -102,7 +102,9 @@ function getWorkflowInputs(
     return parsedJson;
   } catch (error) {
     core.error("Failed to parse workflow_inputs JSON");
-    error.stack && core.debug(error.stack);
+    if (error instanceof Error) {
+      error.stack && core.debug(error.stack);
+    }
     throw error;
   }
 }

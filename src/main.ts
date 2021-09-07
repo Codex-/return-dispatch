@@ -66,7 +66,7 @@ async function run(): Promise<void> {
             }
           }
         } catch (error) {
-          if (error.message !== "Not Found") {
+          if (error instanceof Error && error.message !== "Not Found") {
             throw error;
           }
           core.debug(`Could not identify ID in run: ${id}, continuing...`);
@@ -84,10 +84,12 @@ async function run(): Promise<void> {
 
     throw new Error("Timeout exceeded while attempting to get Run ID");
   } catch (error) {
-    core.error(`Failed to complete: ${error.message}`);
-    core.warning("Does the token have the correct permissions?");
-    error.stack && core.debug(error.stack);
-    core.setFailed(error.message);
+    if (error instanceof Error) {
+      core.error(`Failed to complete: ${error.message}`);
+      core.warning("Does the token have the correct permissions?");
+      error.stack && core.debug(error.stack);
+      core.setFailed(error.message);
+    }
   }
 }
 
