@@ -28,7 +28,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getConfig = exports.ActionOutputs = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
+const WORKFLOW_TIMEOUT_SECONDS = 30 * 60;
 var ActionOutputs;
 (function (ActionOutputs) {
     ActionOutputs["runId"] = "run_id";
