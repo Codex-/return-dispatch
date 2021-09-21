@@ -77,7 +77,9 @@ function getWorkflowInputs(workflowInputs) {
     }
     catch (error) {
         core.error("Failed to parse workflow_inputs JSON");
-        error.stack && core.debug(error.stack);
+        if (error instanceof Error) {
+            error.stack && core.debug(error.stack);
+        }
         throw error;
     }
 }
@@ -127,7 +129,7 @@ const action_1 = __nccwpck_require__(9139);
 let config;
 let octokit;
 function init(cfg) {
-    config = cfg || action_1.getConfig();
+    config = cfg || (0, action_1.getConfig)();
     octokit = github.getOctokit(config.token);
 }
 exports.init = init;
@@ -157,8 +159,10 @@ async function dispatchWorkflow(distinctId) {
             `  Distinct ID: ${distinctId}`);
     }
     catch (error) {
-        core.error(`dispatchWorkflow: An unexpected error has occurred: ${error.message}`);
-        error.stack && core.debug(error.stack);
+        if (error instanceof Error) {
+            core.error(`dispatchWorkflow: An unexpected error has occurred: ${error.message}`);
+            error.stack && core.debug(error.stack);
+        }
         throw error;
     }
 }
@@ -181,8 +185,10 @@ async function getWorkflowId(workflowFilename) {
         return workflowId;
     }
     catch (error) {
-        core.error(`getWorkflowId: An unexpected error has occurred: ${error.message}`);
-        error.stack && core.debug(error.stack);
+        if (error instanceof Error) {
+            core.error(`getWorkflowId: An unexpected error has occurred: ${error.message}`);
+            error.stack && core.debug(error.stack);
+        }
         throw error;
     }
 }
@@ -235,8 +241,10 @@ async function getWorkflowRunIds(workflowId) {
         return runIds;
     }
     catch (error) {
-        core.error(`getWorkflowRunIds: An unexpected error has occurred: ${error.message}`);
-        error.stack && core.debug(error.stack);
+        if (error instanceof Error) {
+            core.error(`getWorkflowRunIds: An unexpected error has occurred: ${error.message}`);
+            error.stack && core.debug(error.stack);
+        }
         throw error;
     }
 }
@@ -269,8 +277,10 @@ async function getWorkflowRunJobSteps(runId) {
         return steps;
     }
     catch (error) {
-        core.error(`getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`);
-        error.stack && core.debug(error.stack);
+        if (error instanceof Error) {
+            core.error(`getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`);
+            error.stack && core.debug(error.stack);
+        }
         throw error;
     }
 }
@@ -325,12 +335,12 @@ const core = __importStar(__nccwpck_require__(2186));
 const uuid_1 = __nccwpck_require__(5840);
 const action_1 = __nccwpck_require__(9139);
 const api = __importStar(__nccwpck_require__(8947));
-const DISTINCT_ID = uuid_1.v4();
+const DISTINCT_ID = (0, uuid_1.v4)();
 const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
 const WORKFLOW_JOB_STEPS_RETRY_MS = 5000;
 async function run() {
     try {
-        const config = action_1.getConfig();
+        const config = (0, action_1.getConfig)();
         const startTime = Date.now();
         api.init(config);
         let workflowId;
@@ -375,7 +385,7 @@ async function run() {
                     }
                 }
                 catch (error) {
-                    if (error.message !== "Not Found") {
+                    if (error instanceof Error && error.message !== "Not Found") {
                         throw error;
                     }
                     core.debug(`Could not identify ID in run: ${id}, continuing...`);
@@ -387,10 +397,12 @@ async function run() {
         throw new Error("Timeout exceeded while attempting to get Run ID");
     }
     catch (error) {
-        core.error(`Failed to complete: ${error.message}`);
-        core.warning("Does the token have the correct permissions?");
-        error.stack && core.debug(error.stack);
-        core.setFailed(error.message);
+        if (error instanceof Error) {
+            core.error(`Failed to complete: ${error.message}`);
+            core.warning("Does the token have the correct permissions?");
+            error.stack && core.debug(error.stack);
+            core.setFailed(error.message);
+        }
     }
 }
 (() => run())();
