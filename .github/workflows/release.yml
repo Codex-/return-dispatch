@@ -1,0 +1,66 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        description: Version number to increment
+        required: true
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    env:
+      CI: true
+      GITHUB_TOKEN: ${{ secrets.ACTION_GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need history for changelog generation
+      - name: Set Node.js lts
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Package
+        run: npm run package
+        # We need to make sure the checked-in `index.js` actually matches what we expect it to be.
+      - name: Compare the expected and actual dist/ directories
+        run: |
+          if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build.  See status below:"
+            git diff
+            exit 1
+          fi
+        id: diff
+      # If index.js was different than expected, upload the expected version as an artifact
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() && steps.diff.conclusion == 'failure' }}
+        with:
+          name: dist
+          path: dist/
+      - name: test
+        id: test
+        if: ${{ always() }}
+        run: npm run test -- --coverage
+      - name: lint
+        if: ${{ always() }}
+        run: npm run lint
+      - name: style
+        if: ${{ always() }}
+        run: npm run format:check
+      - name: config git user
+        run: |
+          git config --global user.name ${{ secrets.ACTION_GITHUB_USERNAME }};
+          git config --global user.email ${{ secrets.ACTION_GITHUB_EMAIL }};
+      - name: perform release
+        run: |
+          npm run release -- \
+            ${{ github.event.inputs.version }} \
+            --ci

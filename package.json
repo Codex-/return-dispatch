@@ -10,6 +10,7 @@
     "format:write": "npm run format:check -- --write",
     "lint": "eslint src/**/*.ts",
     "package": "npm run build && ncc build --source-map",
+    "release": "release-it",
     "test": "jest"
   },
   "repository": {
@@ -44,6 +45,7 @@
     "jest-circus": "^27.5.1",
     "js-yaml": "^4.1.0",
     "prettier": "2.6.2",
+    "release-it": "^14.14.2",
     "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
   }
