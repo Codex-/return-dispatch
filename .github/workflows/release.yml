@@ -39,7 +39,7 @@ jobs:
             exit 1
           fi
         id: diff
-      # If index.js was different than expected, upload the expected version as an artifact
+        # If index.js was different than expected, upload the expected version as an artifact
       - uses: actions/upload-artifact@v3
         if: ${{ failure() && steps.diff.conclusion == 'failure' }}
         with:
@@ -64,3 +64,6 @@ jobs:
           npm run release -- \
             ${{ github.event.inputs.version }} \
             --ci
+      - name: codecov # Perform after version publishing
+        if: steps.test.outcome == 'success'
+        uses: codecov/codecov-action@v2

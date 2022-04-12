@@ -4,18 +4,25 @@ on:
   push:
 
 jobs:
-  build: # make sure build/ci work properly
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: npm ci
-      - run: npm run test
-      - run: npm run lint
-      - run: npm run format:check
-  test: # make sure the action works on a clean machine without building
+      - name: test
+        id: test
+        if: ${{ always() }}
+        run: npm run test
+      - name: lint
+        if: ${{ always() }}
+        run: npm run lint
+      - name: style
+        if: ${{ always() }}
+        run: npm run format:check
+  test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Dispatch and return Run ID
         id: return_dispatch
         uses: ./
@@ -25,13 +32,31 @@ jobs:
           repo: return-dispatch
           owner: codex-
           workflow: dispatch.yml
-          workflow_inputs: "{\"cake\":\"delicious\"}"
+          workflow_inputs: '{"cake":"delicious"}'
           workflow_timeout_seconds: 30
       - name: Evaluate that the Run ID output has been set
         run: |
-            if [ "${{ steps.return_dispatch.outputs.run_id }}" == "" ]; then
-              echo "Failed to return Run ID"
-              exit 1
-            fi
+          if [ "${{ steps.return_dispatch.outputs.run_id }}" == "" ]; then
+            echo "Failed to return Run ID"
+            exit 1
+          fi
       - name: Output fetched Run ID
         run: echo ${{ steps.return_dispatch.outputs.run_id }}
+  codecov: # Send only a single coverage report per run
+    needs: [build, test]
+    timeout-minutes: 15
+    env:
+      CI: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js lts
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
+      - name: test
+        run: npm run test -- --coverage
+      - name: codecov
+        uses: codecov/codecov-action@v2
