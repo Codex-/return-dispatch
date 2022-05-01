@@ -5,7 +5,7 @@
   "parserOptions": {
     "ecmaVersion": 10,
     "sourceType": "module",
-    "project": "./tsconfig.lint.json"
+    "project": "./tsconfig.json"
   },
   "env": {
     "node": true,
