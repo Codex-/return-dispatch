@@ -18,7 +18,7 @@ describe("Action", () => {
         owner: "owner",
         workflow: "workflow_name",
         workflow_inputs: JSON.stringify(workflowInputs),
-        workflow_timeout_seconds: 60,
+        workflow_timeout_seconds: "60",
       };
 
       jest.spyOn(core, "getInput").mockImplementation((input: string) => {
