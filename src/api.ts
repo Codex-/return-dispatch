@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import type { GitHub } from "@actions/github/lib/utils";
 import { ActionConfig, getConfig } from "./action";
+import { getBranchName } from "./utils";
 
 type Octokit = InstanceType<typeof GitHub>;
 
@@ -88,45 +89,23 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
   }
 }
 
-function getBranchNameFromRef(ref: string): string | undefined {
-  const refItems = ref.split(/\/refs\/heads\//);
-  if (refItems.length > 1 && refItems[1].length > 0) {
-    return refItems[1];
-  }
-}
-
-function isTagRef(ref: string): boolean {
-  return new RegExp(/\/refs\/tags\//).test(ref);
-}
-
 export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
   try {
-    let branchName;
-    if (!isTagRef(config.ref)) {
-      /**
-       * This request only accepts a branch name and not a ref (for some reason).
-       *
-       * Attempt to filter the branch name specifically and use that, otherwise do not
-       * filter on a branch name.
-       */
-      const ref = getBranchNameFromRef(config.ref);
-      if (ref) {
-        branchName = {
-          branch: ref,
-          per_page: 5,
-        };
-      }
-
-      core.debug(`getWorkflowRunIds: Filtered branch name: ${ref}`);
-    }
+    const branchName = getBranchName(config.ref);
 
     // https://docs.github.com/en/rest/reference/actions#list-workflow-runs
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
       workflow_id: workflowId,
-      per_page: 10,
-      ...branchName,
+      ...(branchName
+        ? {
+            branch: branchName,
+            per_page: 5,
+          }
+        : {
+            per_page: 10,
+          }),
     });
 
     if (response.status !== 200) {
@@ -142,7 +121,7 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
     core.debug(
       "Fetched Workflow Runs:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
-        (branchName ? `  Branch: ${branchName.branch}\n` : ``) +
+        `  Branch: ${branchName || "undefined"}\n` +
         `  Workflow ID: ${workflowId}\n` +
         `  Runs Fetched: [${runIds}]`
     );
