@@ -26,10 +26,10 @@ jobs:
         with:
           node-version: lts/*
       - run: npm ci
-      - name: Build
-        run: npm run build
-      - name: Package
-        run: npm run package
+      - name: Check types
+        run: npm run build:types
+      - name: Generate Bundle
+        run: npm run build:bundle
         # We need to make sure the checked-in `index.js` actually matches what we expect it to be.
       - name: Compare the expected and actual dist/ directories
         run: |

@@ -2,11 +2,15 @@
   "compilerOptions": {
     "target": "es2019",
     "module": "commonjs",
-    "outDir": "./lib",
-    "rootDir": "./src",
+    "noEmit": true,
+
+    "outDir": "lib",
+    "rootDir": "src",
+
     "esModuleInterop": true,
+    "isolatedModules": true,
     "noImplicitAny": true,
     "strict": true
   },
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["src"]
 }

@@ -7,6 +7,12 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
+  "ignorePatterns": [
+    "coverage",
+    "dist",
+    "esbuild.config.mjs",
+    "jest.config.ts"
+  ],
   "env": {
     "node": true,
     "es6": true,
