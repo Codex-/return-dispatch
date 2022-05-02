@@ -7,6 +7,7 @@ import {
   getWorkflowId,
   getWorkflowRunIds,
   getWorkflowRunJobSteps,
+  getWorkflowRunUrl,
   init,
   retryOrDie,
 } from "./api";
@@ -20,6 +21,9 @@ const mockOctokit = {
   rest: {
     actions: {
       createWorkflowDispatch: async (_req?: any): Promise<MockResponse> => {
+        throw new Error("Should be mocked");
+      },
+      getWorkflowRun: async (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
       listRepoWorkflows: async (_req?: any): Promise<MockResponse> => {
@@ -357,6 +361,37 @@ describe("API", () => {
         );
 
       expect(await getWorkflowRunJobSteps(0)).toStrictEqual([]);
+    });
+  });
+
+  describe("getWorkflowRunUrl", () => {
+    it("should return the workflow run state for a given run ID", async () => {
+      const mockData = {
+        html_url: "master sword",
+      };
+      jest.spyOn(mockOctokit.rest.actions, "getWorkflowRun").mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        })
+      );
+
+      const url = await getWorkflowRunUrl(123456);
+      expect(url).toStrictEqual(mockData.html_url);
+    });
+
+    it("should throw if a non-200 status is returned", async () => {
+      const errorStatus = 401;
+      jest.spyOn(mockOctokit.rest.actions, "getWorkflowRun").mockReturnValue(
+        Promise.resolve({
+          data: undefined,
+          status: errorStatus,
+        })
+      );
+
+      await expect(getWorkflowRunUrl(0)).rejects.toThrow(
+        `Failed to get Workflow Run state, expected 200 but received ${errorStatus}`
+      );
     });
   });
 

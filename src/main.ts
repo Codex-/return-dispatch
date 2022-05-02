@@ -60,7 +60,12 @@ async function run(): Promise<void> {
 
           for (const step of steps) {
             if (idRegex.test(step)) {
-              core.info(`Successfully identified remote Run ID: ${id}`);
+              const url = await api.getWorkflowRunUrl(id);
+              core.info(
+                "Successfully identified remote Run:\n" +
+                  `  Run ID: ${id}\n` +
+                  `  URL: ${url}`
+              );
               core.setOutput(ActionOutputs.runId, id);
               return;
             }

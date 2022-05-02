@@ -89,6 +89,40 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
   }
 }
 
+export async function getWorkflowRunUrl(runId: number): Promise<string> {
+  try {
+    // https://docs.github.com/en/rest/reference/actions#get-a-workflow-run
+    const response = await octokit.rest.actions.getWorkflowRun({
+      owner: config.owner,
+      repo: config.repo,
+      run_id: runId,
+    });
+
+    if (response.status !== 200) {
+      throw new Error(
+        `Failed to get Workflow Run state, expected 200 but received ${response.status}`
+      );
+    }
+
+    core.debug(
+      `Fetched Run:\n` +
+        `  Repository: ${config.owner}/${config.repo}\n` +
+        `  Run ID: ${runId}\n` +
+        `  URL: ${response.data.html_url}`
+    );
+
+    return response.data.html_url;
+  } catch (error) {
+    if (error instanceof Error) {
+      core.error(
+        `getWorkflowRunUrl: An unexpected error has occurred: ${error.message}`
+      );
+      error.stack && core.debug(error.stack);
+    }
+    throw error;
+  }
+}
+
 export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
   try {
     const branchName = getBranchName(config.ref);

@@ -7404,6 +7404,29 @@ async function getWorkflowId(workflowFilename) {
     throw error4;
   }
 }
+async function getWorkflowRunUrl(runId) {
+  try {
+    const response = await octokit.rest.actions.getWorkflowRun({
+      owner: config.owner,
+      repo: config.repo,
+      run_id: runId
+    });
+    if (response.status !== 200) {
+      throw new Error(`Failed to get Workflow Run state, expected 200 but received ${response.status}`);
+    }
+    core3.debug(`Fetched Run:
+  Repository: ${config.owner}/${config.repo}
+  Run ID: ${runId}
+  URL: ${response.data.html_url}`);
+    return response.data.html_url;
+  } catch (error4) {
+    if (error4 instanceof Error) {
+      core3.error(`getWorkflowRunUrl: An unexpected error has occurred: ${error4.message}`);
+      error4.stack && core3.debug(error4.stack);
+    }
+    throw error4;
+  }
+}
 async function getWorkflowRunIds(workflowId) {
   try {
     const branchName = getBranchName(config.ref);
@@ -7515,7 +7538,10 @@ async function run() {
           const steps = await getWorkflowRunJobSteps(id);
           for (const step of steps) {
             if (idRegex.test(step)) {
-              core4.info(`Successfully identified remote Run ID: ${id}`);
+              const url = await getWorkflowRunUrl(id);
+              core4.info(`Successfully identified remote Run:
+  Run ID: ${id}
+  URL: ${url}`);
               core4.setOutput("run_id" /* runId */, id);
               return;
             }
