@@ -1,0 +1,29 @@
+name: Action Test
+on:
+  pull_request:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Dispatch and return Run ID
+        id: return_dispatch
+        uses: ./
+        with:
+          token: ${{ secrets.TOKEN }}
+          ref: ${{ github.ref }}
+          repo: return-dispatch
+          owner: codex-
+          workflow: dispatch.yml
+          workflow_inputs: '{"cake":"delicious"}'
+          workflow_timeout_seconds: 30
+      - name: Evaluate that the Run ID output has been set
+        run: |
+          if [ "${{ steps.return_dispatch.outputs.run_id }}" == "" ]; then
+            echo "Failed to return Run ID"
+            exit 1
+          fi
+      - name: Output fetched Run ID
+        run: echo ${{ steps.return_dispatch.outputs.run_id }}
