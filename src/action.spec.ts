@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import { ActionConfig, getConfig } from "../src/action";
+import { ActionConfig, getConfig } from "./action";
 
 describe("Action", () => {
   const workflowInputs = {

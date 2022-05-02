@@ -9,7 +9,7 @@ import {
   getWorkflowRunJobSteps,
   init,
   retryOrDie,
-} from "../src/api";
+} from "./api";
 
 interface MockResponse {
   data: any;
