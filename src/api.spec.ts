@@ -44,7 +44,26 @@ const mockOctokit = {
 
 describe("API", () => {
   beforeEach(() => {
-    jest.spyOn(core, "getInput").mockReturnValue("");
+    jest.spyOn(core, "getInput").mockImplementation((key: string) => {
+      switch (key) {
+        case "token":
+          return "token";
+        case "ref":
+          return "ref";
+        case "repo":
+          return "repo";
+        case "owner":
+          return "owner";
+        case "workflow":
+          return "workflow";
+        case "workflow_inputs":
+          return JSON.stringify({ testInput: "test" });
+        case "workflow_timeout_seconds":
+          return "30";
+        default:
+          return "";
+      }
+    });
     jest.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
     init();
   });
@@ -172,7 +191,7 @@ describe("API", () => {
       repo: "repository",
       owner: "owner",
       workflow: "workflow_name",
-      workflowInputs: {},
+      workflowInputs: { testInput: "test" },
       workflowTimeoutSeconds: 60,
     };
 
