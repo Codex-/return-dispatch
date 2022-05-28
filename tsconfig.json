@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2019",
-    "module": "commonjs",
+    "target": "es2021",
+    "module": "esnext",
     "noEmit": true,
 
     "outDir": "lib",
@@ -9,6 +9,7 @@
 
     "esModuleInterop": true,
     "isolatedModules": true,
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "strict": true
   },
