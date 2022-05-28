@@ -1,4 +1,3 @@
-import * as github from "@actions/github";
 import { getBranchName } from "./utils";
 
 describe("utils", () => {
