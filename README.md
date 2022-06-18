@@ -16,7 +16,7 @@ Ensure you have configured your remote action correctly, see below for an exampl
 steps:
   - name: Dispatch an action and get the run ID
     uses: codex-/return-dispatch@v1
-    id: return-dispatch
+    id: return_dispatch
     with:
       token: ${{ secrets.TOKEN }} # Note this is NOT GITHUB_TOKEN but a PAT
       ref: target_branch # or refs/heads/target_branch
@@ -27,7 +27,7 @@ steps:
       workflow_timeout_seconds: 120 # Default: 300
 
   - name: Use the output run ID
-    run: echo ${{steps.return-dispatch.outputs.run_id}}
+    run: echo ${{steps.return_dispatch.outputs.run_id}}
 ```
 
 ### Receiving Repository Action
