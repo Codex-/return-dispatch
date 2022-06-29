@@ -37,7 +37,7 @@
     "@typescript-eslint/parser": "^5.30.0",
     "chalk": "^5.0.1",
     "esbuild": "^0.14.42",
-    "eslint": "^8.16.0",
+    "eslint": "^8.18.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-github": "^4.3.6",
