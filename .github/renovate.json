@@ -3,9 +3,25 @@
   "extends": ["config:base", ":preserveSemverRanges"],
   "timezone": "Pacific/Auckland",
   "labels": ["dependencies"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"]
+    }
+  ],
   "vulnerabilityAlerts": {
     "labels": ["security"],
-    "automerge": true,
-    "assignees": ["@codex-"]
+    "automerge": true
   }
 }
