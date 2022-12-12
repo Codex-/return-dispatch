@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { getBranchName } from "./utils";
 
 describe("utils", () => {

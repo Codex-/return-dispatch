@@ -1,5 +1,9 @@
 import * as core from "@actions/core";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { ActionConfig, getConfig } from "./action";
+
+vi.mock("@actions/core");
 
 describe("Action", () => {
   const workflowInputs = {
@@ -21,7 +25,7 @@ describe("Action", () => {
         workflow_timeout_seconds: "60",
       };
 
-      jest.spyOn(core, "getInput").mockImplementation((input: string) => {
+      vi.spyOn(core, "getInput").mockImplementation((input: string) => {
         switch (input) {
           case "token":
             return mockEnvConfig.token;
@@ -44,7 +48,7 @@ describe("Action", () => {
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
     });
 
     it("should return a valid config", () => {

@@ -1,6 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { v4 as uuid } from "uuid";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   dispatchWorkflow,
@@ -11,6 +12,9 @@ import {
   init,
   retryOrDie,
 } from "./api";
+
+vi.mock("@actions/core");
+vi.mock("@actions/github");
 
 interface MockResponse {
   data: any;
@@ -44,7 +48,7 @@ const mockOctokit = {
 
 describe("API", () => {
   beforeEach(() => {
-    jest.spyOn(core, "getInput").mockImplementation((key: string) => {
+    vi.spyOn(core, "getInput").mockImplementation((key: string) => {
       switch (key) {
         case "token":
           return "token";
@@ -64,38 +68,40 @@ describe("API", () => {
           return "";
       }
     });
-    jest.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
+    vi.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
     init();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe("dispatchWorkflow", () => {
     it("should resolve after a successful dispatch", async () => {
-      jest
-        .spyOn(mockOctokit.rest.actions, "createWorkflowDispatch")
-        .mockReturnValue(
-          Promise.resolve({
-            data: undefined,
-            status: 204,
-          })
-        );
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "createWorkflowDispatch"
+      ).mockReturnValue(
+        Promise.resolve({
+          data: undefined,
+          status: 204,
+        })
+      );
 
       await dispatchWorkflow("");
     });
 
     it("should throw if a non-204 status is returned", async () => {
       const errorStatus = 401;
-      jest
-        .spyOn(mockOctokit.rest.actions, "createWorkflowDispatch")
-        .mockReturnValue(
-          Promise.resolve({
-            data: undefined,
-            status: errorStatus,
-          })
-        );
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "createWorkflowDispatch"
+      ).mockReturnValue(
+        Promise.resolve({
+          data: undefined,
+          status: errorStatus,
+        })
+      );
 
       await expect(dispatchWorkflow("")).rejects.toThrow(
         `Failed to dispatch action, expected 204 but received ${errorStatus}`
@@ -105,16 +111,17 @@ describe("API", () => {
     it("should dispatch with a distinctId in the inputs", async () => {
       const distinctId = uuid();
       let dispatchedId: string | undefined;
-      jest
-        .spyOn(mockOctokit.rest.actions, "createWorkflowDispatch")
-        .mockImplementation(async (req?: any) => {
-          dispatchedId = req.inputs.distinct_id;
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "createWorkflowDispatch"
+      ).mockImplementation(async (req?: any) => {
+        dispatchedId = req.inputs.distinct_id;
 
-          return {
-            data: undefined,
-            status: 204,
-          };
-        });
+        return {
+          data: undefined,
+          status: 204,
+        };
+      });
 
       await dispatchWorkflow(distinctId);
       expect(dispatchedId).toStrictEqual(distinctId);
@@ -140,7 +147,7 @@ describe("API", () => {
           },
         ],
       };
-      jest.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
         Promise.resolve({
           data: mockData,
           status: 200,
@@ -154,7 +161,7 @@ describe("API", () => {
 
     it("should throw if a non-200 status is returned", async () => {
       const errorStatus = 401;
-      jest.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
         Promise.resolve({
           data: undefined,
           status: errorStatus,
@@ -168,7 +175,7 @@ describe("API", () => {
 
     it("should throw if a given workflow name cannot be found in the response", async () => {
       const workflowName = "slice";
-      jest.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
         Promise.resolve({
           data: {
             total_count: 0,
@@ -204,7 +211,7 @@ describe("API", () => {
         total_count: 3,
         workflow_runs: [{ id: 0 }, { id: 1 }, { id: 2 }],
       };
-      jest.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
         Promise.resolve({
           data: mockData,
           status: 200,
@@ -218,7 +225,7 @@ describe("API", () => {
 
     it("should throw if a non-200 status is returned", async () => {
       const errorStatus = 401;
-      jest.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
         Promise.resolve({
           data: undefined,
           status: errorStatus,
@@ -235,7 +242,7 @@ describe("API", () => {
         total_count: 0,
         workflow_runs: [],
       };
-      jest.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
         Promise.resolve({
           data: mockData,
           status: 200,
@@ -248,9 +255,8 @@ describe("API", () => {
     it("should filter by branch name", async () => {
       workflowIdCfg.ref = "/refs/heads/master";
       let parsedRef!: string;
-      jest
-        .spyOn(mockOctokit.rest.actions, "listWorkflowRuns")
-        .mockImplementation(async (req: any) => {
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
+        async (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -260,7 +266,8 @@ describe("API", () => {
             status: 200,
           };
           return mockResponse;
-        });
+        }
+      );
 
       await getWorkflowRunIds(0);
       expect(parsedRef).toStrictEqual("master");
@@ -269,9 +276,8 @@ describe("API", () => {
     it("should not use a branch filter if using a tag ref", async () => {
       workflowIdCfg.ref = "/refs/tags/1.5.0";
       let parsedRef!: string;
-      jest
-        .spyOn(mockOctokit.rest.actions, "listWorkflowRuns")
-        .mockImplementation(async (req: any) => {
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
+        async (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -281,7 +287,8 @@ describe("API", () => {
             status: 200,
           };
           return mockResponse;
-        });
+        }
+      );
 
       await getWorkflowRunIds(0);
       expect(parsedRef).toBeUndefined();
@@ -290,9 +297,8 @@ describe("API", () => {
     it("should not use a branch filter if non-standard ref", async () => {
       workflowIdCfg.ref = "/refs/cake";
       let parsedRef!: string;
-      jest
-        .spyOn(mockOctokit.rest.actions, "listWorkflowRuns")
-        .mockImplementation(async (req: any) => {
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
+        async (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -302,7 +308,8 @@ describe("API", () => {
             status: 200,
           };
           return mockResponse;
-        });
+        }
+      );
 
       await getWorkflowRunIds(0);
       expect(parsedRef).toBeUndefined();
@@ -329,14 +336,15 @@ describe("API", () => {
           },
         ],
       };
-      jest
-        .spyOn(mockOctokit.rest.actions, "listJobsForWorkflowRun")
-        .mockReturnValue(
-          Promise.resolve({
-            data: mockData,
-            status: 200,
-          })
-        );
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "listJobsForWorkflowRun"
+      ).mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        })
+      );
 
       expect(await getWorkflowRunJobSteps(0)).toStrictEqual([
         "Test Step 1",
@@ -346,14 +354,15 @@ describe("API", () => {
 
     it("should throw if a non-200 status is returned", async () => {
       const errorStatus = 401;
-      jest
-        .spyOn(mockOctokit.rest.actions, "listJobsForWorkflowRun")
-        .mockReturnValue(
-          Promise.resolve({
-            data: undefined,
-            status: errorStatus,
-          })
-        );
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "listJobsForWorkflowRun"
+      ).mockReturnValue(
+        Promise.resolve({
+          data: undefined,
+          status: errorStatus,
+        })
+      );
 
       await expect(getWorkflowRunJobSteps(0)).rejects.toThrow(
         `Failed to get Workflow Run Jobs, expected 200 but received ${errorStatus}`
@@ -370,14 +379,15 @@ describe("API", () => {
           },
         ],
       };
-      jest
-        .spyOn(mockOctokit.rest.actions, "listJobsForWorkflowRun")
-        .mockReturnValue(
-          Promise.resolve({
-            data: mockData,
-            status: 200,
-          })
-        );
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "listJobsForWorkflowRun"
+      ).mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        })
+      );
 
       expect(await getWorkflowRunJobSteps(0)).toStrictEqual([]);
     });
@@ -388,7 +398,7 @@ describe("API", () => {
       const mockData = {
         html_url: "master sword",
       };
-      jest.spyOn(mockOctokit.rest.actions, "getWorkflowRun").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "getWorkflowRun").mockReturnValue(
         Promise.resolve({
           data: mockData,
           status: 200,
@@ -401,7 +411,7 @@ describe("API", () => {
 
     it("should throw if a non-200 status is returned", async () => {
       const errorStatus = 401;
-      jest.spyOn(mockOctokit.rest.actions, "getWorkflowRun").mockReturnValue(
+      vi.spyOn(mockOctokit.rest.actions, "getWorkflowRun").mockReturnValue(
         Promise.resolve({
           data: undefined,
           status: errorStatus,
@@ -437,8 +447,6 @@ describe("API", () => {
       const attempt = async () => {
         switch (attemptNo) {
           case 0:
-            attemptNo++;
-            return [];
           case 1:
             attemptNo++;
             return [];

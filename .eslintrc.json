@@ -1,5 +1,5 @@
 {
-  "plugins": ["jest", "@typescript-eslint"],
+  "plugins": ["@typescript-eslint"],
   "extends": ["plugin:github/recommended", "prettier"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -11,12 +11,11 @@
     "coverage",
     "dist",
     "esbuild.config.mjs",
-    "jest.config.ts"
+    "vite.config.ts"
   ],
   "env": {
     "node": true,
-    "es6": true,
-    "jest/globals": true
+    "es6": true
   },
   "rules": {
     "@typescript-eslint/await-thenable": "warn",
