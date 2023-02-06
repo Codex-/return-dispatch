@@ -34,10 +34,10 @@
   "devDependencies": {
     "@types/node": "^18.11.19",
     "@types/uuid": "^9.0.0",
-    "@typescript-eslint/parser": "^5.50.0",
+    "@typescript-eslint/parser": "^5.51.0",
     "@vitest/coverage-istanbul": "^0.28.4",
     "chalk": "^5.2.0",
-    "esbuild": "^0.17.5",
+    "esbuild": "^0.17.6",
     "eslint": "^8.33.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.6.0",
