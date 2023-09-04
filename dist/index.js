@@ -7973,8 +7973,12 @@ async function getWorkflowId(workflowFilename) {
         `Failed to get workflows, expected 200 but received ${response.status}`
       );
     }
+    const sanitisedFilename = workflowFilename.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
     const workflowId = response.data.workflows.find(
-      (workflow) => new RegExp(workflowFilename).test(workflow.path)
+      (workflow) => new RegExp(sanitisedFilename).test(workflow.path)
     )?.id;
     if (workflowId === void 0) {
       throw new Error(`Unable to find ID for Workflow: ${workflowFilename}`);
