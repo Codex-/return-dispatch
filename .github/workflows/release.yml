@@ -25,7 +25,8 @@ jobs:
       - name: Set Node.js lts
         uses: actions/setup-node@v3
         with:
-          node-version: lts/*
+          node-version: 20.x
+          cache: npm
       - run: npm ci
       - name: Check types
         run: npm run build:types

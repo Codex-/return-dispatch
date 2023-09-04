@@ -14,7 +14,7 @@ import { analyzeMetafile, build } from "esbuild";
       metafile: true,
       bundle: true,
       platform: "node",
-      target: ["node16"],
+      target: ["node20"],
       sourcemap: "external",
       treeShaking: true,
     });
