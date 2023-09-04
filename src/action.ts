@@ -83,7 +83,7 @@ function getNumberFromValue(value: string): number | undefined {
 }
 
 function getWorkflowInputs(
-  workflowInputs: string
+  workflowInputs: string,
 ): ActionWorkflowInputs | undefined {
   if (workflowInputs === "") {
     return undefined;
@@ -95,7 +95,7 @@ function getWorkflowInputs(
       const type = typeof parsedJson[key];
       if (type !== "string") {
         throw new Error(
-          `Expected values to be strings, ${key} value is ${type}`
+          `Expected values to be strings, ${key} value is ${type}`,
         );
       }
     }

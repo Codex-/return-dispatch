@@ -41,11 +41,11 @@ async function run(): Promise<void> {
         () => api.getWorkflowRunIds(workflowId),
         WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs
           ? timeoutMs
-          : WORKFLOW_FETCH_TIMEOUT_MS
+          : WORKFLOW_FETCH_TIMEOUT_MS,
       );
 
       core.debug(
-        `Attempting to get step names for Run IDs: [${workflowRunIds}]`
+        `Attempting to get step names for Run IDs: [${workflowRunIds}]`,
       );
 
       const idRegex = new RegExp(DISTINCT_ID);
@@ -64,7 +64,7 @@ async function run(): Promise<void> {
               core.info(
                 "Successfully identified remote Run:\n" +
                   `  Run ID: ${id}\n` +
-                  `  URL: ${url}`
+                  `  URL: ${url}`,
               );
               core.setOutput(ActionOutputs.runId, id);
               return;
@@ -79,11 +79,11 @@ async function run(): Promise<void> {
       }
 
       core.info(
-        `Exhausted searching IDs in known runs, attempt ${attemptNo}...`
+        `Exhausted searching IDs in known runs, attempt ${attemptNo}...`,
       );
 
       await new Promise((resolve) =>
-        setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS)
+        setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS),
       );
     }
 

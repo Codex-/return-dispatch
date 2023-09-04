@@ -30,7 +30,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
 
     if (response.status !== 204) {
       throw new Error(
-        `Failed to dispatch action, expected 204 but received ${response.status}`
+        `Failed to dispatch action, expected 204 but received ${response.status}`,
       );
     }
 
@@ -42,12 +42,12 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
         (config.workflowInputs
           ? `  Workflow Inputs: ${JSON.stringify(config.workflowInputs)}\n`
           : ``) +
-        `  Distinct ID: ${distinctId}`
+        `  Distinct ID: ${distinctId}`,
     );
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `dispatchWorkflow: An unexpected error has occurred: ${error.message}`
+        `dispatchWorkflow: An unexpected error has occurred: ${error.message}`,
       );
       error.stack && core.debug(error.stack);
     }
@@ -65,12 +65,12 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
 
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get workflows, expected 200 but received ${response.status}`
+        `Failed to get workflows, expected 200 but received ${response.status}`,
       );
     }
 
     const workflowId = response.data.workflows.find((workflow) =>
-      new RegExp(workflowFilename).test(workflow.path)
+      new RegExp(workflowFilename).test(workflow.path),
     )?.id;
 
     if (workflowId === undefined) {
@@ -81,7 +81,7 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowId: An unexpected error has occurred: ${error.message}`
+        `getWorkflowId: An unexpected error has occurred: ${error.message}`,
       );
       error.stack && core.debug(error.stack);
     }
@@ -100,7 +100,7 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
 
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow Run state, expected 200 but received ${response.status}`
+        `Failed to get Workflow Run state, expected 200 but received ${response.status}`,
       );
     }
 
@@ -108,14 +108,14 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
       `Fetched Run:\n` +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Run ID: ${runId}\n` +
-        `  URL: ${response.data.html_url}`
+        `  URL: ${response.data.html_url}`,
     );
 
     return response.data.html_url;
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunUrl: An unexpected error has occurred: ${error.message}`
+        `getWorkflowRunUrl: An unexpected error has occurred: ${error.message}`,
       );
       error.stack && core.debug(error.stack);
     }
@@ -144,12 +144,12 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
 
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow runs, expected 200 but received ${response.status}`
+        `Failed to get Workflow runs, expected 200 but received ${response.status}`,
       );
     }
 
     const runIds = response.data.workflow_runs.map(
-      (workflowRun) => workflowRun.id
+      (workflowRun) => workflowRun.id,
     );
 
     core.debug(
@@ -157,14 +157,14 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch: ${branchName || "undefined"}\n` +
         `  Workflow ID: ${workflowId}\n` +
-        `  Runs Fetched: [${runIds}]`
+        `  Runs Fetched: [${runIds}]`,
     );
 
     return runIds;
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`
+        `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`,
       );
       error.stack && core.debug(error.stack);
     }
@@ -184,7 +184,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
 
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow Run Jobs, expected 200 but received ${response.status}`
+        `Failed to get Workflow Run Jobs, expected 200 but received ${response.status}`,
       );
     }
 
@@ -199,14 +199,14 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Workflow Run ID: ${runId}\n` +
         `  Jobs Fetched: [${jobs.map((job) => job.id)}]` +
-        `  Steps Fetched: [${steps}]`
+        `  Steps Fetched: [${steps}]`,
     );
 
     return steps;
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`
+        `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`,
       );
       error.stack && core.debug(error.stack);
     }
@@ -219,7 +219,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
  */
 export async function retryOrDie<T>(
   retryFunc: () => Promise<T[]>,
-  timeoutMs: number
+  timeoutMs: number,
 ): Promise<T[]> {
   const startTime = Date.now();
   let elapsedTime = 0;
