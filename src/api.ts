@@ -69,8 +69,12 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
       );
     }
 
+    const sanitisedFilename = workflowFilename.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&",
+    );
     const workflowId = response.data.workflows.find((workflow) =>
-      new RegExp(workflowFilename).test(workflow.path),
+      new RegExp(sanitisedFilename).test(workflow.path),
     )?.id;
 
     if (workflowId === undefined) {
