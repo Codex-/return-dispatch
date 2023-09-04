@@ -80,12 +80,12 @@ describe("API", () => {
     it("should resolve after a successful dispatch", async () => {
       vi.spyOn(
         mockOctokit.rest.actions,
-        "createWorkflowDispatch"
+        "createWorkflowDispatch",
       ).mockReturnValue(
         Promise.resolve({
           data: undefined,
           status: 204,
-        })
+        }),
       );
 
       await dispatchWorkflow("");
@@ -95,16 +95,16 @@ describe("API", () => {
       const errorStatus = 401;
       vi.spyOn(
         mockOctokit.rest.actions,
-        "createWorkflowDispatch"
+        "createWorkflowDispatch",
       ).mockReturnValue(
         Promise.resolve({
           data: undefined,
           status: errorStatus,
-        })
+        }),
       );
 
       await expect(dispatchWorkflow("")).rejects.toThrow(
-        `Failed to dispatch action, expected 204 but received ${errorStatus}`
+        `Failed to dispatch action, expected 204 but received ${errorStatus}`,
       );
     });
 
@@ -113,7 +113,7 @@ describe("API", () => {
       let dispatchedId: string | undefined;
       vi.spyOn(
         mockOctokit.rest.actions,
-        "createWorkflowDispatch"
+        "createWorkflowDispatch",
       ).mockImplementation(async (req?: any) => {
         dispatchedId = req.inputs.distinct_id;
 
@@ -151,11 +151,11 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
-        })
+        }),
       );
 
       expect(await getWorkflowId("slice.yml")).toStrictEqual(
-        mockData.workflows[2].id
+        mockData.workflows[2].id,
       );
     });
 
@@ -165,11 +165,11 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
-        })
+        }),
       );
 
       await expect(getWorkflowId("implode")).rejects.toThrow(
-        `Failed to get workflows, expected 200 but received ${errorStatus}`
+        `Failed to get workflows, expected 200 but received ${errorStatus}`,
       );
     });
 
@@ -182,11 +182,11 @@ describe("API", () => {
             workflows: [],
           },
           status: 200,
-        })
+        }),
       );
 
       await expect(getWorkflowId(workflowName)).rejects.toThrow(
-        `Unable to find ID for Workflow: ${workflowName}`
+        `Unable to find ID for Workflow: ${workflowName}`,
       );
     });
   });
@@ -215,11 +215,11 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
-        })
+        }),
       );
 
       expect(await getWorkflowRunIds(0)).toStrictEqual(
-        mockData.workflow_runs.map((run) => run.id)
+        mockData.workflow_runs.map((run) => run.id),
       );
     });
 
@@ -229,11 +229,11 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
-        })
+        }),
       );
 
       await expect(getWorkflowRunIds(0)).rejects.toThrow(
-        `Failed to get Workflow runs, expected 200 but received ${errorStatus}`
+        `Failed to get Workflow runs, expected 200 but received ${errorStatus}`,
       );
     });
 
@@ -246,7 +246,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
-        })
+        }),
       );
 
       expect(await getWorkflowRunIds(0)).toStrictEqual([]);
@@ -266,7 +266,7 @@ describe("API", () => {
             status: 200,
           };
           return mockResponse;
-        }
+        },
       );
 
       await getWorkflowRunIds(0);
@@ -287,7 +287,7 @@ describe("API", () => {
             status: 200,
           };
           return mockResponse;
-        }
+        },
       );
 
       await getWorkflowRunIds(0);
@@ -308,7 +308,7 @@ describe("API", () => {
             status: 200,
           };
           return mockResponse;
-        }
+        },
       );
 
       await getWorkflowRunIds(0);
@@ -338,12 +338,12 @@ describe("API", () => {
       };
       vi.spyOn(
         mockOctokit.rest.actions,
-        "listJobsForWorkflowRun"
+        "listJobsForWorkflowRun",
       ).mockReturnValue(
         Promise.resolve({
           data: mockData,
           status: 200,
-        })
+        }),
       );
 
       expect(await getWorkflowRunJobSteps(0)).toStrictEqual([
@@ -356,16 +356,16 @@ describe("API", () => {
       const errorStatus = 401;
       vi.spyOn(
         mockOctokit.rest.actions,
-        "listJobsForWorkflowRun"
+        "listJobsForWorkflowRun",
       ).mockReturnValue(
         Promise.resolve({
           data: undefined,
           status: errorStatus,
-        })
+        }),
       );
 
       await expect(getWorkflowRunJobSteps(0)).rejects.toThrow(
-        `Failed to get Workflow Run Jobs, expected 200 but received ${errorStatus}`
+        `Failed to get Workflow Run Jobs, expected 200 but received ${errorStatus}`,
       );
     });
 
@@ -381,12 +381,12 @@ describe("API", () => {
       };
       vi.spyOn(
         mockOctokit.rest.actions,
-        "listJobsForWorkflowRun"
+        "listJobsForWorkflowRun",
       ).mockReturnValue(
         Promise.resolve({
           data: mockData,
           status: 200,
-        })
+        }),
       );
 
       expect(await getWorkflowRunJobSteps(0)).toStrictEqual([]);
@@ -402,7 +402,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
-        })
+        }),
       );
 
       const url = await getWorkflowRunUrl(123456);
@@ -415,11 +415,11 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
-        })
+        }),
       );
 
       await expect(getWorkflowRunUrl(0)).rejects.toThrow(
-        `Failed to get Workflow Run state, expected 200 but received ${errorStatus}`
+        `Failed to get Workflow Run state, expected 200 but received ${errorStatus}`,
       );
     });
   });
@@ -438,7 +438,7 @@ describe("API", () => {
       const attempt = async () => [];
 
       await expect(retryOrDie(attempt, 1000)).rejects.toThrow(
-        "Timed out while attempting to fetch data"
+        "Timed out while attempting to fetch data",
       );
     });
 

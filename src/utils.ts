@@ -26,7 +26,7 @@ export function getBranchName(ref: string): string | undefined {
       core.debug(`getWorkflowRunIds: Filtered branch name: ${ref}`);
     } else {
       core.warning(
-        `failed to get branch for ref: ${ref}, please raise an issue with this git ref.`
+        `failed to get branch for ref: ${ref}, please raise an issue with this git ref.`,
       );
     }
   } else {
