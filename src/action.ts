@@ -43,7 +43,7 @@ export interface ActionConfig {
 }
 
 interface ActionWorkflowInputs {
-  [input: string]: string;
+  [input: string]: string | number | boolean;
 }
 
 export enum ActionOutputs {
@@ -93,9 +93,9 @@ function getWorkflowInputs(
     const parsedJson = JSON.parse(workflowInputs);
     for (const key of Object.keys(parsedJson)) {
       const type = typeof parsedJson[key];
-      if (type !== "string") {
+      if (!["string", "number", "boolean"].includes(type)) {
         throw new Error(
-          `Expected values to be strings, ${key} value is ${type}`,
+          `Expected value to be string, number, or boolean. "${key}" value is ${type}`,
         );
       }
     }
