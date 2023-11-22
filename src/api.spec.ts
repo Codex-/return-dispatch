@@ -21,6 +21,10 @@ interface MockResponse {
   status: number;
 }
 
+async function* mockPageIterator<T, P>(apiMethod: (params: P) => T, params: P) {
+  yield apiMethod(params);
+}
+
 const mockOctokit = {
   rest: {
     actions: {
@@ -43,6 +47,9 @@ const mockOctokit = {
         throw new Error("Should be mocked");
       },
     },
+  },
+  paginate: {
+    iterator: mockPageIterator,
   },
 };
 
@@ -130,23 +137,20 @@ describe("API", () => {
 
   describe("getWorkflowId", () => {
     it("should return the workflow ID for a given workflow filename", async () => {
-      const mockData = {
-        total_count: 3,
-        workflows: [
-          {
-            id: 0,
-            path: ".github/workflows/cake.yml",
-          },
-          {
-            id: 1,
-            path: ".github/workflows/pie.yml",
-          },
-          {
-            id: 2,
-            path: ".github/workflows/slice.yml",
-          },
-        ],
-      };
+      const mockData = [
+        {
+          id: 0,
+          path: ".github/workflows/cake.yml",
+        },
+        {
+          id: 1,
+          path: ".github/workflows/pie.yml",
+        },
+        {
+          id: 2,
+          path: ".github/workflows/slice.yml",
+        },
+      ];
       vi.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
         Promise.resolve({
           data: mockData,
@@ -154,9 +158,7 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowId("slice.yml")).toStrictEqual(
-        mockData.workflows[2].id,
-      );
+      expect(await getWorkflowId("slice.yml")).toStrictEqual(mockData[2].id);
     });
 
     it("should throw if a non-200 status is returned", async () => {
@@ -177,10 +179,7 @@ describe("API", () => {
       const workflowName = "slice";
       vi.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
         Promise.resolve({
-          data: {
-            total_count: 0,
-            workflows: [],
-          },
+          data: [],
           status: 200,
         }),
       );

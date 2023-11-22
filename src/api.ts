@@ -57,25 +57,38 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
 
 export async function getWorkflowId(workflowFilename: string): Promise<number> {
   try {
-    // https://docs.github.com/en/rest/reference/actions#list-repository-workflows
-    const response = await octokit.rest.actions.listRepoWorkflows({
-      owner: config.owner,
-      repo: config.repo,
-    });
-
-    if (response.status !== 200) {
-      throw new Error(
-        `Failed to get workflows, expected 200 but received ${response.status}`,
-      );
-    }
-
     const sanitisedFilename = workflowFilename.replace(
       /[.*+?^${}()|[\]\\]/g,
       "\\$&",
     );
-    const workflowId = response.data.workflows.find((workflow) =>
-      new RegExp(sanitisedFilename).test(workflow.path),
-    )?.id;
+
+    // https://docs.github.com/en/rest/reference/actions#list-repository-workflows
+    const workflowIterator = octokit.paginate.iterator(
+      octokit.rest.actions.listRepoWorkflows,
+      {
+        owner: config.owner,
+        repo: config.repo,
+      },
+    );
+    let workflowId: number | undefined;
+
+    for await (const response of workflowIterator) {
+      if (response.status !== 200) {
+        throw new Error(
+          `Failed to get workflows, expected 200 but received ${response.status}`,
+        );
+      }
+      // wrong type definition
+      const workflows: typeof response.data.workflows = response.data;
+
+      workflowId = workflows.find((workflow) =>
+        new RegExp(sanitisedFilename).test(workflow.path),
+      )?.id;
+
+      if (workflowId !== undefined) {
+        break;
+      }
+    }
 
     if (workflowId === undefined) {
       throw new Error(`Unable to find ID for Workflow: ${workflowFilename}`);
