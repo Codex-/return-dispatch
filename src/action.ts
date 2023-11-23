@@ -59,7 +59,7 @@ export function getConfig(): ActionConfig {
     workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
     workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
     workflowTimeoutSeconds:
-      getNumberFromValue(core.getInput("workflow_timeout_seconds")) ||
+      getNumberFromValue(core.getInput("workflow_timeout_seconds")) ??
       WORKFLOW_TIMEOUT_SECONDS,
   };
 }
@@ -92,7 +92,19 @@ function getWorkflowInputs(
   try {
     const parsedJson = JSON.parse(workflowInputs);
     for (const key of Object.keys(parsedJson)) {
-      const type = typeof parsedJson[key];
+      const value = parsedJson[key];
+      const type = (() => {
+        switch (true) {
+          case value === null: {
+            return "null";
+          }
+          case Array.isArray(value): {
+            return "Array";
+          }
+          default:
+            return typeof value;
+        }
+      })();
       if (!["string", "number", "boolean"].includes(type)) {
         throw new Error(
           `Expected value to be string, number, or boolean. "${key}" value is ${type}`,
