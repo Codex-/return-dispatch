@@ -91,11 +91,22 @@ describe("Action", () => {
       expect(() => getConfig()).toThrowError();
     });
 
-    it("should throw if a workflow inputs JSON is contains non-strings", () => {
+    it("should handle workflow inputs JSON containing strings numbers or booleans", () => {
       mockEnvConfig.workflow_inputs =
-        '{"cake":"delicious","pie":{"powerLevel":9001}}';
+        '{"cake":"delicious","pie":9001,"parfait":false}';
 
-      expect(() => getConfig()).toThrowError();
+      expect(() => getConfig()).not.toThrowError();
+    });
+
+    it("should throw if a workflow inputs JSON doesn't contain strings numbers or booleans", () => {
+      mockEnvConfig.workflow_inputs = '{"pie":{"powerLevel":9001}}';
+      expect(() => getConfig()).toThrowError('"pie" value is object');
+
+      mockEnvConfig.workflow_inputs = '{"vegetable":null}';
+      expect(() => getConfig()).toThrowError('"vegetable" value is null');
+
+      mockEnvConfig.workflow_inputs = '{"fruit":[]}';
+      expect(() => getConfig()).toThrowError('"fruit" value is Array');
     });
   });
 });
