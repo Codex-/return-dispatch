@@ -23,7 +23,7 @@ steps:
       repo: repository-name
       owner: repository-owner
       workflow: automation-test.yml
-      workflow_inputs: { "some_input": "value" } # Optional
+      workflow_inputs: '{ "some_input": "value" }' # Optional
       workflow_timeout_seconds: 120 # Default: 300
 
   - name: Use the output run ID
