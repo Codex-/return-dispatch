@@ -424,6 +424,14 @@ describe("API", () => {
   });
 
   describe("retryOrDie", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it("should return a populated array", async () => {
       const attempt = async () => {
         return [0];
@@ -436,25 +444,30 @@ describe("API", () => {
       // Never return data.
       const attempt = async () => [];
 
-      await expect(retryOrDie(attempt, 1000)).rejects.toThrow(
+      const retryOrDiePromise = retryOrDie(attempt, 1000);
+      vi.advanceTimersByTime(2000);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      vi.advanceTimersByTimeAsync(2000);
+
+      await expect(retryOrDiePromise).rejects.toThrow(
         "Timed out while attempting to fetch data",
       );
     });
 
     it("should retry to get a populated array", async () => {
-      let attemptNo = 0;
-      const attempt = async () => {
-        switch (attemptNo) {
-          case 0:
-          case 1:
-            attemptNo++;
-            return [];
-        }
+      const attempt = vi
+        .fn()
+        .mockResolvedValue([0])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
 
-        return [0];
-      };
+      const retryOrDiePromise = retryOrDie(attempt, 5000);
+      vi.advanceTimersByTime(3000);
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      vi.advanceTimersByTimeAsync(3000);
 
-      expect(await retryOrDie(attempt, 1500)).toHaveLength(1);
+      expect(await retryOrDiePromise).toHaveLength(1);
+      expect(attempt).toHaveBeenCalledTimes(3);
     });
   });
 });

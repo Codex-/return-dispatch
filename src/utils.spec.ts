@@ -1,8 +1,18 @@
-import { describe, expect, it } from "vitest";
+import * as core from "@actions/core";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { getBranchName } from "./utils.ts";
 
 describe("utils", () => {
+  beforeAll(() => {
+    vi.spyOn(core, "debug").mockImplementation(() => undefined);
+    vi.spyOn(core, "warning").mockImplementation(() => undefined);
+  });
+
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("getBranchNameFromRef", () => {
     it("should return the branch name for a valid branch ref", () => {
       const branchName = "cool_feature";
