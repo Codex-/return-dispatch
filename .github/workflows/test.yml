@@ -8,19 +8,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm ci
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: pnpm
+      - run: pnpm i
       - name: build
-        run: npm run build:types
+        run: pnpm run build:types
       - name: test
         id: test
         if: ${{ always() }}
-        run: npm run test
+        run: pnpm run test
       - name: lint
         if: ${{ always() }}
-        run: npm run lint
+        run: pnpm run lint
       - name: style
         if: ${{ always() }}
-        run: npm run format:check
+        run: pnpm run format:check
   codecov: # Send only a single coverage report per run
     needs: [build]
     timeout-minutes: 15
@@ -29,13 +36,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js lts
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      - uses: actions/setup-node@v4
         with:
           node-version: 20.x
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm i
       - name: test
-        run: npm run test:coverage
+        run: pnpm run test:coverage
       - name: codecov
         uses: codecov/codecov-action@v3
