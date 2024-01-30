@@ -4,13 +4,15 @@
   "private": true,
   "description": "Dispatch an action and output the run ID.",
   "main": "lib/main.js",
+  "type": "module",
   "scripts": {
-    "build:bundle": "npm run build:types && node ./esbuild.config.mjs",
+    "build": "pnpm run build:types && pnpm run build:bundle",
+    "build:bundle": "node ./esbuild.config.mjs",
     "build:types": "tsc",
     "format:check": "prettier --check **/*.ts",
-    "format": "npm run format:check -- --write",
+    "format": "pnpm run format:check --write",
     "lint": "eslint --ext \".js,.ts\" .",
-    "lint:fix": "npm run lint -- --fix",
+    "lint:fix": "pnpm run lint --fix",
     "release": "release-it",
     "test": "vitest",
     "test:coverage": "vitest --coverage"
@@ -38,6 +40,7 @@
     "@typescript-eslint/parser": "^6.16.0",
     "@vitest/coverage-v8": "^0.34.6",
     "chalk": "^5.3.0",
+    "changelogithub": "^0.13.3",
     "esbuild": "^0.19.11",
     "eslint": "^8.56.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
@@ -45,7 +48,6 @@
     "eslint-plugin-github": "^4.10.1",
     "eslint-plugin-import": "^2.29.1",
     "prettier": "3.1.1",
-    "release-it": "^17.0.1",
     "typescript": "^5.3.3",
     "vitest": "^0.34.6"
   }

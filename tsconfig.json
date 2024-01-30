@@ -1,17 +1,28 @@
 {
   "compilerOptions": {
     "target": "es2021",
-    "module": "esnext",
+    "module": "nodenext",
     "noEmit": true,
 
     "outDir": "lib",
     "rootDir": "src",
 
+    "strict": true,
+
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "isolatedModules": true,
-    "moduleResolution": "node",
+    "moduleDetection": "force",
+    "moduleResolution": "nodenext",
+    "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
-    "strict": true
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "useDefineForClassFields": true,
+    "verbatimModuleSyntax": true
   },
   "include": ["src"]
 }

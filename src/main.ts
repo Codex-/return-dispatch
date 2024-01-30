@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
-import { ActionOutputs, getConfig } from "./action";
-import * as api from "./api";
+import { ActionOutputs, getConfig } from "./action.ts";
+import * as api from "./api.ts";
 
 const DISTINCT_ID = uuid();
 const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
