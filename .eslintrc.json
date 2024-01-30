@@ -11,7 +11,7 @@
     "coverage",
     "dist",
     "esbuild.config.mjs",
-    "vite.config.ts"
+    "vitest.config.ts"
   ],
   "env": {
     "node": true,
