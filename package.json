@@ -40,6 +40,7 @@
     "@typescript-eslint/parser": "^6.16.0",
     "@vitest/coverage-v8": "^0.34.6",
     "chalk": "^5.3.0",
+    "changelogithub": "^0.13.3",
     "esbuild": "^0.19.11",
     "eslint": "^8.56.0",
     "eslint-config-airbnb-typescript": "^17.1.0",
@@ -47,7 +48,6 @@
     "eslint-plugin-github": "^4.10.1",
     "eslint-plugin-import": "^2.29.1",
     "prettier": "3.1.1",
-    "release-it": "^17.0.1",
     "typescript": "^5.3.3",
     "vitest": "^0.34.6"
   }
