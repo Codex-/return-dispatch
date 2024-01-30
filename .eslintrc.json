@@ -43,6 +43,7 @@
         "peerDependencies": true
       }
     ],
+    "import/extensions": "off",
     "import/no-namespace": "off",
     "import/order": "warn",
     "import/prefer-default-export": "off",

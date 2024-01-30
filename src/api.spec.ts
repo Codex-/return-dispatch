@@ -11,7 +11,7 @@ import {
   getWorkflowRunUrl,
   init,
   retryOrDie,
-} from "./api";
+} from "./api.ts";
 
 vi.mock("@actions/core");
 vi.mock("@actions/github");
@@ -158,7 +158,7 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowId("slice.yml")).toStrictEqual(mockData[2].id);
+      expect(await getWorkflowId("slice.yml")).toStrictEqual(mockData[2]!.id);
     });
 
     it("should throw if a non-200 status is returned", async () => {

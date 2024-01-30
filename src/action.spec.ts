@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ActionConfig, getConfig } from "./action";
+import { type ActionConfig, getConfig } from "./action.ts";
 
 vi.mock("@actions/core");
 

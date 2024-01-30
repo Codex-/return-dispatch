@@ -4,6 +4,7 @@
   "private": true,
   "description": "Dispatch an action and output the run ID.",
   "main": "lib/main.js",
+  "type": "module",
   "scripts": {
     "build": "pnpm run build:types && pnpm run build:bundle",
     "build:bundle": "node ./esbuild.config.mjs",

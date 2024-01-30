@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 
 function getBranchNameFromRef(ref: string): string | undefined {
   const refItems = ref.split(/\/?refs\/heads\//);
-  if (refItems.length > 1 && refItems[1].length > 0) {
+  if (refItems.length > 1 && refItems[1]!.length > 0) {
     return refItems[1];
   }
 }

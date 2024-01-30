@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getBranchName } from "./utils";
+import { getBranchName } from "./utils.ts";
 
 describe("utils", () => {
   describe("getBranchNameFromRef", () => {

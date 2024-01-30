@@ -5,18 +5,24 @@ import { analyzeMetafile, build } from "esbuild";
   try {
     const startTime = Date.now();
     console.info(
-      chalk.bold(`🚀 ${chalk.blueBright("return-dispatch")} Build\n`)
+      chalk.bold(`🚀 ${chalk.blueBright("return-dispatch")} Build\n`),
     );
 
     const result = await build({
       entryPoints: ["./src/main.ts"],
-      outfile: "dist/index.js",
+      outfile: "dist/index.mjs",
       metafile: true,
       bundle: true,
+      format: "esm",
       platform: "node",
       target: ["node20"],
-      sourcemap: "external",
       treeShaking: true,
+      // Ensure require is properly defined: https://github.com/evanw/esbuild/issues/1921
+      banner: {
+        js:
+          "import { createRequire } from 'module';\n" +
+          "const require = createRequire(import.meta.url);",
+      },
     });
 
     const analysis = await analyzeMetafile(result.metafile);
@@ -25,7 +31,7 @@ import { analyzeMetafile, build } from "esbuild";
     console.info(
       `${chalk.bold.green("✔ Bundled successfully!")} (${
         Date.now() - startTime
-      }ms)`
+      }ms)`,
     );
   } catch (error) {
     console.error(`🧨 ${chalk.red.bold("Failed:")} ${error.message}`);
