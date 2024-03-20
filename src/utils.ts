@@ -12,7 +12,7 @@ function isTagRef(ref: string): boolean {
 }
 
 export function getBranchName(ref: string): string | undefined {
-  let branchName;
+  let branchName: string | undefined = undefined;
   if (!isTagRef(ref)) {
     /**
      * The listRepoWorkflows request only accepts a branch name and not a ref (for some reason).
@@ -25,7 +25,7 @@ export function getBranchName(ref: string): string | undefined {
 
       core.debug(`getWorkflowRunIds: Filtered branch name: ${ref}`);
     } else {
-      core.warning(
+      core.debug(
         `failed to get branch for ref: ${ref}, please raise an issue with this git ref.`,
       );
     }
