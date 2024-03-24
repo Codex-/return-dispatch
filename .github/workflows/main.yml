@@ -16,7 +16,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.18.0
         continue-on-error: true
         with:
-          scan-type: "config"
+          scan-type: "fs"
+          scan-ref: '.'
           format: "table"
           exit-code: "1"
           ignore-unfixed: true
