@@ -1,4 +1,4 @@
-name: Action Test
+name: Trivy Scan
 on:
   pull_request:
   push:
