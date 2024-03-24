@@ -40,6 +40,6 @@ jobs:
         if: always()
         with:
           name: trivy_report
-          path: trivy-results.sarif'
+          path: trivy-results.sarif
 
   
