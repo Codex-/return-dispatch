@@ -67,6 +67,7 @@ async function run(): Promise<void> {
                   `  URL: ${url}`,
               );
               core.setOutput(ActionOutputs.runId, id);
+              core.setOutput(ActionOutputs.runUrl, url);
               return;
             }
           }
