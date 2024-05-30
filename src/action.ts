@@ -48,6 +48,7 @@ interface ActionWorkflowInputs {
 
 export enum ActionOutputs {
   runId = "run_id",
+  runUrl = "run_url",
 }
 
 export function getConfig(): ActionConfig {
