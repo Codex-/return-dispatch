@@ -8,7 +8,7 @@ outputs:
   run_id:
     description: The identified Run ID.
   run_url:
-    description: The URL of the Run.
+    description: The identified Run URL.
 inputs:
   token:
     description: GitHub Personal Access Token for making API requests.
