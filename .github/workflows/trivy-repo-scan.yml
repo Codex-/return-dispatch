@@ -1,0 +1,27 @@
+name: Trivy Repository Scan
+
+on:
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  trivy-repo-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Run Trivy repo scanner
+        uses: aquasecurity/trivy-action@0.16.1
+        with:
+          scan-type: 'repo'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+
+  
+
