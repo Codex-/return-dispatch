@@ -14,7 +14,7 @@ Ensure you have configured your remote action correctly, see below for an exampl
 
 ```yaml
 steps:
-  - name: Dispatch an action and get the run ID
+  - name: Dispatch an action and get the run ID and URL
     uses: codex-/return-dispatch@v1
     id: return_dispatch
     with:
@@ -26,8 +26,10 @@ steps:
       workflow_inputs: '{ "some_input": "value" }' # Optional
       workflow_timeout_seconds: 120 # Default: 300
 
-  - name: Use the output run ID
-    run: echo ${{steps.return_dispatch.outputs.run_id}}
+  - name: Use the output run ID and URL
+    run: |
+      echo ${{steps.return_dispatch.outputs.run_id}}
+      echo ${{steps.return_dispatch.outputs.run_url}}
 ```
 
 ### Receiving Repository Action
