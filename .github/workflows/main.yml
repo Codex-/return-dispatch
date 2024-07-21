@@ -1,7 +1,11 @@
 name: "Trivy Scan"
 
 on:
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   security-scan:
