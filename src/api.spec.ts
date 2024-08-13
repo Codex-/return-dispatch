@@ -21,29 +21,32 @@ interface MockResponse {
   status: number;
 }
 
-async function* mockPageIterator<T, P>(apiMethod: (params: P) => T, params: P) {
+function* mockPageIterator<T, P>(
+  apiMethod: (params: P) => T,
+  params: P,
+): Generator<T, void> {
   yield apiMethod(params);
 }
 
 const mockOctokit = {
   rest: {
     actions: {
-      createWorkflowDispatch: async (_req?: any): Promise<MockResponse> => {
+      createWorkflowDispatch: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      getWorkflowRun: async (_req?: any): Promise<MockResponse> => {
+      getWorkflowRun: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listRepoWorkflows: async (_req?: any): Promise<MockResponse> => {
+      listRepoWorkflows: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listWorkflowRuns: async (_req?: any): Promise<MockResponse> => {
+      listWorkflowRuns: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      downloadWorkflowRunLogs: async (_req?: any): Promise<MockResponse> => {
+      downloadWorkflowRunLogs: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listJobsForWorkflowRun: async (_req?: any): Promise<MockResponse> => {
+      listJobsForWorkflowRun: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
     },
@@ -75,6 +78,7 @@ describe("API", () => {
           return "";
       }
     });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     vi.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
     init();
   });
@@ -121,13 +125,13 @@ describe("API", () => {
       vi.spyOn(
         mockOctokit.rest.actions,
         "createWorkflowDispatch",
-      ).mockImplementation(async (req?: any) => {
+      ).mockImplementation((req?: any) => {
         dispatchedId = req.inputs.distinct_id;
 
-        return {
+        return Promise.resolve({
           data: undefined,
           status: 204,
-        };
+        });
       });
 
       await dispatchWorkflow(distinctId);
@@ -255,7 +259,7 @@ describe("API", () => {
       workflowIdCfg.ref = "/refs/heads/master";
       let parsedRef!: string;
       vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
-        async (req: any) => {
+        (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -264,7 +268,7 @@ describe("API", () => {
             },
             status: 200,
           };
-          return mockResponse;
+          return Promise.resolve(mockResponse);
         },
       );
 
@@ -276,7 +280,7 @@ describe("API", () => {
       workflowIdCfg.ref = "/refs/tags/1.5.0";
       let parsedRef!: string;
       vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
-        async (req: any) => {
+        (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -285,7 +289,7 @@ describe("API", () => {
             },
             status: 200,
           };
-          return mockResponse;
+          return Promise.resolve(mockResponse);
         },
       );
 
@@ -297,7 +301,7 @@ describe("API", () => {
       workflowIdCfg.ref = "/refs/cake";
       let parsedRef!: string;
       vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
-        async (req: any) => {
+        (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -306,7 +310,7 @@ describe("API", () => {
             },
             status: 200,
           };
-          return mockResponse;
+          return Promise.resolve(mockResponse);
         },
       );
 
@@ -433,16 +437,13 @@ describe("API", () => {
     });
 
     it("should return a populated array", async () => {
-      const attempt = async () => {
-        return [0];
-      };
-
+      const attempt = () => Promise.resolve([0]);
       expect(await retryOrDie(attempt, 1000)).toHaveLength(1);
     });
 
     it("should throw if the given timeout is exceeded", async () => {
       // Never return data.
-      const attempt = async () => [];
+      const attempt = () => Promise.resolve([]);
 
       const retryOrDiePromise = retryOrDie(attempt, 1000);
       vi.advanceTimersByTime(2000);

@@ -9,7 +9,7 @@ let config: ActionConfig;
 let octokit: Octokit;
 
 export function init(cfg?: ActionConfig): void {
-  config = cfg || getConfig();
+  config = cfg ?? getConfig();
   octokit = github.getOctokit(config.token);
 }
 
@@ -27,6 +27,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 204) {
       throw new Error(
         `Failed to dispatch action, expected 204 but received ${response.status}`,
@@ -48,7 +49,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       core.error(
         `dispatchWorkflow: An unexpected error has occurred: ${error.message}`,
       );
-      error.stack && core.debug(error.stack);
+      core.debug(error.stack ?? "");
     }
     throw error;
   }
@@ -72,6 +73,7 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
     let workflowId: number | undefined;
 
     for await (const response of workflowIterator) {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (response.status !== 200) {
         throw new Error(
           `Failed to get workflows, expected 200 but received ${response.status}`,
@@ -99,7 +101,7 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
       core.error(
         `getWorkflowId: An unexpected error has occurred: ${error.message}`,
       );
-      error.stack && core.debug(error.stack);
+      core.debug(error.stack ?? "");
     }
     throw error;
   }
@@ -114,6 +116,7 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
       run_id: runId,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
         `Failed to get Workflow Run state, expected 200 but received ${response.status}`,
@@ -133,7 +136,7 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
       core.error(
         `getWorkflowRunUrl: An unexpected error has occurred: ${error.message}`,
       );
-      error.stack && core.debug(error.stack);
+      core.debug(error.stack ?? "");
     }
     throw error;
   }
@@ -158,6 +161,7 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
           }),
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
         `Failed to get Workflow runs, expected 200 but received ${response.status}`,
@@ -171,9 +175,9 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
     core.debug(
       "Fetched Workflow Runs:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
-        `  Branch: ${branchName || "undefined"}\n` +
+        `  Branch: ${branchName}\n` +
         `  Workflow ID: ${workflowId}\n` +
-        `  Runs Fetched: [${runIds}]`,
+        `  Runs Fetched: [${runIds.join(", ")}]`,
     );
 
     return runIds;
@@ -182,7 +186,7 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
       core.error(
         `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`,
       );
-      error.stack && core.debug(error.stack);
+      core.debug(error.stack ?? "");
     }
     throw error;
   }
@@ -198,6 +202,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
       filter: "latest",
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
         `Failed to get Workflow Run Jobs, expected 200 but received ${response.status}`,
@@ -206,7 +211,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
 
     const jobs = response.data.jobs.map((job) => ({
       id: job.id,
-      steps: job.steps?.map((step) => step.name) || [],
+      steps: job.steps?.map((step) => step.name) ?? [],
     }));
     const steps = Array.from(new Set(jobs.flatMap((job) => job.steps)));
 
@@ -214,8 +219,8 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
       "Fetched Workflow Run Job Steps:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Workflow Run ID: ${runId}\n` +
-        `  Jobs Fetched: [${jobs.map((job) => job.id)}]` +
-        `  Steps Fetched: [${steps}]`,
+        `  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]` +
+        `  Steps Fetched: [${steps.join(", ")}]`,
     );
 
     return steps;
@@ -224,7 +229,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
       core.error(
         `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`,
       );
-      error.stack && core.debug(error.stack);
+      core.debug(error.stack ?? "");
     }
     throw error;
   }
