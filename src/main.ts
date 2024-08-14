@@ -6,6 +6,83 @@ import * as api from "./api.ts";
 const DISTINCT_ID = uuid();
 const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
 const WORKFLOW_JOB_STEPS_RETRY_MS = 5000;
+const WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX = 3;
+const WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS = 500;
+
+type Result = ResultFound | ResultNotFound;
+
+interface ResultFound {
+  found: true;
+  value: {
+    id: number;
+    url: string;
+  };
+}
+
+interface ResultNotFound {
+  found: false;
+}
+
+/**
+ * Attempt to read the distinct ID in the steps for each existing run ID.
+ */
+async function attemptToFindRunId(
+  idRegex: RegExp,
+  workflowRunIds: number[],
+): Promise<Result> {
+  let currentWorkflowRunIndex = 0;
+  let currentGetWorkflowRunJobStepsAttempt = 0;
+  while (currentWorkflowRunIndex < workflowRunIds.length) {
+    const id = workflowRunIds[currentWorkflowRunIndex];
+    if (id === undefined) {
+      break;
+    }
+
+    try {
+      const steps = await api.getWorkflowRunJobSteps(id);
+
+      for (const step of steps) {
+        if (idRegex.test(step)) {
+          const url = await api.getWorkflowRunUrl(id);
+          return { found: true, value: { id, url } };
+        }
+      }
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error;
+      }
+
+      if (error.message === "Server Error") {
+        if (
+          currentGetWorkflowRunJobStepsAttempt <
+          WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX
+        ) {
+          currentGetWorkflowRunJobStepsAttempt++;
+
+          core.debug(
+            "Encountered a Server Error while attempting to fetch steps, " +
+              `retrying in ${WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS}`,
+          );
+          await new Promise((resolve) =>
+            setTimeout(resolve, WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS),
+          );
+
+          // Continue without increasing the current index to retry the same ID.
+          continue;
+        }
+      } else if (error.message === "Not Found") {
+        core.debug(`Could not identify ID in run: ${id}, continuing...`);
+      } else {
+        throw error;
+      }
+    }
+
+    currentGetWorkflowRunJobStepsAttempt = 0;
+    currentWorkflowRunIndex++;
+  }
+
+  return { found: false };
+}
 
 async function run(): Promise<void> {
   try {
@@ -53,35 +130,19 @@ async function run(): Promise<void> {
         `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
       );
 
-      const idRegex = new RegExp(DISTINCT_ID);
+      const idRegex = new RegExp(config.distinctId ?? DISTINCT_ID);
 
-      /**
-       * Attempt to read the distinct ID in the steps
-       * for each existing run ID.
-       */
-      for (const id of workflowRunIds) {
-        try {
-          const steps = await api.getWorkflowRunJobSteps(id);
-
-          for (const step of steps) {
-            if (idRegex.test(step)) {
-              const url = await api.getWorkflowRunUrl(id);
-              core.info(
-                "Successfully identified remote Run:\n" +
-                  `  Run ID: ${id}\n` +
-                  `  URL: ${url}`,
-              );
-              core.setOutput(ActionOutputs.runId, id);
-              core.setOutput(ActionOutputs.runUrl, url);
-              return;
-            }
-          }
-        } catch (error) {
-          if (error instanceof Error && error.message !== "Not Found") {
-            throw error;
-          }
-          core.debug(`Could not identify ID in run: ${id}, continuing...`);
-        }
+      const result = await attemptToFindRunId(idRegex, workflowRunIds);
+      if (result.found) {
+        core.info(
+          "Successfully identified remote Run:\n" +
+            `  Run ID: ${result.value.id}\n` +
+            `  URL: ${result.value.url}`,
+        );
+        core.setOutput(ActionOutputs.runId, result.value.id);
+        core.setOutput(ActionOutputs.runUrl, result.value.url);
+        core.debug(`Completed in ${Date.now() - startTime}ms`);
+        return;
       }
 
       core.info(
