@@ -19289,9 +19289,9 @@ var require_before_after_hook = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+endpoint@9.0.4/node_modules/@octokit/endpoint/dist-node/index.js
+// node_modules/.pnpm/@octokit+endpoint@9.0.5/node_modules/@octokit/endpoint/dist-node/index.js
 var require_dist_node2 = __commonJS({
-  "node_modules/.pnpm/@octokit+endpoint@9.0.4/node_modules/@octokit/endpoint/dist-node/index.js"(exports, module) {
+  "node_modules/.pnpm/@octokit+endpoint@9.0.5/node_modules/@octokit/endpoint/dist-node/index.js"(exports, module) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -19316,7 +19316,7 @@ var require_dist_node2 = __commonJS({
     });
     module.exports = __toCommonJS2(dist_src_exports);
     var import_universal_user_agent = require_dist_node();
-    var VERSION = "9.0.4";
+    var VERSION = "9.0.5";
     var userAgent = `octokit-endpoint.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`;
     var DEFAULTS = {
       method: "GET",
@@ -19727,9 +19727,9 @@ var require_once = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+request-error@5.0.1/node_modules/@octokit/request-error/dist-node/index.js
+// node_modules/.pnpm/@octokit+request-error@5.1.0/node_modules/@octokit/request-error/dist-node/index.js
 var require_dist_node4 = __commonJS({
-  "node_modules/.pnpm/@octokit+request-error@5.0.1/node_modules/@octokit/request-error/dist-node/index.js"(exports, module) {
+  "node_modules/.pnpm/@octokit+request-error@5.1.0/node_modules/@octokit/request-error/dist-node/index.js"(exports, module) {
     "use strict";
     var __create2 = Object.create;
     var __defProp2 = Object.defineProperty;
@@ -19819,9 +19819,9 @@ var require_dist_node4 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+request@8.2.0/node_modules/@octokit/request/dist-node/index.js
+// node_modules/.pnpm/@octokit+request@8.4.0/node_modules/@octokit/request/dist-node/index.js
 var require_dist_node5 = __commonJS({
-  "node_modules/.pnpm/@octokit+request@8.2.0/node_modules/@octokit/request/dist-node/index.js"(exports, module) {
+  "node_modules/.pnpm/@octokit+request@8.4.0/node_modules/@octokit/request/dist-node/index.js"(exports, module) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -19847,7 +19847,7 @@ var require_dist_node5 = __commonJS({
     module.exports = __toCommonJS2(dist_src_exports);
     var import_endpoint = require_dist_node2();
     var import_universal_user_agent = require_dist_node();
-    var VERSION = "8.2.0";
+    var VERSION = "8.4.0";
     function isPlainObject(value) {
       if (typeof value !== "object" || value === null)
         return false;
@@ -19864,7 +19864,7 @@ var require_dist_node5 = __commonJS({
       return response.arrayBuffer();
     }
     function fetchWrapper(requestOptions) {
-      var _a, _b, _c;
+      var _a, _b, _c, _d;
       const log = requestOptions.request && requestOptions.request.log ? requestOptions.request.log : console;
       const parseSuccessResponseBody = ((_a = requestOptions.request) == null ? void 0 : _a.parseSuccessResponseBody) !== false;
       if (isPlainObject(requestOptions.body) || Array.isArray(requestOptions.body)) {
@@ -19885,8 +19885,9 @@ var require_dist_node5 = __commonJS({
       return fetch(requestOptions.url, {
         method: requestOptions.method,
         body: requestOptions.body,
+        redirect: (_c = requestOptions.request) == null ? void 0 : _c.redirect,
         headers: requestOptions.headers,
-        signal: (_c = requestOptions.request) == null ? void 0 : _c.signal,
+        signal: (_d = requestOptions.request) == null ? void 0 : _d.signal,
         // duplex must be set if request.body is ReadableStream or Async Iterables.
         // See https://fetch.spec.whatwg.org/#dom-requestinit-duplex.
         ...requestOptions.body && { duplex: "half" }
@@ -20028,9 +20029,9 @@ var require_dist_node5 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+graphql@7.0.2/node_modules/@octokit/graphql/dist-node/index.js
+// node_modules/.pnpm/@octokit+graphql@7.1.0/node_modules/@octokit/graphql/dist-node/index.js
 var require_dist_node6 = __commonJS({
-  "node_modules/.pnpm/@octokit+graphql@7.0.2/node_modules/@octokit/graphql/dist-node/index.js"(exports, module) {
+  "node_modules/.pnpm/@octokit+graphql@7.1.0/node_modules/@octokit/graphql/dist-node/index.js"(exports, module) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -20058,7 +20059,7 @@ var require_dist_node6 = __commonJS({
     module.exports = __toCommonJS2(dist_src_exports);
     var import_request3 = require_dist_node5();
     var import_universal_user_agent = require_dist_node();
-    var VERSION = "7.0.2";
+    var VERSION = "7.1.0";
     var import_request2 = require_dist_node5();
     var import_request = require_dist_node5();
     function _buildMessageForResponseErrors(data) {
@@ -20237,9 +20238,9 @@ var require_dist_node7 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+core@5.1.0/node_modules/@octokit/core/dist-node/index.js
+// node_modules/.pnpm/@octokit+core@5.2.0/node_modules/@octokit/core/dist-node/index.js
 var require_dist_node8 = __commonJS({
-  "node_modules/.pnpm/@octokit+core@5.1.0/node_modules/@octokit/core/dist-node/index.js"(exports, module) {
+  "node_modules/.pnpm/@octokit+core@5.2.0/node_modules/@octokit/core/dist-node/index.js"(exports, module) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -20268,7 +20269,7 @@ var require_dist_node8 = __commonJS({
     var import_request = require_dist_node5();
     var import_graphql = require_dist_node6();
     var import_auth_token = require_dist_node7();
-    var VERSION = "5.1.0";
+    var VERSION = "5.2.0";
     var noop = () => {
     };
     var consoleWarn = console.warn.bind(console);
@@ -20396,9 +20397,9 @@ var require_dist_node8 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.4.1_@octokit+core@5.1.0/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
+// node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.4.1_@octokit+core@5.2.0/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js
 var require_dist_node9 = __commonJS({
-  "node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.4.1_@octokit+core@5.1.0/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js"(exports, module) {
+  "node_modules/.pnpm/@octokit+plugin-rest-endpoint-methods@10.4.1_@octokit+core@5.2.0/node_modules/@octokit/plugin-rest-endpoint-methods/dist-node/index.js"(exports, module) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -22552,9 +22553,9 @@ var require_dist_node9 = __commonJS({
   }
 });
 
-// node_modules/.pnpm/@octokit+plugin-paginate-rest@9.2.1_@octokit+core@5.1.0/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
+// node_modules/.pnpm/@octokit+plugin-paginate-rest@9.2.1_@octokit+core@5.2.0/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js
 var require_dist_node10 = __commonJS({
-  "node_modules/.pnpm/@octokit+plugin-paginate-rest@9.2.1_@octokit+core@5.1.0/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js"(exports, module) {
+  "node_modules/.pnpm/@octokit+plugin-paginate-rest@9.2.1_@octokit+core@5.2.0/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js"(exports, module) {
     "use strict";
     var __defProp2 = Object.defineProperty;
     var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -23038,8 +23039,17 @@ var require_github = __commonJS({
 // src/main.ts
 var core4 = __toESM(require_core(), 1);
 
-// node_modules/.pnpm/uuid@9.0.1/node_modules/uuid/dist/esm-node/rng.js
-import crypto4 from "crypto";
+// node_modules/.pnpm/uuid@10.0.0/node_modules/uuid/dist/esm-node/stringify.js
+var byteToHex2 = [];
+for (let i = 0; i < 256; ++i) {
+  byteToHex2.push((i + 256).toString(16).slice(1));
+}
+function unsafeStringify(arr, offset = 0) {
+  return (byteToHex2[arr[offset + 0]] + byteToHex2[arr[offset + 1]] + byteToHex2[arr[offset + 2]] + byteToHex2[arr[offset + 3]] + "-" + byteToHex2[arr[offset + 4]] + byteToHex2[arr[offset + 5]] + "-" + byteToHex2[arr[offset + 6]] + byteToHex2[arr[offset + 7]] + "-" + byteToHex2[arr[offset + 8]] + byteToHex2[arr[offset + 9]] + "-" + byteToHex2[arr[offset + 10]] + byteToHex2[arr[offset + 11]] + byteToHex2[arr[offset + 12]] + byteToHex2[arr[offset + 13]] + byteToHex2[arr[offset + 14]] + byteToHex2[arr[offset + 15]]).toLowerCase();
+}
+
+// node_modules/.pnpm/uuid@10.0.0/node_modules/uuid/dist/esm-node/rng.js
+import crypto4 from "node:crypto";
 var rnds8Pool2 = new Uint8Array(256);
 var poolPtr2 = rnds8Pool2.length;
 function rng2() {
@@ -23050,22 +23060,13 @@ function rng2() {
   return rnds8Pool2.slice(poolPtr2, poolPtr2 += 16);
 }
 
-// node_modules/.pnpm/uuid@9.0.1/node_modules/uuid/dist/esm-node/stringify.js
-var byteToHex2 = [];
-for (let i = 0; i < 256; ++i) {
-  byteToHex2.push((i + 256).toString(16).slice(1));
-}
-function unsafeStringify(arr, offset = 0) {
-  return byteToHex2[arr[offset + 0]] + byteToHex2[arr[offset + 1]] + byteToHex2[arr[offset + 2]] + byteToHex2[arr[offset + 3]] + "-" + byteToHex2[arr[offset + 4]] + byteToHex2[arr[offset + 5]] + "-" + byteToHex2[arr[offset + 6]] + byteToHex2[arr[offset + 7]] + "-" + byteToHex2[arr[offset + 8]] + byteToHex2[arr[offset + 9]] + "-" + byteToHex2[arr[offset + 10]] + byteToHex2[arr[offset + 11]] + byteToHex2[arr[offset + 12]] + byteToHex2[arr[offset + 13]] + byteToHex2[arr[offset + 14]] + byteToHex2[arr[offset + 15]];
-}
-
-// node_modules/.pnpm/uuid@9.0.1/node_modules/uuid/dist/esm-node/native.js
-import crypto5 from "crypto";
+// node_modules/.pnpm/uuid@10.0.0/node_modules/uuid/dist/esm-node/native.js
+import crypto5 from "node:crypto";
 var native_default = {
   randomUUID: crypto5.randomUUID
 };
 
-// node_modules/.pnpm/uuid@9.0.1/node_modules/uuid/dist/esm-node/v4.js
+// node_modules/.pnpm/uuid@10.0.0/node_modules/uuid/dist/esm-node/v4.js
 function v42(options, buf, offset) {
   if (native_default.randomUUID && !buf && !options) {
     return native_default.randomUUID();
@@ -23094,9 +23095,12 @@ function getConfig() {
     ref: core.getInput("ref", { required: true }),
     repo: core.getInput("repo", { required: true }),
     owner: core.getInput("owner", { required: true }),
-    workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
+    workflow: getWorkflowValueAsNumber(
+      core.getInput("workflow", { required: true })
+    ),
     workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
-    workflowTimeoutSeconds: getNumberFromValue(core.getInput("workflow_timeout_seconds")) ?? WORKFLOW_TIMEOUT_SECONDS
+    workflowTimeoutSeconds: getNumberFromValue(core.getInput("workflow_timeout_seconds")) ?? WORKFLOW_TIMEOUT_SECONDS,
+    distinctId: getOptionalWorkflowValue(core.getInput("distinct_id"))
   };
 }
 function getNumberFromValue(value) {
@@ -23121,18 +23125,7 @@ function getWorkflowInputs(workflowInputs) {
     const parsedJson = JSON.parse(workflowInputs);
     for (const key of Object.keys(parsedJson)) {
       const value = parsedJson[key];
-      const type = (() => {
-        switch (true) {
-          case value === null: {
-            return "null";
-          }
-          case Array.isArray(value): {
-            return "Array";
-          }
-          default:
-            return typeof value;
-        }
-      })();
+      const type = value === null ? "null" : Array.isArray(value) ? "Array" : typeof value;
       if (!["string", "number", "boolean"].includes(type)) {
         throw new Error(
           `Expected value to be string, number, or boolean. "${key}" value is ${type}`
@@ -23143,17 +23136,20 @@ function getWorkflowInputs(workflowInputs) {
   } catch (error4) {
     core.error("Failed to parse workflow_inputs JSON");
     if (error4 instanceof Error) {
-      error4.stack && core.debug(error4.stack);
+      core.debug(error4.stack ?? "");
     }
     throw error4;
   }
 }
-function getWorkflowValue(workflowInput) {
+function getWorkflowValueAsNumber(workflowInput) {
   try {
     return getNumberFromValue(workflowInput);
   } catch {
     return workflowInput;
   }
+}
+function getOptionalWorkflowValue(workflowInput) {
+  return workflowInput || void 0;
 }
 
 // src/api.ts
@@ -23164,7 +23160,7 @@ var github = __toESM(require_github(), 1);
 var core2 = __toESM(require_core(), 1);
 function getBranchNameFromRef(ref) {
   const refItems = ref.split(/\/?refs\/heads\//);
-  if (refItems.length > 1 && refItems[1].length > 0) {
+  if (refItems.length > 1 && (refItems[1]?.length ?? 0) > 0) {
     return refItems[1];
   }
 }
@@ -23193,7 +23189,7 @@ function getBranchName(ref) {
 var config;
 var octokit;
 function init(cfg) {
-  config = cfg || getConfig();
+  config = cfg ?? getConfig();
   octokit = github.getOctokit(config.token);
 }
 async function dispatchWorkflow(distinctId) {
@@ -23226,7 +23222,7 @@ async function dispatchWorkflow(distinctId) {
       core3.error(
         `dispatchWorkflow: An unexpected error has occurred: ${error4.message}`
       );
-      error4.stack && core3.debug(error4.stack);
+      core3.debug(error4.stack ?? "");
     }
     throw error4;
   }
@@ -23268,7 +23264,7 @@ async function getWorkflowId(workflowFilename) {
       core3.error(
         `getWorkflowId: An unexpected error has occurred: ${error4.message}`
       );
-      error4.stack && core3.debug(error4.stack);
+      core3.debug(error4.stack ?? "");
     }
     throw error4;
   }
@@ -23297,7 +23293,7 @@ async function getWorkflowRunUrl(runId) {
       core3.error(
         `getWorkflowRunUrl: An unexpected error has occurred: ${error4.message}`
       );
-      error4.stack && core3.debug(error4.stack);
+      core3.debug(error4.stack ?? "");
     }
     throw error4;
   }
@@ -23327,9 +23323,9 @@ async function getWorkflowRunIds(workflowId) {
     core3.debug(
       `Fetched Workflow Runs:
   Repository: ${config.owner}/${config.repo}
-  Branch: ${branchName || "undefined"}
+  Branch: ${branchName}
   Workflow ID: ${workflowId}
-  Runs Fetched: [${runIds}]`
+  Runs Fetched: [${runIds.join(", ")}]`
     );
     return runIds;
   } catch (error4) {
@@ -23337,7 +23333,7 @@ async function getWorkflowRunIds(workflowId) {
       core3.error(
         `getWorkflowRunIds: An unexpected error has occurred: ${error4.message}`
       );
-      error4.stack && core3.debug(error4.stack);
+      core3.debug(error4.stack ?? "");
     }
     throw error4;
   }
@@ -23357,14 +23353,14 @@ async function getWorkflowRunJobSteps(runId) {
     }
     const jobs = response.data.jobs.map((job) => ({
       id: job.id,
-      steps: job.steps?.map((step) => step.name) || []
+      steps: job.steps?.map((step) => step.name) ?? []
     }));
     const steps = Array.from(new Set(jobs.flatMap((job) => job.steps)));
     core3.debug(
       `Fetched Workflow Run Job Steps:
   Repository: ${config.owner}/${config.repo}
   Workflow Run ID: ${runId}
-  Jobs Fetched: [${jobs.map((job) => job.id)}]  Steps Fetched: [${steps}]`
+  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]  Steps Fetched: [${steps.join(", ")}]`
     );
     return steps;
   } catch (error4) {
@@ -23372,7 +23368,7 @@ async function getWorkflowRunJobSteps(runId) {
       core3.error(
         `getWorkflowRunJobs: An unexpected error has occurred: ${error4.message}`
       );
-      error4.stack && core3.debug(error4.stack);
+      core3.debug(error4.stack ?? "");
     }
     throw error4;
   }
@@ -23408,7 +23404,7 @@ async function run() {
     } else {
       workflowId = config2.workflow;
     }
-    await dispatchWorkflow(DISTINCT_ID);
+    await dispatchWorkflow(config2.distinctId ?? DISTINCT_ID);
     const timeoutMs = config2.workflowTimeoutSeconds * 1e3;
     let attemptNo = 0;
     let elapsedTime = Date.now() - startTime;
@@ -23422,7 +23418,7 @@ async function run() {
         WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs ? timeoutMs : WORKFLOW_FETCH_TIMEOUT_MS
       );
       core4.debug(
-        `Attempting to get step names for Run IDs: [${workflowRunIds}]`
+        `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`
       );
       const idRegex = new RegExp(DISTINCT_ID);
       for (const id of workflowRunIds) {
@@ -23460,7 +23456,7 @@ async function run() {
     if (error4 instanceof Error) {
       core4.error(`Failed to complete: ${error4.message}`);
       core4.warning("Does the token have the correct permissions?");
-      error4.stack && core4.debug(error4.stack);
+      core4.debug(error4.stack ?? "");
       core4.setFailed(error4.message);
     }
   }
