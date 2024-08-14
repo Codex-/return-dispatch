@@ -25,7 +25,8 @@ describe("Action", () => {
         workflow_timeout_seconds: "60",
       };
 
-      vi.spyOn(core, "getInput").mockImplementation((input: string) => {
+      vi.spyOn(core, "getInput").mockImplementation((input: string): string => {
+        /* eslint-disable @typescript-eslint/no-unsafe-return */
         switch (input) {
           case "token":
             return mockEnvConfig.token;
@@ -44,6 +45,7 @@ describe("Action", () => {
           default:
             throw new Error("invalid input requested");
         }
+        /* eslint-enable @typescript-eslint/no-unsafe-return */
       });
     });
 

@@ -45,7 +45,7 @@ async function run(): Promise<void> {
       );
 
       core.debug(
-        `Attempting to get step names for Run IDs: [${workflowRunIds}]`,
+        `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
       );
 
       const idRegex = new RegExp(DISTINCT_ID);
@@ -93,10 +93,10 @@ async function run(): Promise<void> {
     if (error instanceof Error) {
       core.error(`Failed to complete: ${error.message}`);
       core.warning("Does the token have the correct permissions?");
-      error.stack && core.debug(error.stack);
+      core.debug(error.stack ?? "");
       core.setFailed(error.message);
     }
   }
 }
 
-(() => run())();
+((): Promise<void> => run())();

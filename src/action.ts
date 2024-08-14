@@ -42,9 +42,7 @@ export interface ActionConfig {
   workflowTimeoutSeconds: number;
 }
 
-interface ActionWorkflowInputs {
-  [input: string]: string | number | boolean;
-}
+type ActionWorkflowInputs = Record<string, string | number | boolean>;
 
 export enum ActionOutputs {
   runId = "run_id",
@@ -91,32 +89,23 @@ function getWorkflowInputs(
   }
 
   try {
-    const parsedJson = JSON.parse(workflowInputs);
+    const parsedJson = JSON.parse(workflowInputs) as Record<string, unknown>;
     for (const key of Object.keys(parsedJson)) {
       const value = parsedJson[key];
-      const type = (() => {
-        switch (true) {
-          case value === null: {
-            return "null";
-          }
-          case Array.isArray(value): {
-            return "Array";
-          }
-          default:
-            return typeof value;
-        }
-      })();
+      const type =
+        value === null ? "null" : Array.isArray(value) ? "Array" : typeof value;
+
       if (!["string", "number", "boolean"].includes(type)) {
         throw new Error(
           `Expected value to be string, number, or boolean. "${key}" value is ${type}`,
         );
       }
     }
-    return parsedJson;
+    return parsedJson as ActionWorkflowInputs;
   } catch (error) {
     core.error("Failed to parse workflow_inputs JSON");
     if (error instanceof Error) {
-      error.stack && core.debug(error.stack);
+      core.debug(error.stack ?? "");
     }
     throw error;
   }
@@ -125,6 +114,7 @@ function getWorkflowInputs(
 function getWorkflowValue(workflowInput: string): string | number {
   try {
     // We can assume that the string is defined and not empty at this point.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return getNumberFromValue(workflowInput)!;
   } catch {
     // Assume using a workflow name instead of an ID.
