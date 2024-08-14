@@ -24,7 +24,7 @@ async function run(): Promise<void> {
     }
 
     // Dispatch the action
-    await api.dispatchWorkflow(DISTINCT_ID);
+    await api.dispatchWorkflow(config.distinctId ?? DISTINCT_ID);
 
     const timeoutMs = config.workflowTimeoutSeconds * 1000;
     let attemptNo = 0;

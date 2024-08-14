@@ -23,6 +23,7 @@ describe("Action", () => {
         workflow: "workflow_name",
         workflow_inputs: JSON.stringify(workflowInputs),
         workflow_timeout_seconds: "60",
+        distinct_id: "distinct_id",
       };
 
       vi.spyOn(core, "getInput").mockImplementation((input: string): string => {
@@ -42,6 +43,8 @@ describe("Action", () => {
             return mockEnvConfig.workflow_inputs;
           case "workflow_timeout_seconds":
             return mockEnvConfig.workflow_timeout_seconds;
+          case "distinct_id":
+            return mockEnvConfig.distinct_id;
           default:
             throw new Error("invalid input requested");
         }
@@ -64,6 +67,7 @@ describe("Action", () => {
       expect(config.workflow).toStrictEqual("workflow_name");
       expect(config.workflowInputs).toStrictEqual(workflowInputs);
       expect(config.workflowTimeoutSeconds).toStrictEqual(60);
+      expect(config.distinctId).toStrictEqual("distinct_id");
     });
 
     it("should have a number for a workflow when given a workflow ID", () => {
@@ -109,6 +113,13 @@ describe("Action", () => {
 
       mockEnvConfig.workflow_inputs = '{"fruit":[]}';
       expect(() => getConfig()).toThrowError('"fruit" value is Array');
+    });
+
+    it("should handle no distinct_id being provided", () => {
+      mockEnvConfig.distinct_id = "";
+      const config: ActionConfig = getConfig();
+
+      expect(config.distinctId).toBeUndefined();
     });
   });
 });

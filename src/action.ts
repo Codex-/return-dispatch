@@ -40,6 +40,11 @@ export interface ActionConfig {
    * Time until giving up on identifying the Run ID.
    */
   workflowTimeoutSeconds: number;
+
+  /**
+   * Specify a static ID to use instead of a distinct ID.
+   */
+  distinctId?: string;
 }
 
 type ActionWorkflowInputs = Record<string, string | number | boolean>;
@@ -55,11 +60,14 @@ export function getConfig(): ActionConfig {
     ref: core.getInput("ref", { required: true }),
     repo: core.getInput("repo", { required: true }),
     owner: core.getInput("owner", { required: true }),
-    workflow: getWorkflowValue(core.getInput("workflow", { required: true })),
+    workflow: getWorkflowValueAsNumber(
+      core.getInput("workflow", { required: true }),
+    ),
     workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
     workflowTimeoutSeconds:
       getNumberFromValue(core.getInput("workflow_timeout_seconds")) ??
       WORKFLOW_TIMEOUT_SECONDS,
+    distinctId: getOptionalWorkflowValue(core.getInput("distinct_id")),
   };
 }
 
@@ -111,7 +119,7 @@ function getWorkflowInputs(
   }
 }
 
-function getWorkflowValue(workflowInput: string): string | number {
+function getWorkflowValueAsNumber(workflowInput: string): string | number {
   try {
     // We can assume that the string is defined and not empty at this point.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -120,4 +128,11 @@ function getWorkflowValue(workflowInput: string): string | number {
     // Assume using a workflow name instead of an ID.
     return workflowInput;
   }
+}
+
+/**
+ * We want empty strings to simply be undefined.
+ */
+function getOptionalWorkflowValue(workflowInput: string): string | undefined {
+  return workflowInput || undefined;
 }
