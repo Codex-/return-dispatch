@@ -25,6 +25,7 @@ steps:
       workflow: automation-test.yml
       workflow_inputs: '{ "some_input": "value" }' # Optional
       workflow_timeout_seconds: 120 # Default: 300
+      distinct_id: someDistinctId # Optional
 
   - name: Use the output run ID and URL
     run: |
