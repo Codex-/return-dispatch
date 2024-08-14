@@ -30,6 +30,8 @@ inputs:
   workflow_timeout_seconds:
     description: Time until giving up waiting for the start of the workflow run.
     default: 300
+  distinct_id:
+    description: Specify a static string to use instead of a random distinct ID.
 
 runs:
   using: node20
