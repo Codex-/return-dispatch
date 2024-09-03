@@ -79,10 +79,8 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
           `Failed to get workflows, expected 200 but received ${response.status}`,
         );
       }
-      // wrong type definition
-      const workflows: typeof response.data.workflows = response.data;
 
-      workflowId = workflows.find((workflow) =>
+      workflowId = response.data.find((workflow) =>
         new RegExp(sanitisedFilename).test(workflow.path),
       )?.id;
 
