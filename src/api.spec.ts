@@ -99,7 +99,7 @@ describe("API", () => {
         }),
       );
 
-      await dispatchWorkflow("");
+      await expect(dispatchWorkflow("")).resolves.not.toThrow();
     });
 
     it("should throw if a non-204 status is returned", async () => {
@@ -134,7 +134,7 @@ describe("API", () => {
         });
       });
 
-      await dispatchWorkflow(distinctId);
+      await expect(dispatchWorkflow(distinctId)).resolves.not.toThrow();
       expect(dispatchedId).toStrictEqual(distinctId);
     });
   });
@@ -272,7 +272,7 @@ describe("API", () => {
         },
       );
 
-      await getWorkflowRunIds(0);
+      await expect(getWorkflowRunIds(0)).resolves.not.toThrow()
       expect(parsedRef).toStrictEqual("master");
     });
 
@@ -293,7 +293,7 @@ describe("API", () => {
         },
       );
 
-      await getWorkflowRunIds(0);
+      await expect(getWorkflowRunIds(0)).resolves.not.toThrow()
       expect(parsedRef).toBeUndefined();
     });
 
@@ -314,7 +314,7 @@ describe("API", () => {
         },
       );
 
-      await getWorkflowRunIds(0);
+      await expect(getWorkflowRunIds(0)).resolves.not.toThrow()
       expect(parsedRef).toBeUndefined();
     });
   });
@@ -349,7 +349,7 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowRunJobSteps(0)).toStrictEqual([
+      await expect(getWorkflowRunJobSteps(0)).resolves.toStrictEqual([
         "Test Step 1",
         "Test Step 2",
       ]);
@@ -392,7 +392,7 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowRunJobSteps(0)).toStrictEqual([]);
+      await expect(getWorkflowRunJobSteps(0)).resolves.toStrictEqual([]);
     });
   });
 

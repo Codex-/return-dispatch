@@ -105,14 +105,20 @@ describe("Action", () => {
     });
 
     it("should throw if a workflow inputs JSON doesn't contain strings numbers or booleans", () => {
-      mockEnvConfig.workflow_inputs = '{"pie":{"powerLevel":9001}}';
-      expect(() => getConfig()).toThrowError('"pie" value is object');
+      const debugMock = vi
+        .spyOn(core, "debug")
+        .mockImplementation(() => undefined);
 
-      mockEnvConfig.workflow_inputs = '{"vegetable":null}';
-      expect(() => getConfig()).toThrowError('"vegetable" value is null');
+      const callAndAssert = (input: string, errorMsg: string) => {
+        mockEnvConfig.workflow_inputs = input;
+        expect(() => getConfig()).toThrowError(errorMsg);
+        expect(debugMock).toHaveBeenCalledOnce();
+        debugMock.mockReset();
+      };
 
-      mockEnvConfig.workflow_inputs = '{"fruit":[]}';
-      expect(() => getConfig()).toThrowError('"fruit" value is Array');
+      callAndAssert('{"pie":{"powerLevel":9001}}', '"pie" value is object');
+      callAndAssert('{"vegetable":null}', '"vegetable" value is null');
+      callAndAssert('{"fruit":[]}', '"fruit" value is Array');
     });
 
     it("should handle no distinct_id being provided", () => {
