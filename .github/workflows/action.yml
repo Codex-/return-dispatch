@@ -19,7 +19,7 @@ jobs:
         id: return_dispatch
         uses: ./
         with:
-          token: ${{ secrets.TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ env.TARGET_BRANCH }}
           repo: return-dispatch
           owner: seequent
