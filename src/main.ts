@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
 import { ActionOutputs, getConfig } from "./action.ts";
 import * as api from "./api.ts";
+import { getBranchName } from "./utils.ts";
 
 const DISTINCT_ID = uuid();
 const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
@@ -102,6 +103,21 @@ async function run(): Promise<void> {
 
     // Dispatch the action
     await api.dispatchWorkflow(config.distinctId ?? DISTINCT_ID);
+
+    // Attempt to get the branch from config ref
+    core.info("Attempt to extract branch name from ref...");
+    const branch = getBranchName(config.ref);
+    if (branch.isTag) {
+      core.info(
+        `Tag found for '${config.ref}', branch filtering will not be used`,
+      );
+    } else if (branch.branchName) {
+      core.info(`Branch found for '${config.ref}': ${branch.branchName}`);
+    } else {
+      core.info(
+        `Branch not found for '${config.ref}', branch filtering will not be used`,
+      );
+    }
 
     const timeoutMs = config.workflowTimeoutSeconds * 1000;
     let attemptNo = 0;
