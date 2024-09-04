@@ -88,7 +88,6 @@ describe("API", () => {
   function assertOnlyCalled(
     ...coreLogMocks: MockInstance<(message: string) => void>[]
   ): void {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const diff = coreLogSet.symmetricDifference(new Set(coreLogMocks));
 
     for (const logMock of diff) {

@@ -1,9 +1,11 @@
 // @ts-check
 
 import { fixupPluginRules } from "@eslint/compat";
-import jsEslint from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
+import jsEslint from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
+import eslintPluginImportX from "eslint-plugin-import-x";
+// eslint-disable-next-line import-x/no-unresolved
 import tsEslint from "typescript-eslint";
 
 const compat = new FlatCompat({
@@ -31,6 +33,8 @@ function legacyPlugin(name, alias = name) {
 
 export default tsEslint.config(
   jsEslint.configs.recommended,
+  eslintPluginImportX.flatConfigs.recommended,
+  eslintPluginImportX.flatConfigs.typescript,
   ...tsEslint.configs.strictTypeChecked,
   ...tsEslint.configs.stylisticTypeChecked,
   {
@@ -54,7 +58,7 @@ export default tsEslint.config(
   {
     plugins: {
       github: legacyPlugin("eslint-plugin-github", "github"), // pending https://github.com/github/eslint-plugin-github/issues/513
-      import: legacyPlugin("eslint-plugin-import", "import"),
+      import: legacyPlugin("eslint-plugin-import", "import"), // Needed for above
     },
     rules: {
       "@typescript-eslint/await-thenable": "warn",
@@ -88,7 +92,10 @@ export default tsEslint.config(
           peerDependencies: true,
         },
       ],
-      "import/order": "warn",
+      "import/order": [
+        "warn",
+        { "newlines-between": "always", alphabetize: { order: "asc" } },
+      ],
       "no-console": ["warn"],
     },
   },

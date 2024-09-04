@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+
 import { type ActionConfig, getConfig } from "./action.ts";
 import type { BranchNameResult } from "./utils.ts";
 
