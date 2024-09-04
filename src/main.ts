@@ -1,14 +1,10 @@
 import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
+
 import { ActionOutputs, getConfig } from "./action.ts";
 import * as api from "./api.ts";
+import * as constants from "./constants.ts";
 import { getBranchName } from "./utils.ts";
-
-const DISTINCT_ID = uuid();
-const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
-const WORKFLOW_JOB_STEPS_RETRY_MS = 5000;
-const WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX = 3;
-const WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS = 500;
 
 type Result = ResultFound | ResultNotFound;
 
@@ -56,16 +52,19 @@ async function attemptToFindRunId(
       if (error.message === "Server Error") {
         if (
           currentGetWorkflowRunJobStepsAttempt <
-          WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX
+          constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX
         ) {
           currentGetWorkflowRunJobStepsAttempt++;
 
           core.debug(
             "Encountered a Server Error while attempting to fetch steps, " +
-              `retrying in ${WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS}`,
+              `retrying in ${constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS}`,
           );
           await new Promise((resolve) =>
-            setTimeout(resolve, WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS),
+            setTimeout(
+              resolve,
+              constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS,
+            ),
           );
 
           // Continue without increasing the current index to retry the same ID.
@@ -91,6 +90,8 @@ async function run(): Promise<void> {
     const startTime = Date.now();
     api.init(config);
 
+    const distinctId = config.distinctId ?? uuid();
+
     let workflowId: number;
     // Get the workflow ID if give a string
     if (typeof config.workflow === "string") {
@@ -102,7 +103,7 @@ async function run(): Promise<void> {
     }
 
     // Dispatch the action
-    await api.dispatchWorkflow(config.distinctId ?? DISTINCT_ID);
+    await api.dispatchWorkflow(config.distinctId ?? distinctId);
 
     // Attempt to get the branch from config ref
     core.info("Attempt to extract branch name from ref...");
@@ -132,7 +133,7 @@ async function run(): Promise<void> {
       // Get all runs for a given workflow ID
       const fetchWorkflowRunIds = await api.retryOrTimeout(
         () => api.getWorkflowRunIds(workflowId, branch),
-        Math.max(WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
+        Math.max(constants.WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
       );
       if (fetchWorkflowRunIds.timeout) {
         core.debug(
@@ -146,7 +147,7 @@ async function run(): Promise<void> {
         `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
       );
 
-      const idRegex = new RegExp(config.distinctId ?? DISTINCT_ID);
+      const idRegex = new RegExp(config.distinctId ?? distinctId);
 
       const result = await attemptToFindRunId(idRegex, workflowRunIds);
       if (result.found) {
@@ -166,7 +167,7 @@ async function run(): Promise<void> {
       );
 
       await new Promise((resolve) =>
-        setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS),
+        setTimeout(resolve, constants.WORKFLOW_JOB_STEPS_RETRY_MS),
       );
     }
 
