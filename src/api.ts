@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { type ActionConfig, getConfig } from "./action.ts";
-import { getBranchName } from "./utils.ts";
+import type { BranchNameResult } from "./utils.ts";
 
 type Octokit = ReturnType<(typeof github)["getOctokit"]>;
 
@@ -71,7 +71,7 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
       },
     );
     let workflowId: number | undefined;
-
+    let workflowIdUrl: string | undefined;
     for await (const response of workflowIterator) {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (response.status !== 200) {
@@ -80,11 +80,13 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
         );
       }
 
-      workflowId = response.data.find((workflow) =>
+      const workflowData = response.data.find((workflow) =>
         new RegExp(sanitisedFilename).test(workflow.path),
-      )?.id;
+      );
+      workflowId = workflowData?.id;
 
       if (workflowId !== undefined) {
+        workflowIdUrl = workflowData?.html_url;
         break;
       }
     }
@@ -92,6 +94,15 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
     if (workflowId === undefined) {
       throw new Error(`Unable to find ID for Workflow: ${workflowFilename}`);
     }
+
+    core.info(
+      `Fetched Workflow ID:\n` +
+        `  Repository: ${config.owner}/${config.repo}\n` +
+        `  Workflow ID: '${workflowId}'\n` +
+        `  Input Filename: '${workflowFilename}'\n` +
+        `  Sanitised Filename: '${sanitisedFilename}'\n` +
+        `  URL: ${workflowIdUrl}`,
+    );
 
     return workflowId;
   } catch (error) {
@@ -140,22 +151,28 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
   }
 }
 
-export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
+export async function getWorkflowRunIds(
+  workflowId: number,
+  branch: BranchNameResult,
+): Promise<number[]> {
   try {
-    const branchName = getBranchName(config.ref);
+    const useBranchFilter =
+      !branch.isTag &&
+      branch.branchName !== undefined &&
+      branch.branchName !== "";
 
     // https://docs.github.com/en/rest/reference/actions#list-workflow-runs
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
       workflow_id: workflowId,
-      ...(branchName
+      ...(useBranchFilter
         ? {
-            branch: branchName,
-            per_page: 5,
+            branch: branch.branchName,
+            per_page: 10,
           }
         : {
-            per_page: 10,
+            per_page: 20,
           }),
     });
 
@@ -170,10 +187,13 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
       (workflowRun) => workflowRun.id,
     );
 
+    const branchMsg = useBranchFilter
+      ? `true (${branch.branchName})`
+      : `false (${branch.ref})`;
     core.debug(
       "Fetched Workflow Runs:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
-        `  Branch: ${branchName}\n` +
+        `  Branch Filter: ${branchMsg}\n` +
         `  Workflow ID: ${workflowId}\n` +
         `  Runs Fetched: [${runIds.join(", ")}]`,
     );

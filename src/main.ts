@@ -131,7 +131,7 @@ async function run(): Promise<void> {
 
       // Get all runs for a given workflow ID
       const fetchWorkflowRunIds = await api.retryOrTimeout(
-        () => api.getWorkflowRunIds(workflowId),
+        () => api.getWorkflowRunIds(workflowId, branch),
         Math.max(WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
       );
       if (fetchWorkflowRunIds.timeout) {
