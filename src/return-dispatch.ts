@@ -23,7 +23,7 @@ interface ResultNotFound {
 /**
  * Attempt to read the distinct ID in the steps for each existing run ID.
  */
-async function attemptToFindRunId(
+export async function attemptToFindRunId(
   idRegex: RegExp,
   workflowRunIds: number[],
 ): Promise<Result> {
@@ -88,8 +88,6 @@ export async function returnDispatch(config: ActionConfig): Promise<void> {
   try {
     const startTime = Date.now();
 
-    const distinctId = config.distinctId ?? uuid();
-
     let workflowId: number;
     // Get the workflow ID if give a string
     if (typeof config.workflow === "string") {
@@ -101,7 +99,7 @@ export async function returnDispatch(config: ActionConfig): Promise<void> {
     }
 
     // Dispatch the action
-    await api.dispatchWorkflow(config.distinctId ?? distinctId);
+    await api.dispatchWorkflow(config.distinctId);
 
     // Attempt to get the branch from config ref
     core.info("Attempt to extract branch name from ref...");
@@ -145,7 +143,7 @@ export async function returnDispatch(config: ActionConfig): Promise<void> {
         `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
       );
 
-      const idRegex = new RegExp(config.distinctId ?? distinctId);
+      const idRegex = new RegExp(config.distinctId);
 
       const result = await attemptToFindRunId(idRegex, workflowRunIds);
       if (result.found) {

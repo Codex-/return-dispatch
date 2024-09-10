@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import { v4 as uuid } from "uuid";
 
 const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
 
@@ -44,7 +45,7 @@ export interface ActionConfig {
   /**
    * Specify a static ID to use instead of a distinct ID.
    */
-  distinctId?: string;
+  distinctId: string;
 }
 
 type ActionWorkflowInputs = Record<string, string | number | boolean>;
@@ -67,7 +68,8 @@ export function getConfig(): ActionConfig {
     workflowTimeoutSeconds:
       getNumberFromValue(core.getInput("workflow_timeout_seconds")) ??
       WORKFLOW_TIMEOUT_SECONDS,
-    distinctId: getOptionalWorkflowValue(core.getInput("distinct_id")),
+    distinctId:
+      getOptionalWorkflowValue(core.getInput("distinct_id")) ?? uuid(),
   };
 }
 
