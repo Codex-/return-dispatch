@@ -40,7 +40,7 @@ export async function attemptToFindRunId(
 
       for (const step of steps) {
         if (idRegex.test(step)) {
-          const url = await api.getWorkflowRunUrl(id);
+          const url = await api.fetchWorkflowRunUrl(id);
           return { found: true, value: { id, url } };
         }
       }
@@ -95,7 +95,7 @@ export async function getWorkflowId(config: ActionConfig): Promise<number> {
   }
 
   core.info(`Fetching Workflow ID for ${config.workflow}...`);
-  const workflowId = await api.getWorkflowId(config.workflow);
+  const workflowId = await api.fetchWorkflowId(config.workflow);
   core.info(`Fetched Workflow ID: ${workflowId}`);
   return workflowId;
 }

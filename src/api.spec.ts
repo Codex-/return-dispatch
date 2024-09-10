@@ -14,10 +14,10 @@ import {
 import type { ActionConfig } from "./action.ts";
 import {
   dispatchWorkflow,
-  getWorkflowId,
+  fetchWorkflowId,
   getWorkflowRunIds,
   getWorkflowRunJobSteps,
-  getWorkflowRunUrl,
+  fetchWorkflowRunUrl,
   init,
   retryOrTimeout,
 } from "./api.ts";
@@ -219,7 +219,7 @@ describe("API", () => {
     });
   });
 
-  describe("getWorkflowId", () => {
+  describe("fetchWorkflowId", () => {
     it("should return the workflow ID for a given workflow filename", async () => {
       const mockData = [
         {
@@ -243,7 +243,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      expect(await getWorkflowId("slice.yml")).toStrictEqual(mockData[2]!.id);
+      expect(await fetchWorkflowId("slice.yml")).toStrictEqual(mockData[2]!.id);
 
       // Logging
       assertOnlyCalled(coreInfoLogMock);
@@ -270,7 +270,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowId("implode")).rejects.toThrow(
+      await expect(fetchWorkflowId("implode")).rejects.toThrow(
         `Failed to get workflows, expected 200 but received ${errorStatus}`,
       );
 
@@ -278,7 +278,7 @@ describe("API", () => {
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"getWorkflowId: An unexpected error has occurred: Failed to get workflows, expected 200 but received 401"`,
+        `"fetchWorkflowId: An unexpected error has occurred: Failed to get workflows, expected 200 but received 401"`,
       );
     });
 
@@ -292,7 +292,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowId(workflowName)).rejects.toThrow(
+      await expect(fetchWorkflowId(workflowName)).rejects.toThrow(
         `Unable to find ID for Workflow: ${workflowName}`,
       );
 
@@ -300,7 +300,7 @@ describe("API", () => {
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"getWorkflowId: An unexpected error has occurred: Unable to find ID for Workflow: slice"`,
+        `"fetchWorkflowId: An unexpected error has occurred: Unable to find ID for Workflow: slice"`,
       );
     });
   });
@@ -637,7 +637,7 @@ describe("API", () => {
     });
   });
 
-  describe("getWorkflowRunUrl", () => {
+  describe("fetchWorkflowRunUrl", () => {
     it("should return the workflow run state for a given run ID", async () => {
       const mockData = {
         html_url: "master sword",
@@ -649,7 +649,7 @@ describe("API", () => {
         }),
       );
 
-      const url = await getWorkflowRunUrl(123456);
+      const url = await fetchWorkflowRunUrl(123456);
       expect(url).toStrictEqual(mockData.html_url);
     });
 
@@ -663,7 +663,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunUrl(0)).rejects.toThrow(
+      await expect(fetchWorkflowRunUrl(0)).rejects.toThrow(
         `Failed to get Workflow Run state, expected 200 but received ${errorStatus}`,
       );
 
@@ -671,7 +671,7 @@ describe("API", () => {
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledTimes(1);
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"getWorkflowRunUrl: An unexpected error has occurred: Failed to get Workflow Run state, expected 200 but received 401"`,
+        `"fetchWorkflowRunUrl: An unexpected error has occurred: Failed to get Workflow Run state, expected 200 but received 401"`,
       );
     });
   });

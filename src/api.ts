@@ -56,7 +56,9 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
   }
 }
 
-export async function getWorkflowId(workflowFilename: string): Promise<number> {
+export async function fetchWorkflowId(
+  workflowFilename: string,
+): Promise<number> {
   try {
     const sanitisedFilename = workflowFilename.replace(
       /[.*+?^${}()|[\]\\]/g,
@@ -109,7 +111,7 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowId: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowId: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
@@ -117,7 +119,7 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
   }
 }
 
-export async function getWorkflowRunUrl(runId: number): Promise<string> {
+export async function fetchWorkflowRunUrl(runId: number): Promise<string> {
   try {
     // https://docs.github.com/en/rest/reference/actions#get-a-workflow-run
     const response = await octokit.rest.actions.getWorkflowRun({
@@ -144,7 +146,7 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunUrl: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowRunUrl: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
