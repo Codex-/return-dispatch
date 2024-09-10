@@ -8,7 +8,6 @@ import {
   expect,
   it,
   vi,
-  type MockInstance,
 } from "vitest";
 
 import type { ActionConfig } from "./action.ts";
@@ -21,6 +20,7 @@ import {
   init,
   retryOrTimeout,
 } from "./api.ts";
+import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
 import { getBranchName } from "./utils.ts";
 
 vi.mock("@actions/core");
@@ -67,34 +67,12 @@ const mockOctokit = {
 };
 
 describe("API", () => {
-  const coreDebugLogMock: MockInstance<(typeof core)["debug"]> = vi
-    .spyOn(core, "debug")
-    .mockImplementation(() => undefined);
-  const coreInfoLogMock: MockInstance<(typeof core)["info"]> = vi
-    .spyOn(core, "info")
-    .mockImplementation(() => undefined);
-  const coreErrorLogMock: MockInstance<(typeof core)["error"]> = vi
-    .spyOn(core, "error")
-    .mockImplementation(() => undefined);
-  const coreLogSet = new Set<MockInstance<(message: string) => void>>([
+  const {
     coreDebugLogMock,
     coreInfoLogMock,
     coreErrorLogMock,
-  ]);
-
-  /**
-   * Explicitly assert no rogue log calls are made
-   * that are not correctly asserted in these tests
-   */
-  function assertOnlyCalled(
-    ...coreLogMocks: MockInstance<(message: string) => void>[]
-  ): void {
-    const diff = coreLogSet.symmetricDifference(new Set(coreLogMocks));
-
-    for (const logMock of diff) {
-      expect(logMock).not.toHaveBeenCalled();
-    }
-  }
+    assertOnlyCalled,
+  } = mockLoggingFunctions();
 
   afterAll(() => {
     vi.restoreAllMocks();

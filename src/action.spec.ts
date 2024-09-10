@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import { v4 } from "uuid";
 import {
   afterEach,
   beforeEach,
@@ -10,7 +11,6 @@ import {
 } from "vitest";
 
 import { type ActionConfig, getConfig } from "./action.ts";
-import { v4 } from "uuid";
 
 vi.mock("@actions/core");
 vi.mock("uuid", () => ({
