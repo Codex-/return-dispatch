@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
 
-import { ActionOutputs, getConfig } from "./action.ts";
+import { ActionOutputs, type ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import { getBranchName } from "./utils.ts";
@@ -84,11 +84,9 @@ async function attemptToFindRunId(
   return { found: false };
 }
 
-async function run(): Promise<void> {
+export async function returnDispatch(config: ActionConfig): Promise<void> {
   try {
-    const config = getConfig();
     const startTime = Date.now();
-    api.init(config);
 
     const distinctId = config.distinctId ?? uuid();
 
@@ -182,5 +180,3 @@ async function run(): Promise<void> {
     }
   }
 }
-
-((): Promise<void> => run())();
