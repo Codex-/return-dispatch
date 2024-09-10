@@ -1,9 +1,21 @@
 import * as core from "@actions/core";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type MockInstance,
+} from "vitest";
 
 import { type ActionConfig, getConfig } from "./action.ts";
+import { v4 } from "uuid";
 
 vi.mock("@actions/core");
+vi.mock("uuid", () => ({
+  v4: vi.fn(),
+}));
 
 describe("Action", () => {
   const workflowInputs = {
@@ -122,10 +134,13 @@ describe("Action", () => {
     });
 
     it("should handle no distinct_id being provided", () => {
+      const v4Mock = v4 as unknown as MockInstance<typeof v4>;
+      v4Mock.mockImplementationOnce(() => "test-uuid-is-used");
       mockEnvConfig.distinct_id = "";
       const config: ActionConfig = getConfig();
 
-      expect(config.distinctId).toBeUndefined();
+      expect(config.distinctId).toStrictEqual("test-uuid-is-used");
+      expect(v4Mock).toHaveBeenCalledOnce();
     });
   });
 });

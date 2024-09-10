@@ -11,6 +11,7 @@ import {
   type MockInstance,
 } from "vitest";
 
+import type { ActionConfig } from "./action.ts";
 import {
   dispatchWorkflow,
   getWorkflowId,
@@ -305,7 +306,7 @@ describe("API", () => {
   });
 
   describe("getWorkflowRunIds", () => {
-    const workflowIdCfg = {
+    const workflowIdCfg: ActionConfig = {
       token: "secret",
       ref: "/refs/heads/feature_branch",
       repo: "repository",
@@ -313,6 +314,7 @@ describe("API", () => {
       workflow: "workflow_name",
       workflowInputs: { testInput: "test" },
       workflowTimeoutSeconds: 60,
+      distinctId: "test-uuid",
     };
 
     beforeEach(() => {

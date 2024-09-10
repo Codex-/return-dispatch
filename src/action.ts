@@ -134,6 +134,9 @@ function getWorkflowValueAsNumber(workflowInput: string): string | number {
 
 /**
  * We want empty strings to simply be undefined.
+ *
+ * While simple, make it very clear that the usage of `||`
+ * is intentional here.
  */
 function getOptionalWorkflowValue(workflowInput: string): string | undefined {
   return workflowInput || undefined;
