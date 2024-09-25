@@ -1,10 +1,38 @@
 import * as core from "@actions/core";
-import { v4 as uuid } from "uuid";
 
 import { ActionOutputs, type ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import { getBranchName } from "./utils.ts";
+
+export function shouldRetryOrThrow(
+  error: Error,
+  currentAttempts: number,
+): boolean {
+  switch (error.message) {
+    case "Server Error": {
+      if (
+        currentAttempts < constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX
+      ) {
+        core.debug(
+          "Encountered a Server Error while attempting to fetch steps, " +
+            `retrying in ${constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS}ms`,
+        );
+
+        return true;
+      }
+      return false;
+    }
+    case "Not Found": {
+      core.debug("Could not identify ID in run, continuing...");
+      return false;
+    }
+    default: {
+      core.debug(`Unhandled error has occurred: ${error.message}`);
+      throw error;
+    }
+  }
+}
 
 type Result = ResultFound | ResultNotFound;
 
@@ -49,31 +77,20 @@ export async function attemptToFindRunId(
         throw error;
       }
 
-      if (error.message === "Server Error") {
-        if (
-          currentGetWorkflowRunJobStepsAttempt <
-          constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX
-        ) {
-          currentGetWorkflowRunJobStepsAttempt++;
-
-          core.debug(
-            "Encountered a Server Error while attempting to fetch steps, " +
-              `retrying in ${constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS}`,
-          );
-          await new Promise((resolve) =>
-            setTimeout(
-              resolve,
-              constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS,
-            ),
-          );
-
-          // Continue without increasing the current index to retry the same ID.
-          continue;
-        }
-      } else if (error.message === "Not Found") {
-        core.debug(`Could not identify ID in run: ${id}, continuing...`);
-      } else {
-        throw error;
+      const shouldRetry = shouldRetryOrThrow(
+        error,
+        currentGetWorkflowRunJobStepsAttempt,
+      );
+      if (shouldRetry) {
+        currentGetWorkflowRunJobStepsAttempt++;
+        await new Promise((resolve) =>
+          setTimeout(
+            resolve,
+            constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS,
+          ),
+        );
+        // Continue without increasing the current index to retry the same ID.
+        continue;
       }
     }
 
