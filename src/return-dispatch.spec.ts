@@ -9,11 +9,16 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
+import { v4 as uuid } from "uuid";
 
 import type { ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
-import { getWorkflowId, shouldRetryOrThrow } from "./return-dispatch.ts";
+import {
+  attemptToFindRunId,
+  getWorkflowId,
+  shouldRetryOrThrow,
+} from "./return-dispatch.ts";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
 
 vi.mock("@actions/core");
@@ -155,6 +160,42 @@ describe("return-dispatch", () => {
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"Unhandled error has occurred: Unhandled Error"`,
       );
+    });
+  });
+
+  describe("attemptToFindRunId", () => {
+    it("should return a found result if found on the first iteration", async () => {
+      const testId = uuid();
+      vi.spyOn(api, "getWorkflowRunJobSteps").mockResolvedValue([testId]);
+      vi.spyOn(api, "fetchWorkflowRunUrl").mockResolvedValue("test-url");
+
+      const result = await attemptToFindRunId(new RegExp(testId), [0]);
+      if (!result.found) {
+        throw new Error("Failed, result not found when expected");
+      }
+
+      // Behaviour
+      expect(result.found).toStrictEqual(true);
+      expect(result.value.id).toStrictEqual(0);
+      expect(result.value.url).toStrictEqual("test-url");
+
+      // Logging
+      assertNoneCalled();
+    });
+
+    it("should return a not found result if there is nothing to iterate on", async () => {
+      const testId = uuid();
+
+      const result = await attemptToFindRunId(new RegExp(testId), []);
+      if (result.found) {
+        throw new Error("Failed, result found when none expected");
+      }
+
+      // Behaviour
+      expect(result.found).toStrictEqual(false);
+
+      // Logging
+      assertNoneCalled();
     });
   });
 });
