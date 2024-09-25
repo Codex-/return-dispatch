@@ -39,7 +39,7 @@ describe("utils", () => {
       assertOnlyCalled(coreDebugLogMock);
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"getWorkflowRunIds: Filtered branch name: /refs/heads/cool_feature"`,
+        `"getBranchNameFromRef: Filtered branch name: /refs/heads/cool_feature"`,
       );
     });
 
@@ -57,7 +57,7 @@ describe("utils", () => {
       assertOnlyCalled(coreDebugLogMock);
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"getWorkflowRunIds: Filtered branch name: refs/heads/cool_feature"`,
+        `"getBranchNameFromRef: Filtered branch name: refs/heads/cool_feature"`,
       );
     });
 
@@ -74,7 +74,7 @@ describe("utils", () => {
       assertOnlyCalled(coreDebugLogMock);
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"failed to get branch for ref: refs/heads/, please raise an issue with this git ref."`,
+        `"getBranchName: failed to get branch for ref: refs/heads/, please raise an issue with this git ref."`,
       );
     });
 

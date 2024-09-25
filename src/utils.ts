@@ -37,10 +37,10 @@ export function getBranchName(ref: string): BranchNameResult {
    */
   const branch = getBranchNameFromRef(ref);
   if (branch) {
-    core.debug(`getWorkflowRunIds: Filtered branch name: ${ref}`);
+    core.debug(`getBranchNameFromRef: Filtered branch name: ${ref}`);
   } else {
     core.debug(
-      `failed to get branch for ref: ${ref}, please raise an issue with this git ref.`,
+      `getBranchName: failed to get branch for ref: ${ref}, please raise an issue with this git ref.`,
     );
   }
   return { branchName: branch, isTag: false, ref };
