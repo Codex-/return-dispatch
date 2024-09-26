@@ -192,10 +192,17 @@ export async function returnDispatch(
     core.setFailed("Timeout exceeded while attempting to get Run ID");
   } catch (error) {
     if (error instanceof Error) {
-      core.error(`Failed: ${error.message}`);
-      core.warning("Does the token have the correct permissions?");
+      const failureMsg = `Failed: An unhandled error has occurred: ${error.message}`;
+      core.setFailed(failureMsg);
+      core.error(failureMsg);
       core.debug(error.stack ?? "");
-      core.setFailed(error.message);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      const failureMsg = `Failed: An unknown error has occurred: ${error}`;
+      core.setFailed(failureMsg);
+      core.error(failureMsg);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      core.debug(error as any);
     }
   }
 }
