@@ -5,8 +5,7 @@ import { FlatCompat } from "@eslint/eslintrc";
 import jsEslint from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
 import eslintPluginImportX from "eslint-plugin-import-x";
-// eslint-disable-next-line import-x/no-unresolved
-import tsEslint from "typescript-eslint";
+import * as tsEslint from "typescript-eslint";
 
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,

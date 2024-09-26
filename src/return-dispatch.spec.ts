@@ -29,7 +29,6 @@ describe("return-dispatch", () => {
   const {
     coreDebugLogMock,
     coreInfoLogMock,
-    coreErrorLogMock,
     assertOnlyCalled,
     assertNoneCalled,
   } = mockLoggingFunctions();
@@ -331,11 +330,16 @@ describe("return-dispatch", () => {
         // Logging
         assertOnlyCalled(coreDebugLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(3);
-        for (const call of coreDebugLogMock.mock.calls) {
-          expect(call[0]).toMatchInlineSnapshot(
-            `"Encountered a Server Error while attempting to fetch steps, retrying in 500ms"`,
-          );
-        }
+        const debugLineSnapshot = `"Encountered a Server Error while attempting to fetch steps, retrying in 500ms"`;
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          debugLineSnapshot,
+        );
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
+          debugLineSnapshot,
+        );
+        expect(coreDebugLogMock.mock.calls[2]?.[0]).toMatchInlineSnapshot(
+          debugLineSnapshot,
+        );
       });
     });
 
