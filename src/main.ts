@@ -39,16 +39,13 @@ async function run(): Promise<void> {
       // Get all runs for a given workflow ID
       const fetchWorkflowRunIds = await api.retryOrTimeout(
         () => api.getWorkflowRunIds(workflowId),
-        WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs
-          ? timeoutMs
-          : WORKFLOW_FETCH_TIMEOUT_MS,
+        Math.max(WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
       );
       if (fetchWorkflowRunIds.timeout) {
-        core.debug("Timed out while attempting to fetch Workflow Run IDs");
-        await new Promise((resolve) =>
-          setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS),
+        core.debug(
+          `Timed out while attempting to fetch Workflow Run IDs, waited ${Date.now() - startTime}ms`,
         );
-        continue;
+        break;
       }
 
       const workflowRunIds = fetchWorkflowRunIds.value;
