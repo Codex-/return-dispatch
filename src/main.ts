@@ -93,10 +93,11 @@ async function run(): Promise<void> {
       );
     }
 
-    throw new Error("Timeout exceeded while attempting to get Run ID");
+    core.error("Failed: Timeout exceeded while attempting to get Run ID");
+    core.setFailed("Timeout exceeded while attempting to get Run ID");
   } catch (error) {
     if (error instanceof Error) {
-      core.error(`Failed to complete: ${error.message}`);
+      core.error(`Failed: ${error.message}`);
       core.warning("Does the token have the correct permissions?");
       core.debug(error.stack ?? "");
       core.setFailed(error.message);
