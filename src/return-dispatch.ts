@@ -122,9 +122,6 @@ export async function returnDispatch(
   workflowId: number,
 ): Promise<void> {
   try {
-    // Dispatch the action
-    await api.dispatchWorkflow(config.distinctId);
-
     // Attempt to get the branch from config ref
     core.info("Attempt to extract branch name from ref...");
     const branch = getBranchName(config.ref);

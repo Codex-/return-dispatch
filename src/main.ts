@@ -10,5 +10,8 @@ import { getWorkflowId, returnDispatch } from "./return-dispatch.ts";
 
   const workflowId = await getWorkflowId(config);
 
+  // Dispatch the action
+  await api.dispatchWorkflow(config.distinctId);
+
   await returnDispatch(config, startTime, workflowId);
 })();
