@@ -37,13 +37,21 @@ async function run(): Promise<void> {
       core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
 
       // Get all runs for a given workflow ID
-      const workflowRunIds = await api.retryOrDie(
+      const fetchWorkflowRunIds = await api.retryOrTimeout(
         () => api.getWorkflowRunIds(workflowId),
         WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs
           ? timeoutMs
           : WORKFLOW_FETCH_TIMEOUT_MS,
       );
+      if (fetchWorkflowRunIds.timeout) {
+        core.debug("Timed out while attempting to fetch Workflow Run IDs");
+        await new Promise((resolve) =>
+          setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS),
+        );
+        continue;
+      }
 
+      const workflowRunIds = fetchWorkflowRunIds.value;
       core.debug(
         `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
       );
