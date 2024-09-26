@@ -219,7 +219,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
       "Fetched Workflow Run Job Steps:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Workflow Run ID: ${runId}\n` +
-        `  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]` +
+        `  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]\n` +
         `  Steps Fetched: [${steps.join(", ")}]`,
     );
 
@@ -227,7 +227,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`,
+        `getWorkflowRunJobSteps: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
