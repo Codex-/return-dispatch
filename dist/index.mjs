@@ -2246,6 +2246,7 @@ var require_decodeText = __commonJS({
             return decoders.utf8;
           case "latin1":
           case "ascii":
+          // TODO: Make these a separate, strict decoder?
           case "us-ascii":
           case "iso-8859-1":
           case "iso8859-1":
@@ -2945,6 +2946,7 @@ var require_basename = __commonJS({
       for (var i = path.length - 1; i >= 0; --i) {
         switch (path.charCodeAt(i)) {
           case 47:
+          // '/'
           case 92:
             path = path.slice(i + 1);
             return path === ".." || path === "." ? "" : path;
@@ -4179,7 +4181,21 @@ var require_util2 = __commonJS({
           return referrerOrigin;
         }
         case "strict-origin":
+        // eslint-disable-line
+        /**
+           * 1. If referrerURL is a potentially trustworthy URL and
+           * request’s current URL is not a potentially trustworthy URL,
+           * then return no referrer.
+           * 2. Return referrerOrigin
+          */
         case "no-referrer-when-downgrade":
+        // eslint-disable-line
+        /**
+         * 1. If referrerURL is a potentially trustworthy URL and
+         * request’s current URL is not a potentially trustworthy URL,
+         * then return no referrer.
+         * 2. Return referrerOrigin
+        */
         default:
           return isNonPotentiallyTrustWorthy ? "no-referrer" : referrerOrigin;
       }
@@ -23360,31 +23376,32 @@ async function getWorkflowRunJobSteps(runId) {
       `Fetched Workflow Run Job Steps:
   Repository: ${config.owner}/${config.repo}
   Workflow Run ID: ${runId}
-  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]  Steps Fetched: [${steps.join(", ")}]`
+  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]
+  Steps Fetched: [${steps.join(", ")}]`
     );
     return steps;
   } catch (error4) {
     if (error4 instanceof Error) {
       core3.error(
-        `getWorkflowRunJobs: An unexpected error has occurred: ${error4.message}`
+        `getWorkflowRunJobSteps: An unexpected error has occurred: ${error4.message}`
       );
       core3.debug(error4.stack ?? "");
     }
     throw error4;
   }
 }
-async function retryOrDie(retryFunc, timeoutMs) {
+async function retryOrTimeout(retryFunc, timeoutMs) {
   const startTime = Date.now();
   let elapsedTime = 0;
   while (elapsedTime < timeoutMs) {
     elapsedTime = Date.now() - startTime;
     const response = await retryFunc();
     if (response.length > 0) {
-      return response;
+      return { timeout: false, value: response };
     }
     await new Promise((resolve) => setTimeout(resolve, 1e3));
   }
-  throw new Error("Timed out while attempting to fetch data");
+  return { timeout: true };
 }
 
 // src/main.ts
@@ -23413,10 +23430,17 @@ async function run() {
       attemptNo++;
       elapsedTime = Date.now() - startTime;
       core4.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
-      const workflowRunIds = await retryOrDie(
+      const fetchWorkflowRunIds = await retryOrTimeout(
         () => getWorkflowRunIds(workflowId),
-        WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs ? timeoutMs : WORKFLOW_FETCH_TIMEOUT_MS
+        Math.max(WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs)
       );
+      if (fetchWorkflowRunIds.timeout) {
+        core4.debug(
+          `Timed out while attempting to fetch Workflow Run IDs, waited ${Date.now() - startTime}ms`
+        );
+        break;
+      }
+      const workflowRunIds = fetchWorkflowRunIds.value;
       core4.debug(
         `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`
       );
@@ -23451,10 +23475,11 @@ async function run() {
         (resolve) => setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS)
       );
     }
-    throw new Error("Timeout exceeded while attempting to get Run ID");
+    core4.error("Failed: Timeout exceeded while attempting to get Run ID");
+    core4.setFailed("Timeout exceeded while attempting to get Run ID");
   } catch (error4) {
     if (error4 instanceof Error) {
-      core4.error(`Failed to complete: ${error4.message}`);
+      core4.error(`Failed: ${error4.message}`);
       core4.warning("Does the token have the correct permissions?");
       core4.debug(error4.stack ?? "");
       core4.setFailed(error4.message);
