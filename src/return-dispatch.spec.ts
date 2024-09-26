@@ -1,3 +1,4 @@
+import { v4 as uuid } from "uuid";
 import {
   afterAll,
   afterEach,
@@ -9,7 +10,6 @@ import {
   vi,
   type MockInstance,
 } from "vitest";
-import { v4 as uuid } from "uuid";
 
 import type { ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
@@ -23,7 +23,7 @@ import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
 
 vi.mock("@actions/core");
 vi.mock("./api.ts");
-vi.mock("./constants.ts");
+// vi.mock("./constants.ts");
 
 describe("return-dispatch", () => {
   const {
@@ -118,7 +118,7 @@ describe("return-dispatch", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"Encountered a Server Error while attempting to fetch steps, retrying in 500ms"`,
       );
@@ -142,7 +142,7 @@ describe("return-dispatch", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"Could not identify ID in run, continuing..."`,
       );
@@ -156,7 +156,7 @@ describe("return-dispatch", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"Unhandled error has occurred: Unhandled Error"`,
       );
@@ -164,10 +164,54 @@ describe("return-dispatch", () => {
   });
 
   describe("attemptToFindRunId", () => {
-    it("should return a found result if found on the first iteration", async () => {
-      const testId = uuid();
-      vi.spyOn(api, "getWorkflowRunJobSteps").mockResolvedValue([testId]);
-      vi.spyOn(api, "fetchWorkflowRunUrl").mockResolvedValue("test-url");
+    const testId = uuid();
+
+    let getWorkflowRunJobStepMock: MockInstance<
+      typeof api.getWorkflowRunJobSteps
+    >;
+    let fetchWorkflowRunUrlMock: MockInstance<typeof api.fetchWorkflowRunUrl>;
+
+    beforeEach(() => {
+      getWorkflowRunJobStepMock = vi.spyOn(api, "getWorkflowRunJobSteps");
+      fetchWorkflowRunUrlMock = vi.spyOn(api, "fetchWorkflowRunUrl");
+    });
+
+    it("should return a not found result if there is nothing to iterate on", async () => {
+      const result = await attemptToFindRunId(new RegExp(testId), []);
+      if (result.found) {
+        throw new Error("Failed, result found when none expected");
+      }
+
+      // Behaviour
+      expect(result.found).toStrictEqual(false);
+      expect(getWorkflowRunJobStepMock).not.toHaveBeenCalled();
+      expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
+
+      // Logging
+      assertNoneCalled();
+    });
+
+    it("should return a not found result if there is only undefined to iterate on", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      const result = await attemptToFindRunId(new RegExp(testId), [
+        undefined as any,
+      ]);
+      if (result.found) {
+        throw new Error("Failed, result found when none expected");
+      }
+
+      // Behaviour
+      expect(result.found).toStrictEqual(false);
+      expect(getWorkflowRunJobStepMock).not.toHaveBeenCalled();
+      expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
+
+      // Logging
+      assertNoneCalled();
+    });
+
+    it("finds the ID on the first iteration", async () => {
+      getWorkflowRunJobStepMock.mockResolvedValueOnce([testId]);
+      fetchWorkflowRunUrlMock.mockResolvedValue("test-url");
 
       const result = await attemptToFindRunId(new RegExp(testId), [0]);
       if (!result.found) {
@@ -178,21 +222,154 @@ describe("return-dispatch", () => {
       expect(result.found).toStrictEqual(true);
       expect(result.value.id).toStrictEqual(0);
       expect(result.value.url).toStrictEqual("test-url");
+      expect(getWorkflowRunJobStepMock).toHaveBeenCalledOnce();
+      expect(fetchWorkflowRunUrlMock).toHaveBeenCalledOnce();
 
       // Logging
       assertNoneCalled();
     });
 
-    it("should return a not found result if there is nothing to iterate on", async () => {
-      const testId = uuid();
+    it("finds the ID on the second iteration", async () => {
+      getWorkflowRunJobStepMock
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([testId]);
+      fetchWorkflowRunUrlMock.mockResolvedValue("test-url");
 
-      const result = await attemptToFindRunId(new RegExp(testId), []);
-      if (result.found) {
-        throw new Error("Failed, result found when none expected");
+      const result = await attemptToFindRunId(new RegExp(testId), [0, 0]);
+      if (!result.found) {
+        throw new Error("Failed, result not found when expected");
       }
 
       // Behaviour
-      expect(result.found).toStrictEqual(false);
+      expect(result.found).toStrictEqual(true);
+      expect(result.value.id).toStrictEqual(0);
+      expect(result.value.url).toStrictEqual("test-url");
+      expect(getWorkflowRunJobStepMock).toHaveBeenCalledTimes(2);
+      expect(fetchWorkflowRunUrlMock).toHaveBeenCalledOnce();
+
+      // Logging
+      assertNoneCalled();
+    });
+
+    it("finds the ID among many steps", async () => {
+      getWorkflowRunJobStepMock.mockResolvedValueOnce([
+        "first",
+        "second",
+        "third",
+        testId,
+      ]);
+      fetchWorkflowRunUrlMock.mockResolvedValue("test-url");
+
+      const result = await attemptToFindRunId(new RegExp(testId), [0]);
+      if (!result.found) {
+        throw new Error("Failed, result not found when expected");
+      }
+
+      // Behaviour
+      expect(result.found).toStrictEqual(true);
+      expect(result.value.id).toStrictEqual(0);
+      expect(result.value.url).toStrictEqual("test-url");
+      expect(getWorkflowRunJobStepMock).toHaveBeenCalledOnce();
+      expect(fetchWorkflowRunUrlMock).toHaveBeenCalledOnce();
+
+      // Logging
+      assertNoneCalled();
+    });
+
+    describe("server error retries", () => {
+      beforeEach(() => {
+        vi.spyOn(
+          constants,
+          "WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX",
+          "get",
+        ).mockReturnValue(3);
+        vi.spyOn(
+          constants,
+          "WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS",
+          "get",
+        ).mockReturnValue(500);
+
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it("fails on exceeded server errors", async () => {
+        vi.spyOn(
+          constants,
+          "WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX",
+          "get",
+        ).mockReturnValue(3);
+        vi.spyOn(
+          constants,
+          "WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS",
+          "get",
+        ).mockReturnValue(500);
+
+        getWorkflowRunJobStepMock.mockRejectedValue(new Error("Server Error"));
+
+        const attemptToFindRunIdPromise = attemptToFindRunId(
+          new RegExp(testId),
+          [0],
+        );
+
+        // Advance past the sleeps
+        await vi.runAllTimersAsync();
+
+        const result = await attemptToFindRunIdPromise;
+        if (result.found) {
+          throw new Error("Failed, result found when none expected");
+        }
+
+        // Behaviour
+        expect(result.found).toStrictEqual(false);
+        expect(getWorkflowRunJobStepMock).toHaveBeenCalledTimes(4); // initial + retries
+        expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
+
+        // Logging
+        assertOnlyCalled(coreDebugLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledTimes(3);
+        for (const call of coreDebugLogMock.mock.calls) {
+          expect(call[0]).toMatchInlineSnapshot(
+            `"Encountered a Server Error while attempting to fetch steps, retrying in 500ms"`,
+          );
+        }
+      });
+    });
+
+    it("should throw an unhandled error", async () => {
+      const unhandledError = new Error("Unhandled Error");
+      getWorkflowRunJobStepMock.mockRejectedValue(unhandledError);
+
+      await expect(() =>
+        attemptToFindRunId(new RegExp(testId), [0]),
+      ).rejects.toThrowError(unhandledError);
+
+      // Behaviour
+      expect(getWorkflowRunJobStepMock).toHaveBeenCalledOnce();
+      expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"Unhandled error has occurred: Unhandled Error"`,
+      );
+    });
+
+    it("should throw a non-error", async () => {
+      const thrownValue = "thrown";
+      getWorkflowRunJobStepMock.mockRejectedValue(thrownValue);
+
+      await expect(() =>
+        attemptToFindRunId(new RegExp(testId), [0]),
+      ).rejects.toThrow(thrownValue);
+
+      // Behaviour
+      expect(getWorkflowRunJobStepMock).toHaveBeenCalledOnce();
+      expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
 
       // Logging
       assertNoneCalled();

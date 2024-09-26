@@ -34,6 +34,10 @@ export function shouldRetryOrThrow(
   }
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 type Result = ResultFound | ResultNotFound;
 
 interface ResultFound {
@@ -83,12 +87,7 @@ export async function attemptToFindRunId(
       );
       if (shouldRetry) {
         currentGetWorkflowRunJobStepsAttempt++;
-        await new Promise((resolve) =>
-          setTimeout(
-            resolve,
-            constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS,
-          ),
-        );
+        await sleep(constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS);
         // Continue without increasing the current index to retry the same ID.
         continue;
       }
