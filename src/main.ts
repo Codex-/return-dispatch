@@ -37,13 +37,18 @@ async function run(): Promise<void> {
       core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
 
       // Get all runs for a given workflow ID
-      const workflowRunIds = await api.retryOrDie(
+      const fetchWorkflowRunIds = await api.retryOrTimeout(
         () => api.getWorkflowRunIds(workflowId),
-        WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs
-          ? timeoutMs
-          : WORKFLOW_FETCH_TIMEOUT_MS,
+        Math.max(WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
       );
+      if (fetchWorkflowRunIds.timeout) {
+        core.debug(
+          `Timed out while attempting to fetch Workflow Run IDs, waited ${Date.now() - startTime}ms`,
+        );
+        break;
+      }
 
+      const workflowRunIds = fetchWorkflowRunIds.value;
       core.debug(
         `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
       );
@@ -88,10 +93,11 @@ async function run(): Promise<void> {
       );
     }
 
-    throw new Error("Timeout exceeded while attempting to get Run ID");
+    core.error("Failed: Timeout exceeded while attempting to get Run ID");
+    core.setFailed("Timeout exceeded while attempting to get Run ID");
   } catch (error) {
     if (error instanceof Error) {
-      core.error(`Failed to complete: ${error.message}`);
+      core.error(`Failed: ${error.message}`);
       core.warning("Does the token have the correct permissions?");
       core.debug(error.stack ?? "");
       core.setFailed(error.message);

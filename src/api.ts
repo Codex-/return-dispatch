@@ -219,7 +219,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
       "Fetched Workflow Run Job Steps:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Workflow Run ID: ${runId}\n` +
-        `  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]` +
+        `  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]\n` +
         `  Steps Fetched: [${steps.join(", ")}]`,
     );
 
@@ -227,7 +227,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunJobs: An unexpected error has occurred: ${error.message}`,
+        `getWorkflowRunJobSteps: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
@@ -235,13 +235,24 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
   }
 }
 
+type RetryOrTimeoutResult<T> = ResultFound<T> | ResultTimeout;
+
+interface ResultFound<T> {
+  timeout: false;
+  value: T;
+}
+
+interface ResultTimeout {
+  timeout: true;
+}
+
 /**
  * Attempt to get a non-empty array from the API.
  */
-export async function retryOrDie<T>(
+export async function retryOrTimeout<T>(
   retryFunc: () => Promise<T[]>,
   timeoutMs: number,
-): Promise<T[]> {
+): Promise<RetryOrTimeoutResult<T[]>> {
   const startTime = Date.now();
   let elapsedTime = 0;
   while (elapsedTime < timeoutMs) {
@@ -249,11 +260,11 @@ export async function retryOrDie<T>(
 
     const response = await retryFunc();
     if (response.length > 0) {
-      return response;
+      return { timeout: false, value: response };
     }
 
     await new Promise<void>((resolve) => setTimeout(resolve, 1000));
   }
 
-  throw new Error("Timed out while attempting to fetch data");
+  return { timeout: true };
 }

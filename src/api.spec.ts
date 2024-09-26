@@ -10,7 +10,7 @@ import {
   getWorkflowRunJobSteps,
   getWorkflowRunUrl,
   init,
-  retryOrDie,
+  retryOrTimeout,
 } from "./api.ts";
 
 vi.mock("@actions/core");
@@ -427,7 +427,7 @@ describe("API", () => {
     });
   });
 
-  describe("retryOrDie", () => {
+  describe("retryOrTimeout", () => {
     beforeEach(() => {
       vi.useFakeTimers();
     });
@@ -436,38 +436,54 @@ describe("API", () => {
       vi.useRealTimers();
     });
 
-    it("should return a populated array", async () => {
-      const attempt = () => Promise.resolve([0]);
-      expect(await retryOrDie(attempt, 1000)).toHaveLength(1);
+    it("should return a result", async () => {
+      const attemptResult = [0];
+      const attempt = () => Promise.resolve(attemptResult);
+
+      const result = await retryOrTimeout(attempt, 1000);
+      if (result.timeout) {
+        expect.fail("expected retryOrTimeout not to timeout");
+      }
+
+      expect(result.timeout).toStrictEqual(false);
+      expect(result.value).toStrictEqual(attemptResult);
     });
 
-    it("should throw if the given timeout is exceeded", async () => {
+    it("should return a timeout result if the given timeout is exceeded", async () => {
       // Never return data.
       const attempt = () => Promise.resolve([]);
 
-      const retryOrDiePromise = retryOrDie(attempt, 1000);
-      vi.advanceTimersByTime(2000);
+      const retryOrTimeoutPromise = retryOrTimeout(attempt, 1000);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       vi.advanceTimersByTimeAsync(2000);
 
-      await expect(retryOrDiePromise).rejects.toThrow(
-        "Timed out while attempting to fetch data",
-      );
+      const result = await retryOrTimeoutPromise;
+      if (!result.timeout) {
+        expect.fail("expected retryOrTimeout to timeout");
+      }
+
+      expect(result.timeout).toStrictEqual(true);
     });
 
     it("should retry to get a populated array", async () => {
+      const attemptResult = [0];
       const attempt = vi
         .fn()
-        .mockResolvedValue([0])
+        .mockResolvedValue(attemptResult)
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
 
-      const retryOrDiePromise = retryOrDie(attempt, 5000);
-      vi.advanceTimersByTime(3000);
+      const retryOrDiePromise = retryOrTimeout(attempt, 5000);
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       vi.advanceTimersByTimeAsync(3000);
 
-      expect(await retryOrDiePromise).toHaveLength(1);
+      const result = await retryOrDiePromise;
+      if (result.timeout) {
+        expect.fail("expected retryOrTimeout not to timeout");
+      }
+
+      expect(result.timeout).toStrictEqual(false);
+      expect(result.value).toStrictEqual(attemptResult);
       expect(attempt).toHaveBeenCalledTimes(3);
     });
   });
