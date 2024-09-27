@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import { symDiff } from "@opentf/std";
 import { type MockInstance, vi, expect } from "vitest";
 
 // Consuming test suites must first call:
@@ -63,7 +64,10 @@ function assertOnlyCalledInner(
     );
   }
 
-  const diff = coreLogMockSet.symmetricDifference(new Set(coreLogMocks));
+  // Once Node 22 is LTS, this can be:
+  // const diff = coreLogMockSet.symmetricDifference(new Set(coreLogMocks));
+
+  const diff = symDiff([[...coreLogMockSet], coreLogMocks]);
 
   for (const logMock of diff) {
     expect(logMock).not.toHaveBeenCalled();

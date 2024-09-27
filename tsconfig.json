@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2023",
     "module": "nodenext",
     "noEmit": true,
 

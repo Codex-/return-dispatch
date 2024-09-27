@@ -3,7 +3,7 @@ import * as core from "@actions/core";
 import { ActionOutputs, type ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
-import { getBranchName, type BranchNameResult } from "./utils.ts";
+import { type BranchNameResult } from "./utils.ts";
 
 export function shouldRetryOrThrow(
   error: Error,
