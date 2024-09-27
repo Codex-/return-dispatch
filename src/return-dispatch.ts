@@ -3,7 +3,7 @@ import * as core from "@actions/core";
 import { ActionOutputs, type ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
-import { getBranchName } from "./utils.ts";
+import { getBranchName, type BranchNameResult } from "./utils.ts";
 
 export function shouldRetryOrThrow(
   error: Error,
@@ -119,24 +119,10 @@ export async function getWorkflowId(config: ActionConfig): Promise<number> {
 export async function returnDispatch(
   config: ActionConfig,
   startTime: number,
+  branch: BranchNameResult,
   workflowId: number,
 ): Promise<void> {
   try {
-    // Attempt to get the branch from config ref
-    core.info("Attempt to extract branch name from ref...");
-    const branch = getBranchName(config.ref);
-    if (branch.isTag) {
-      core.info(
-        `Tag found for '${config.ref}', branch filtering will not be used`,
-      );
-    } else if (branch.branchName) {
-      core.info(`Branch found for '${config.ref}': ${branch.branchName}`);
-    } else {
-      core.info(
-        `Branch not found for '${config.ref}', branch filtering will not be used`,
-      );
-    }
-
     const timeoutMs = config.workflowTimeoutSeconds * 1000;
     let attemptNo = 0;
     let elapsedTime = Date.now() - startTime;

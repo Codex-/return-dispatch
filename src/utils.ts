@@ -45,3 +45,18 @@ export function getBranchName(ref: string): BranchNameResult {
   }
   return { branchName: branch, isTag: false, ref };
 }
+
+export function logInfoForBranchNameResult(
+  branch: BranchNameResult,
+  ref: string,
+): void {
+  if (branch.isTag) {
+    core.info(`Tag found for '${ref}', branch filtering will not be used`);
+  } else if (branch.branchName) {
+    core.info(`Branch found for '${ref}': ${branch.branchName}`);
+  } else {
+    core.info(
+      `Branch not found for '${ref}', branch filtering will not be used`,
+    );
+  }
+}

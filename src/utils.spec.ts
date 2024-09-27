@@ -1,12 +1,13 @@
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
-import { getBranchName } from "./utils.ts";
+import { getBranchName, logInfoForBranchNameResult } from "./utils.ts";
 
 vi.mock("@actions/core");
 
 describe("utils", () => {
-  const { coreDebugLogMock, assertOnlyCalled } = mockLoggingFunctions();
+  const { coreDebugLogMock, coreInfoLogMock, assertOnlyCalled } =
+    mockLoggingFunctions();
 
   afterEach(() => {
     vi.resetAllMocks();
@@ -109,6 +110,54 @@ describe("utils", () => {
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"Unable to filter branch, unsupported ref: refs/tags/"`,
+      );
+    });
+  });
+
+  describe("logInfoForBranchNameResult", () => {
+    it("should log when finding a tag", () => {
+      const ref = "refs/tags/v1.0.1";
+      const branch = getBranchName(ref);
+      coreDebugLogMock.mockReset();
+
+      logInfoForBranchNameResult(branch, ref);
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"Tag found for 'refs/tags/v1.0.1', branch filtering will not be used"`,
+      );
+    });
+
+    it("should log when finding a branch", () => {
+      const branchName = "cool_feature";
+      const ref = `/refs/heads/${branchName}`;
+      const branch = getBranchName(ref);
+      coreDebugLogMock.mockReset();
+
+      logInfoForBranchNameResult(branch, ref);
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"Branch found for '/refs/heads/cool_feature': cool_feature"`,
+      );
+    });
+
+    it("should log when nothing is found", () => {
+      const ref = "refs/heads/";
+      const branch = getBranchName(ref);
+      coreDebugLogMock.mockReset();
+
+      logInfoForBranchNameResult(branch, ref);
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"Branch not found for 'refs/heads/', branch filtering will not be used"`,
       );
     });
   });
