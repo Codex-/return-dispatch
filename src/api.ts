@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { type ActionConfig, getConfig } from "./action.ts";
-import type { BranchNameResult } from "./utils.ts";
+import { sleep, type BranchNameResult } from "./utils.ts";
 
 type Octokit = ReturnType<(typeof github)["getOctokit"]>;
 
@@ -284,7 +284,7 @@ export async function retryOrTimeout<T>(
       return { timeout: false, value: response };
     }
 
-    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
   }
 
   return { timeout: true };

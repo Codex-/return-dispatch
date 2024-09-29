@@ -3,7 +3,7 @@ import * as core from "@actions/core";
 import { ActionOutputs, type ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
-import { type BranchNameResult } from "./utils.ts";
+import { sleep, type BranchNameResult } from "./utils.ts";
 
 export function shouldRetryOrThrow(
   error: Error,
@@ -32,10 +32,6 @@ export function shouldRetryOrThrow(
       throw error;
     }
   }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 type Result = ResultFound | ResultNotFound;
@@ -169,9 +165,7 @@ export async function returnDispatch(
         `Exhausted searching IDs in known runs, attempt ${attemptNo}...`,
       );
 
-      await new Promise((resolve) =>
-        setTimeout(resolve, constants.WORKFLOW_JOB_STEPS_RETRY_MS),
-      );
+      await sleep(constants.WORKFLOW_JOB_STEPS_RETRY_MS);
     }
 
     core.error("Failed: Timeout exceeded while attempting to get Run ID");

@@ -1,7 +1,15 @@
-import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
-import { getBranchName, logInfoForBranchNameResult } from "./utils.ts";
+import { getBranchName, logInfoForBranchNameResult, sleep } from "./utils.ts";
 
 vi.mock("@actions/core");
 
@@ -159,6 +167,26 @@ describe("utils", () => {
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"Branch not found for 'refs/heads/', branch filtering will not be used"`,
       );
+    });
+  });
+
+  describe("sleep", () => {
+    beforeAll(() => {
+      vi.useFakeTimers();
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    it("should sleep for n ms", async () => {
+      const sleepTime = 1000;
+
+      // This is more of a smoke test than anything else
+      const sleepPromise = sleep(sleepTime);
+      await vi.advanceTimersByTimeAsync(1000);
+
+      await expect(sleepPromise).resolves.toBeUndefined();
     });
   });
 });
