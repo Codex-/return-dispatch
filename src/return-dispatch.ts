@@ -3,19 +3,8 @@ import * as core from "@actions/core";
 import { ActionOutputs, type ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
+import type { Result } from "./types.ts";
 import { sleep, type BranchNameResult } from "./utils.ts";
-
-type Result<T> = ResultSuccess<T> | ResultTimeout;
-
-interface ResultSuccess<T> {
-  success: true;
-  value: T;
-}
-
-interface ResultTimeout {
-  success: false;
-  reason: "timeout";
-}
 
 export function shouldRetryOrThrow(
   error: Error,
@@ -150,7 +139,7 @@ export async function returnDispatch(
       () => api.getWorkflowRunIds(workflowId, branch),
       Math.max(constants.WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
     );
-    if (fetchWorkflowRunIds.timeout) {
+    if (!fetchWorkflowRunIds.success) {
       core.debug(
         `Timed out while attempting to fetch Workflow Run IDs, waited ${Date.now() - startTime}ms`,
       );

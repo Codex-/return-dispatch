@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { type ActionConfig, getConfig } from "./action.ts";
+import type { Result } from "./types.ts";
 import { sleep, type BranchNameResult } from "./utils.ts";
 
 type Octokit = ReturnType<(typeof github)["getOctokit"]>;
@@ -256,24 +257,13 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
   }
 }
 
-type RetryOrTimeoutResult<T> = ResultFound<T> | ResultTimeout;
-
-interface ResultFound<T> {
-  timeout: false;
-  value: T;
-}
-
-interface ResultTimeout {
-  timeout: true;
-}
-
 /**
  * Attempt to get a non-empty array from the API.
  */
 export async function retryOrTimeout<T>(
   retryFunc: () => Promise<T[]>,
   timeoutMs: number,
-): Promise<RetryOrTimeoutResult<T[]>> {
+): Promise<Result<T[]>> {
   const startTime = Date.now();
   let elapsedTime = 0;
   while (elapsedTime < timeoutMs) {
@@ -281,11 +271,11 @@ export async function retryOrTimeout<T>(
 
     const response = await retryFunc();
     if (response.length > 0) {
-      return { timeout: false, value: response };
+      return { success: true, value: response };
     }
 
     await sleep(1000);
   }
 
-  return { timeout: true };
+  return { success: false, reason: "timeout" };
 }

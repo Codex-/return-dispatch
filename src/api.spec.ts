@@ -668,11 +668,11 @@ describe("API", () => {
       const attempt = () => Promise.resolve(attemptResult);
 
       const result = await retryOrTimeout(attempt, 1000);
-      if (result.timeout) {
+      if (!result.success) {
         expect.fail("expected retryOrTimeout not to timeout");
       }
 
-      expect(result.timeout).toStrictEqual(false);
+      expect(result.success).toStrictEqual(true);
       expect(result.value).toStrictEqual(attemptResult);
     });
 
@@ -685,11 +685,11 @@ describe("API", () => {
       vi.advanceTimersByTimeAsync(2000);
 
       const result = await retryOrTimeoutPromise;
-      if (!result.timeout) {
+      if (result.success) {
         expect.fail("expected retryOrTimeout to timeout");
       }
 
-      expect(result.timeout).toStrictEqual(true);
+      expect(result.success).toStrictEqual(false);
     });
 
     it("should retry to get a populated array", async () => {
@@ -705,11 +705,11 @@ describe("API", () => {
       vi.advanceTimersByTimeAsync(3000);
 
       const result = await retryOrDiePromise;
-      if (result.timeout) {
+      if (!result.success) {
         expect.fail("expected retryOrTimeout not to timeout");
       }
 
-      expect(result.timeout).toStrictEqual(false);
+      expect(result.success).toStrictEqual(true);
       expect(result.value).toStrictEqual(attemptResult);
       expect(attempt).toHaveBeenCalledTimes(3);
     });
