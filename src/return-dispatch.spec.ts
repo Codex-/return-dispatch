@@ -12,7 +12,7 @@ import {
   type MockInstance,
 } from "vitest";
 
-import { ActionOutputs, type ActionConfig } from "./action.ts";
+import { ActionOutputs } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import {
@@ -52,7 +52,7 @@ describe("return-dispatch", () => {
     });
 
     it("should return the workflow ID without calling the API if given a number", async () => {
-      const workflowId = await getWorkflowId({ workflow: 123 } as ActionConfig);
+      const workflowId = await getWorkflowId(123);
 
       // Behaviour
       expect(workflowId).toStrictEqual(123);
@@ -64,9 +64,7 @@ describe("return-dispatch", () => {
 
     it("should return the workflow ID from API if given a string", async () => {
       fetchWorkflowIdMock.mockImplementationOnce(() => Promise.resolve(123));
-      const workflowId = await getWorkflowId({
-        workflow: "hello.yml",
-      } as ActionConfig);
+      const workflowId = await getWorkflowId("hello.yml");
 
       // Behaviour
       expect(workflowId).toStrictEqual(123);
@@ -87,9 +85,7 @@ describe("return-dispatch", () => {
       fetchWorkflowIdMock.mockImplementationOnce(() =>
         Promise.reject(new Error()),
       );
-      const workflowIdPromise = getWorkflowId({
-        workflow: "hello.yml",
-      } as ActionConfig);
+      const workflowIdPromise = getWorkflowId("hello.yml");
 
       // Behaviour
       await expect(workflowIdPromise).rejects.toThrowError();

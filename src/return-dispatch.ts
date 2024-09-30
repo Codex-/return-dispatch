@@ -87,14 +87,16 @@ export async function attemptToFindRunId(
  * Attempt to get the upstream workflow ID if given a string, otherwise
  * use the workflow config as the ID number.
  */
-export async function getWorkflowId(config: ActionConfig): Promise<number> {
-  if (typeof config.workflow === "number") {
+export async function getWorkflowId(
+  workflow: string | number,
+): Promise<number> {
+  if (typeof workflow === "number") {
     // Already asserted is a non-NaN number during config construction
-    return config.workflow;
+    return workflow;
   }
 
-  core.info(`Fetching Workflow ID for ${config.workflow}...`);
-  const workflowId = await api.fetchWorkflowId(config.workflow);
+  core.info(`Fetching Workflow ID for ${workflow}...`);
+  const workflowId = await api.fetchWorkflowId(workflow);
   core.info(`Fetched Workflow ID: ${workflowId}`);
   return workflowId;
 }

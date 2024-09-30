@@ -17,7 +17,7 @@ async function action(): Promise<void> {
     const config = getConfig();
     api.init(config);
 
-    const workflowId = await getWorkflowId(config);
+    const workflowId = await getWorkflowId(config.workflow);
 
     // Dispatch the action
     await api.dispatchWorkflow(config.distinctId);
