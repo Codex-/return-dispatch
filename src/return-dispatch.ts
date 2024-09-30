@@ -119,14 +119,18 @@ export async function returnDispatch(
   workflowId: number,
 ): Promise<void> {
   const timeoutMs = config.workflowTimeoutSeconds * 1000;
+  const distinctIdRegex = new RegExp(config.distinctId);
+
+  core.info("Attempt to identify run ID from steps...");
+  core.debug(
+    `Attempting to identify Run ID for ${config.workflow} (${workflowId})`,
+  );
+
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;
-  core.info("Attempt to extract run ID from steps...");
   while (elapsedTime < timeoutMs) {
     attemptNo++;
     elapsedTime = Date.now() - startTime;
-
-    core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
 
     // Get all runs for a given workflow ID
     const fetchWorkflowRunIds = await api.retryOrTimeout(
@@ -145,9 +149,7 @@ export async function returnDispatch(
       `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
     );
 
-    const idRegex = new RegExp(config.distinctId);
-
-    const result = await attemptToFindRunId(idRegex, workflowRunIds);
+    const result = await attemptToFindRunId(distinctIdRegex, workflowRunIds);
     if (result.found) {
       core.info(
         "Successfully identified remote Run:\n" +
