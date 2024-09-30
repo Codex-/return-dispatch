@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 
-import { ActionOutputs, type ActionConfig } from "./action.ts";
+import { ActionOutputs } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import type { Result } from "./types.ts";
@@ -116,19 +116,27 @@ export function handleActionFail(): void {
   core.setFailed("Timeout exceeded while attempting to get Run ID");
 }
 
-export async function returnDispatch(
-  config: ActionConfig,
-  startTime: number,
-  branch: BranchNameResult,
-  workflowId: number,
-): Promise<Result<{ id: number; url: string }>> {
-  const timeoutMs = config.workflowTimeoutSeconds * 1000;
-  const distinctIdRegex = new RegExp(config.distinctId);
+interface GetRunIdOpts {
+  startTime: number;
+  branch: BranchNameResult;
+  distinctId: string;
+  workflow: string | number;
+  workflowId: number;
+  workflowTimeoutSeconds: number;
+}
+export async function getRunId({
+  startTime,
+  branch,
+  distinctId,
+  workflow,
+  workflowId,
+  workflowTimeoutSeconds,
+}: GetRunIdOpts): Promise<Result<{ id: number; url: string }>> {
+  const timeoutMs = workflowTimeoutSeconds * 1000;
+  const distinctIdRegex = new RegExp(distinctId);
 
   core.info("Attempt to identify run ID from steps...");
-  core.debug(
-    `Attempting to identify Run ID for ${config.workflow} (${workflowId})`,
-  );
+  core.debug(`Attempting to identify Run ID for ${workflow} (${workflowId})`);
 
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;

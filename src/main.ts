@@ -6,7 +6,7 @@ import {
   getWorkflowId,
   handleActionFail,
   handleActionSuccess,
-  returnDispatch,
+  getRunId,
 } from "./return-dispatch.ts";
 import { getBranchName, logInfoForBranchNameResult } from "./utils.ts";
 
@@ -27,7 +27,14 @@ export async function main(): Promise<void> {
     const branch = getBranchName(config.ref);
     logInfoForBranchNameResult(branch, config.ref);
 
-    const result = await returnDispatch(config, startTime, branch, workflowId);
+    const result = await getRunId({
+      startTime,
+      branch,
+      distinctId: config.distinctId,
+      workflow: config.workflow,
+      workflowId,
+      workflowTimeoutSeconds: config.workflowTimeoutSeconds,
+    });
     if (result.success) {
       handleActionSuccess(result.value.id, result.value.url);
       core.debug(`Completed (${Date.now() - startTime}ms)`);
