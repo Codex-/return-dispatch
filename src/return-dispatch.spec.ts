@@ -177,12 +177,12 @@ describe("return-dispatch", () => {
 
     it("should return a not found result if there is nothing to iterate on", async () => {
       const result = await attemptToFindRunId(new RegExp(testId), []);
-      if (result.found) {
+      if (result.success) {
         throw new Error("Failed, result found when none expected");
       }
 
       // Behaviour
-      expect(result.found).toStrictEqual(false);
+      expect(result.success).toStrictEqual(false);
       expect(getWorkflowRunJobStepMock).not.toHaveBeenCalled();
       expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
 
@@ -195,12 +195,12 @@ describe("return-dispatch", () => {
       const result = await attemptToFindRunId(new RegExp(testId), [
         undefined as any,
       ]);
-      if (result.found) {
+      if (result.success) {
         throw new Error("Failed, result found when none expected");
       }
 
       // Behaviour
-      expect(result.found).toStrictEqual(false);
+      expect(result.success).toStrictEqual(false);
       expect(getWorkflowRunJobStepMock).not.toHaveBeenCalled();
       expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
 
@@ -213,12 +213,12 @@ describe("return-dispatch", () => {
       fetchWorkflowRunUrlMock.mockResolvedValue("test-url");
 
       const result = await attemptToFindRunId(new RegExp(testId), [0]);
-      if (!result.found) {
+      if (!result.success) {
         throw new Error("Failed, result not found when expected");
       }
 
       // Behaviour
-      expect(result.found).toStrictEqual(true);
+      expect(result.success).toStrictEqual(true);
       expect(result.value.id).toStrictEqual(0);
       expect(result.value.url).toStrictEqual("test-url");
       expect(getWorkflowRunJobStepMock).toHaveBeenCalledOnce();
@@ -235,12 +235,12 @@ describe("return-dispatch", () => {
       fetchWorkflowRunUrlMock.mockResolvedValue("test-url");
 
       const result = await attemptToFindRunId(new RegExp(testId), [0, 0]);
-      if (!result.found) {
+      if (!result.success) {
         throw new Error("Failed, result not found when expected");
       }
 
       // Behaviour
-      expect(result.found).toStrictEqual(true);
+      expect(result.success).toStrictEqual(true);
       expect(result.value.id).toStrictEqual(0);
       expect(result.value.url).toStrictEqual("test-url");
       expect(getWorkflowRunJobStepMock).toHaveBeenCalledTimes(2);
@@ -260,12 +260,12 @@ describe("return-dispatch", () => {
       fetchWorkflowRunUrlMock.mockResolvedValue("test-url");
 
       const result = await attemptToFindRunId(new RegExp(testId), [0]);
-      if (!result.found) {
+      if (!result.success) {
         throw new Error("Failed, result not found when expected");
       }
 
       // Behaviour
-      expect(result.found).toStrictEqual(true);
+      expect(result.success).toStrictEqual(true);
       expect(result.value.id).toStrictEqual(0);
       expect(result.value.url).toStrictEqual("test-url");
       expect(getWorkflowRunJobStepMock).toHaveBeenCalledOnce();
@@ -318,12 +318,12 @@ describe("return-dispatch", () => {
         await vi.runAllTimersAsync();
 
         const result = await attemptToFindRunIdPromise;
-        if (result.found) {
+        if (result.success) {
           throw new Error("Failed, result found when none expected");
         }
 
         // Behaviour
-        expect(result.found).toStrictEqual(false);
+        expect(result.success).toStrictEqual(false);
         expect(getWorkflowRunJobStepMock).toHaveBeenCalledTimes(4); // initial + retries
         expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
 

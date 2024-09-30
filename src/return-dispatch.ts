@@ -5,6 +5,18 @@ import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import { sleep, type BranchNameResult } from "./utils.ts";
 
+type Result<T> = ResultSuccess<T> | ResultTimeout;
+
+interface ResultSuccess<T> {
+  success: true;
+  value: T;
+}
+
+interface ResultTimeout {
+  success: false;
+  reason: "timeout";
+}
+
 export function shouldRetryOrThrow(
   error: Error,
   currentAttempts: number,
@@ -34,27 +46,13 @@ export function shouldRetryOrThrow(
   }
 }
 
-type Result = ResultFound | ResultNotFound;
-
-interface ResultFound {
-  found: true;
-  value: {
-    id: number;
-    url: string;
-  };
-}
-
-interface ResultNotFound {
-  found: false;
-}
-
 /**
  * Attempt to read the distinct ID in the steps for each existing run ID.
  */
 export async function attemptToFindRunId(
   idRegex: RegExp,
   workflowRunIds: number[],
-): Promise<Result> {
+): Promise<Result<{ id: number; url: string }>> {
   let currentWorkflowRunIndex = 0;
   let currentGetWorkflowRunJobStepsAttempt = 0;
   while (currentWorkflowRunIndex < workflowRunIds.length) {
@@ -69,7 +67,7 @@ export async function attemptToFindRunId(
       for (const step of steps) {
         if (idRegex.test(step)) {
           const url = await api.fetchWorkflowRunUrl(id);
-          return { found: true, value: { id, url } };
+          return { success: true, value: { id, url } };
         }
       }
     } catch (error) {
@@ -93,7 +91,7 @@ export async function attemptToFindRunId(
     currentWorkflowRunIndex++;
   }
 
-  return { found: false };
+  return { success: false, reason: "timeout" };
 }
 
 /**
@@ -112,12 +110,27 @@ export async function getWorkflowId(config: ActionConfig): Promise<number> {
   return workflowId;
 }
 
+export function handleActionSuccess(id: number, url: string): void {
+  core.info(
+    "Successfully identified remote Run:\n" +
+      `  Run ID: ${id}\n` +
+      `  URL: ${url}`,
+  );
+  core.setOutput(ActionOutputs.runId, id);
+  core.setOutput(ActionOutputs.runUrl, url);
+}
+
+export function handleActionFail(): void {
+  core.error("Failed: Timeout exceeded while attempting to get Run ID");
+  core.setFailed("Timeout exceeded while attempting to get Run ID");
+}
+
 export async function returnDispatch(
   config: ActionConfig,
   startTime: number,
   branch: BranchNameResult,
   workflowId: number,
-): Promise<void> {
+): Promise<Result<{ id: number; url: string }>> {
   const timeoutMs = config.workflowTimeoutSeconds * 1000;
   const distinctIdRegex = new RegExp(config.distinctId);
 
@@ -150,16 +163,8 @@ export async function returnDispatch(
     );
 
     const result = await attemptToFindRunId(distinctIdRegex, workflowRunIds);
-    if (result.found) {
-      core.info(
-        "Successfully identified remote Run:\n" +
-          `  Run ID: ${result.value.id}\n` +
-          `  URL: ${result.value.url}`,
-      );
-      core.setOutput(ActionOutputs.runId, result.value.id);
-      core.setOutput(ActionOutputs.runUrl, result.value.url);
-      core.debug(`Completed in ${Date.now() - startTime}ms`);
-      return;
+    if (result.success) {
+      return result;
     }
 
     core.info(`Exhausted searching IDs in known runs, attempt ${attemptNo}...`);
@@ -167,6 +172,5 @@ export async function returnDispatch(
     await sleep(constants.WORKFLOW_JOB_STEPS_RETRY_MS);
   }
 
-  core.error("Failed: Timeout exceeded while attempting to get Run ID");
-  core.setFailed("Timeout exceeded while attempting to get Run ID");
+  return { success: false, reason: "timeout" };
 }

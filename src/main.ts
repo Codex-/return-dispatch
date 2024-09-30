@@ -2,7 +2,12 @@ import * as core from "@actions/core";
 
 import { getConfig } from "./action.ts";
 import * as api from "./api.ts";
-import { getWorkflowId, returnDispatch } from "./return-dispatch.ts";
+import {
+  getWorkflowId,
+  handleActionFail,
+  handleActionSuccess,
+  returnDispatch,
+} from "./return-dispatch.ts";
 import { getBranchName, logInfoForBranchNameResult } from "./utils.ts";
 
 async function action(): Promise<void> {
@@ -22,7 +27,14 @@ async function action(): Promise<void> {
     const branch = getBranchName(config.ref);
     logInfoForBranchNameResult(branch, config.ref);
 
-    await returnDispatch(config, startTime, branch, workflowId);
+    const result = await returnDispatch(config, startTime, branch, workflowId);
+    if (result.success) {
+      handleActionSuccess(result.value.id, result.value.url);
+      core.debug(`Completed (${Date.now() - startTime}ms)`);
+    } else {
+      handleActionFail();
+      core.debug(`Timed out (${Date.now() - startTime}ms)`);
+    }
   } catch (error) {
     if (error instanceof Error) {
       const failureMsg = `Failed: An unhandled error has occurred: ${error.message}`;
