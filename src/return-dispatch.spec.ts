@@ -1,3 +1,4 @@
+import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
 import {
   afterAll,
@@ -11,23 +12,25 @@ import {
   type MockInstance,
 } from "vitest";
 
-import type { ActionConfig } from "./action.ts";
+import { ActionOutputs, type ActionConfig } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import {
   attemptToFindRunId,
   getWorkflowId,
+  handleActionFail,
+  handleActionSuccess,
   shouldRetryOrThrow,
 } from "./return-dispatch.ts";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
 
 vi.mock("@actions/core");
 vi.mock("./api.ts");
-// vi.mock("./constants.ts");
 
 describe("return-dispatch", () => {
   const {
     coreDebugLogMock,
+    coreErrorLogMock,
     coreInfoLogMock,
     assertOnlyCalled,
     assertNoneCalled,
@@ -377,6 +380,62 @@ describe("return-dispatch", () => {
 
       // Logging
       assertNoneCalled();
+    });
+  });
+
+  describe("handleAction", () => {
+    let setFailedSpy: MockInstance<(typeof core)["setFailed"]>;
+    let setOutputSpy: MockInstance<(typeof core)["setOutput"]>;
+
+    beforeEach(() => {
+      setFailedSpy = vi.spyOn(core, "setFailed");
+      setOutputSpy = vi.spyOn(core, "setOutput");
+    });
+
+    describe("handleActionSuccess", () => {
+      it("should set the action output and status", () => {
+        handleActionSuccess(0, "test-url");
+
+        // Behaviour
+        expect(setFailedSpy).not.toHaveBeenCalled();
+        expect(setOutputSpy).toHaveBeenCalledTimes(2);
+        expect(setOutputSpy.mock.calls[0]?.[0]).toStrictEqual(
+          ActionOutputs.runId,
+        );
+        expect(setOutputSpy.mock.calls[0]?.[1]).toStrictEqual(0);
+        expect(setOutputSpy.mock.calls[1]?.[0]).toStrictEqual(
+          ActionOutputs.runUrl,
+        );
+        expect(setOutputSpy.mock.calls[1]?.[1]).toStrictEqual("test-url");
+
+        // Logging
+        assertOnlyCalled(coreInfoLogMock);
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `
+        "Successfully identified remote Run:
+          Run ID: 0
+          URL: test-url"
+      `,
+        );
+      });
+    });
+
+    describe("handleActionFail", () => {
+      it("should set the action output and status", () => {
+        handleActionFail();
+
+        // Behaviour
+        expect(setFailedSpy).toHaveBeenCalled();
+        expect(setOutputSpy).not.toHaveBeenCalled();
+
+        // Logging
+        assertOnlyCalled(coreErrorLogMock);
+        expect(coreErrorLogMock).toHaveBeenCalledOnce();
+        expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Failed: Timeout exceeded while attempting to get Run ID"`,
+        );
+      });
     });
   });
 });
