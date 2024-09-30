@@ -130,7 +130,7 @@ describe("API", () => {
         "Successfully dispatched workflow:
           Repository: owner/repo
           Branch: ref
-          Workflow ID: workflow
+          Workflow: workflow
           Workflow Inputs: {"testInput":"test"}
           Distinct ID: "
       `);
@@ -189,7 +189,7 @@ describe("API", () => {
         "Successfully dispatched workflow:
           Repository: owner/repo
           Branch: ref
-          Workflow ID: workflow
+          Workflow: workflow
           Workflow Inputs: {"testInput":"test"}
           Distinct ID: 50b4f5fa-f9ce-4661-80e6-6d660a4a3a0d"
       `,

@@ -39,7 +39,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       "Successfully dispatched workflow:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch: ${config.ref}\n` +
-        `  Workflow ID: ${config.workflow}\n` +
+        `  Workflow: ${config.workflow}\n` +
         (config.workflowInputs
           ? `  Workflow Inputs: ${JSON.stringify(config.workflowInputs)}\n`
           : ``) +
