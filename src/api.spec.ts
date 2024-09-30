@@ -321,7 +321,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `
         "Fetched Workflow Runs:
@@ -378,7 +378,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `
         "Fetched Workflow Runs:
@@ -415,7 +415,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `
         "Fetched Workflow Runs:
@@ -452,7 +452,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `
         "Fetched Workflow Runs:
@@ -489,7 +489,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `
         "Fetched Workflow Runs:
@@ -540,7 +540,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `
         "Fetched Workflow Run Job Steps:
@@ -571,7 +571,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
-      expect(coreErrorLogMock).toHaveBeenCalledTimes(1);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"getWorkflowRunJobSteps: An unexpected error has occurred: Failed to get Workflow Run Jobs, expected 200 but received 401"`,
       );
@@ -602,7 +602,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
-      expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `
         "Fetched Workflow Run Job Steps:
@@ -647,7 +647,7 @@ describe("API", () => {
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
-      expect(coreErrorLogMock).toHaveBeenCalledTimes(1);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
         `"fetchWorkflowRunUrl: An unexpected error has occurred: Failed to get Workflow Run state, expected 200 but received 401"`,
       );
