@@ -118,71 +118,53 @@ export async function returnDispatch(
   branch: BranchNameResult,
   workflowId: number,
 ): Promise<void> {
-  try {
-    const timeoutMs = config.workflowTimeoutSeconds * 1000;
-    let attemptNo = 0;
-    let elapsedTime = Date.now() - startTime;
-    core.info("Attempt to extract run ID from steps...");
-    while (elapsedTime < timeoutMs) {
-      attemptNo++;
-      elapsedTime = Date.now() - startTime;
+  const timeoutMs = config.workflowTimeoutSeconds * 1000;
+  let attemptNo = 0;
+  let elapsedTime = Date.now() - startTime;
+  core.info("Attempt to extract run ID from steps...");
+  while (elapsedTime < timeoutMs) {
+    attemptNo++;
+    elapsedTime = Date.now() - startTime;
 
-      core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
+    core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
 
-      // Get all runs for a given workflow ID
-      const fetchWorkflowRunIds = await api.retryOrTimeout(
-        () => api.getWorkflowRunIds(workflowId, branch),
-        Math.max(constants.WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
-      );
-      if (fetchWorkflowRunIds.timeout) {
-        core.debug(
-          `Timed out while attempting to fetch Workflow Run IDs, waited ${Date.now() - startTime}ms`,
-        );
-        break;
-      }
-
-      const workflowRunIds = fetchWorkflowRunIds.value;
+    // Get all runs for a given workflow ID
+    const fetchWorkflowRunIds = await api.retryOrTimeout(
+      () => api.getWorkflowRunIds(workflowId, branch),
+      Math.max(constants.WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
+    );
+    if (fetchWorkflowRunIds.timeout) {
       core.debug(
-        `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
+        `Timed out while attempting to fetch Workflow Run IDs, waited ${Date.now() - startTime}ms`,
       );
+      break;
+    }
 
-      const idRegex = new RegExp(config.distinctId);
+    const workflowRunIds = fetchWorkflowRunIds.value;
+    core.debug(
+      `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
+    );
 
-      const result = await attemptToFindRunId(idRegex, workflowRunIds);
-      if (result.found) {
-        core.info(
-          "Successfully identified remote Run:\n" +
-            `  Run ID: ${result.value.id}\n` +
-            `  URL: ${result.value.url}`,
-        );
-        core.setOutput(ActionOutputs.runId, result.value.id);
-        core.setOutput(ActionOutputs.runUrl, result.value.url);
-        core.debug(`Completed in ${Date.now() - startTime}ms`);
-        return;
-      }
+    const idRegex = new RegExp(config.distinctId);
 
+    const result = await attemptToFindRunId(idRegex, workflowRunIds);
+    if (result.found) {
       core.info(
-        `Exhausted searching IDs in known runs, attempt ${attemptNo}...`,
+        "Successfully identified remote Run:\n" +
+          `  Run ID: ${result.value.id}\n` +
+          `  URL: ${result.value.url}`,
       );
-
-      await sleep(constants.WORKFLOW_JOB_STEPS_RETRY_MS);
+      core.setOutput(ActionOutputs.runId, result.value.id);
+      core.setOutput(ActionOutputs.runUrl, result.value.url);
+      core.debug(`Completed in ${Date.now() - startTime}ms`);
+      return;
     }
 
-    core.error("Failed: Timeout exceeded while attempting to get Run ID");
-    core.setFailed("Timeout exceeded while attempting to get Run ID");
-  } catch (error) {
-    if (error instanceof Error) {
-      const failureMsg = `Failed: An unhandled error has occurred: ${error.message}`;
-      core.setFailed(failureMsg);
-      core.error(failureMsg);
-      core.debug(error.stack ?? "");
-    } else {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      const failureMsg = `Failed: An unknown error has occurred: ${error}`;
-      core.setFailed(failureMsg);
-      core.error(failureMsg);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      core.debug(error as any);
-    }
+    core.info(`Exhausted searching IDs in known runs, attempt ${attemptNo}...`);
+
+    await sleep(constants.WORKFLOW_JOB_STEPS_RETRY_MS);
   }
+
+  core.error("Failed: Timeout exceeded while attempting to get Run ID");
+  core.setFailed("Timeout exceeded while attempting to get Run ID");
 }
