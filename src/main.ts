@@ -10,7 +10,7 @@ import {
 } from "./return-dispatch.ts";
 import { getBranchName, logInfoForBranchNameResult } from "./utils.ts";
 
-async function action(): Promise<void> {
+export async function main(): Promise<void> {
   try {
     const startTime = Date.now();
 
@@ -53,5 +53,5 @@ async function action(): Promise<void> {
 }
 
 if (!process.env.VITEST) {
-  await action();
+  await main();
 }
