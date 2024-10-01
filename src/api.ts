@@ -17,7 +17,7 @@ export function init(cfg?: ActionConfig): void {
 
 export async function dispatchWorkflow(distinctId: string): Promise<void> {
   try {
-    // https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
+    // https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event
     const response = await octokit.rest.actions.createWorkflowDispatch({
       owner: config.owner,
       repo: config.repo,
@@ -66,7 +66,7 @@ export async function fetchWorkflowId(
       "\\$&",
     );
 
-    // https://docs.github.com/en/rest/reference/actions#list-repository-workflows
+    // https://docs.github.com/en/rest/actions/workflows#list-repository-workflows
     const workflowIterator = octokit.paginate.iterator(
       octokit.rest.actions.listRepoWorkflows,
       {
@@ -165,7 +165,7 @@ export async function getWorkflowRunIds(
       branch.branchName !== undefined &&
       branch.branchName !== "";
 
-    // https://docs.github.com/en/rest/reference/actions#list-workflow-runs
+    // https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
@@ -216,7 +216,7 @@ export async function getWorkflowRunIds(
 
 export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
   try {
-    // https://docs.github.com/en/rest/reference/actions#list-jobs-for-a-workflow-run
+    // https://docs.github.com/en/rest/actions/workflow-jobs#list-jobs-for-a-workflow-run
     const response = await octokit.rest.actions.listJobsForWorkflowRun({
       owner: config.owner,
       repo: config.repo,
