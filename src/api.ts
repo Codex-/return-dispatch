@@ -5,7 +5,7 @@ import { type ActionConfig, getConfig } from "./action.ts";
 import type { Result } from "./types.ts";
 import { sleep, type BranchNameResult } from "./utils.ts";
 
-type Octokit = ReturnType<(typeof github)["getOctokit"]>;
+type Octokit = ReturnType<typeof github.getOctokit>;
 
 let config: ActionConfig;
 let octokit: Octokit;

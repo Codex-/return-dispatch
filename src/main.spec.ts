@@ -43,33 +43,31 @@ describe("main", () => {
   };
 
   // Core
-  let coreSetFailedMock: MockInstance<(typeof core)["setFailed"]>;
+  let coreSetFailedMock: MockInstance<typeof core.setFailed>;
 
   // Action
-  let actionGetConfigMock: MockInstance<(typeof action)["getConfig"]>;
+  let actionGetConfigMock: MockInstance<typeof action.getConfig>;
 
   // API
-  let apiDispatchWorkflowMock: MockInstance<(typeof api)["dispatchWorkflow"]>;
-  let apiInitMock: MockInstance<(typeof api)["init"]>;
+  let apiDispatchWorkflowMock: MockInstance<typeof api.dispatchWorkflow>;
+  let apiInitMock: MockInstance<typeof api.init>;
 
   // Utils
-  let utilsGetBranchNameMock: MockInstance<(typeof utils)["getBranchName"]>;
+  let utilsGetBranchNameMock: MockInstance<typeof utils.getBranchName>;
   let utilsLogInfoForBranchNameResult: MockInstance<
-    (typeof utils)["logInfoForBranchNameResult"]
+    typeof utils.logInfoForBranchNameResult
   >;
 
   // Return Dispatch
-  let returnDispatchGetRunIdMock: MockInstance<
-    (typeof returnDispatch)["getRunId"]
-  >;
+  let returnDispatchGetRunIdMock: MockInstance<typeof returnDispatch.getRunId>;
   let returnDispatchGetWorkflowIdMock: MockInstance<
-    (typeof returnDispatch)["getWorkflowId"]
+    typeof returnDispatch.getWorkflowId
   >;
   let returnDispatchHandleFailMock: MockInstance<
-    (typeof returnDispatch)["handleActionFail"]
+    typeof returnDispatch.handleActionFail
   >;
   let returnDispatchHandleSuccessMock: MockInstance<
-    (typeof returnDispatch)["handleActionSuccess"]
+    typeof returnDispatch.handleActionSuccess
   >;
 
   afterAll(() => {

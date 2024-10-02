@@ -16,13 +16,13 @@ interface MockedLoggingFunctions {
 }
 
 export function mockLoggingFunctions(): MockedLoggingFunctions {
-  const coreDebugLogMock: MockInstance<(typeof core)["debug"]> = vi
+  const coreDebugLogMock: MockInstance<typeof core.debug> = vi
     .spyOn(core, "debug")
     .mockImplementation(() => undefined);
-  const coreInfoLogMock: MockInstance<(typeof core)["info"]> = vi
+  const coreInfoLogMock: MockInstance<typeof core.info> = vi
     .spyOn(core, "info")
     .mockImplementation(() => undefined);
-  const coreErrorLogMock: MockInstance<(typeof core)["error"]> = vi
+  const coreErrorLogMock: MockInstance<typeof core.error> = vi
     .spyOn(core, "error")
     .mockImplementation(() => undefined);
 

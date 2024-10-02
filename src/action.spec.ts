@@ -134,7 +134,7 @@ describe("Action", () => {
     });
 
     it("should handle no distinct_id being provided", () => {
-      const v4Mock = v4 as unknown as MockInstance<typeof v4>;
+      const v4Mock = vi.mocked(v4);
       v4Mock.mockImplementationOnce(() => "test-uuid-is-used");
       mockEnvConfig.distinct_id = "";
       const config: ActionConfig = getConfig();

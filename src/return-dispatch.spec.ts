@@ -45,7 +45,7 @@ describe("return-dispatch", () => {
   });
 
   describe("fetchWorkflowId", () => {
-    let fetchWorkflowIdMock: MockInstance<(typeof api)["fetchWorkflowId"]>;
+    let fetchWorkflowIdMock: MockInstance<typeof api.fetchWorkflowId>;
 
     beforeAll(() => {
       fetchWorkflowIdMock = vi.spyOn(api, "fetchWorkflowId");
@@ -380,8 +380,8 @@ describe("return-dispatch", () => {
   });
 
   describe("handleAction", () => {
-    let setFailedSpy: MockInstance<(typeof core)["setFailed"]>;
-    let setOutputSpy: MockInstance<(typeof core)["setOutput"]>;
+    let setFailedSpy: MockInstance<typeof core.setFailed>;
+    let setOutputSpy: MockInstance<typeof core.setOutput>;
 
     beforeEach(() => {
       setFailedSpy = vi.spyOn(core, "setFailed");
