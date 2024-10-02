@@ -80,7 +80,7 @@ export async function fetchWorkflowId(
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (response.status !== 200) {
         throw new Error(
-          `Failed to get workflows, expected 200 but received ${response.status}`,
+          `Failed to fetch workflows, expected 200 but received ${response.status}`,
         );
       }
 
@@ -132,7 +132,7 @@ export async function fetchWorkflowRunUrl(runId: number): Promise<string> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow Run state, expected 200 but received ${response.status}`,
+        `Failed to fetch Workflow Run state, expected 200 but received ${response.status}`,
       );
     }
 
@@ -155,7 +155,7 @@ export async function fetchWorkflowRunUrl(runId: number): Promise<string> {
   }
 }
 
-export async function getWorkflowRunIds(
+export async function fetchWorkflowRunIds(
   workflowId: number,
   branch: BranchNameResult,
 ): Promise<number[]> {
@@ -183,7 +183,7 @@ export async function getWorkflowRunIds(
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow runs, expected 200 but received ${response.status}`,
+        `Failed to fetch Workflow runs, expected 200 but received ${response.status}`,
       );
     }
 
@@ -206,7 +206,7 @@ export async function getWorkflowRunIds(
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowRunIds: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
@@ -214,7 +214,9 @@ export async function getWorkflowRunIds(
   }
 }
 
-export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
+export async function fetchWorkflowRunJobSteps(
+  runId: number,
+): Promise<string[]> {
   try {
     // https://docs.github.com/en/rest/actions/workflow-jobs#list-jobs-for-a-workflow-run
     const response = await octokit.rest.actions.listJobsForWorkflowRun({
@@ -227,7 +229,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow Run Jobs, expected 200 but received ${response.status}`,
+        `Failed to fetch Workflow Run Jobs, expected 200 but received ${response.status}`,
       );
     }
 
@@ -249,7 +251,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunJobSteps: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowRunJobSteps: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }

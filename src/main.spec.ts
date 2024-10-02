@@ -156,7 +156,7 @@ describe("main", () => {
       distinctId: testCfg.distinctId,
       workflow: testCfg.workflow,
       workflowId: 0,
-      workflowTimeoutSeconds: testCfg.workflowTimeoutSeconds,
+      workflowTimeoutMs: testCfg.workflowTimeoutSeconds * 1000,
     });
 
     // Result

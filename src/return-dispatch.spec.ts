@@ -165,12 +165,12 @@ describe("return-dispatch", () => {
     const testId = uuid();
 
     let getWorkflowRunJobStepMock: MockInstance<
-      typeof api.getWorkflowRunJobSteps
+      typeof api.fetchWorkflowRunJobSteps
     >;
     let fetchWorkflowRunUrlMock: MockInstance<typeof api.fetchWorkflowRunUrl>;
 
     beforeEach(() => {
-      getWorkflowRunJobStepMock = vi.spyOn(api, "getWorkflowRunJobSteps");
+      getWorkflowRunJobStepMock = vi.spyOn(api, "fetchWorkflowRunJobSteps");
       fetchWorkflowRunUrlMock = vi.spyOn(api, "fetchWorkflowRunUrl");
     });
 

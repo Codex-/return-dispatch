@@ -43,7 +43,7 @@ export async function attemptToFindRunId(
   workflowRunIds: number[],
 ): Promise<Result<{ id: number; url: string }>> {
   let currentWorkflowRunIndex = 0;
-  let currentGetWorkflowRunJobStepsAttempt = 0;
+  let currentFetchWorkflowRunJobStepsAttempt = 0;
   while (currentWorkflowRunIndex < workflowRunIds.length) {
     const id = workflowRunIds[currentWorkflowRunIndex];
     if (id === undefined) {
@@ -51,7 +51,7 @@ export async function attemptToFindRunId(
     }
 
     try {
-      const steps = await api.getWorkflowRunJobSteps(id);
+      const steps = await api.fetchWorkflowRunJobSteps(id);
 
       for (const step of steps) {
         if (idRegex.test(step)) {
@@ -66,17 +66,17 @@ export async function attemptToFindRunId(
 
       const shouldRetry = shouldRetryOrThrow(
         error,
-        currentGetWorkflowRunJobStepsAttempt,
+        currentFetchWorkflowRunJobStepsAttempt,
       );
       if (shouldRetry) {
-        currentGetWorkflowRunJobStepsAttempt++;
+        currentFetchWorkflowRunJobStepsAttempt++;
         await sleep(constants.WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS);
         // Continue without increasing the current index to retry the same ID.
         continue;
       }
     }
 
-    currentGetWorkflowRunJobStepsAttempt = 0;
+    currentFetchWorkflowRunJobStepsAttempt = 0;
     currentWorkflowRunIndex++;
   }
 
@@ -122,7 +122,7 @@ interface GetRunIdOpts {
   distinctId: string;
   workflow: string | number;
   workflowId: number;
-  workflowTimeoutSeconds: number;
+  workflowTimeoutMs: number;
 }
 export async function getRunId({
   startTime,
@@ -130,9 +130,8 @@ export async function getRunId({
   distinctId,
   workflow,
   workflowId,
-  workflowTimeoutSeconds,
+  workflowTimeoutMs,
 }: GetRunIdOpts): Promise<Result<{ id: number; url: string }>> {
-  const timeoutMs = workflowTimeoutSeconds * 1000;
   const distinctIdRegex = new RegExp(distinctId);
 
   core.info("Attempt to identify run ID from steps...");
@@ -140,14 +139,14 @@ export async function getRunId({
 
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;
-  while (elapsedTime < timeoutMs) {
+  while (elapsedTime < workflowTimeoutMs) {
     attemptNo++;
     elapsedTime = Date.now() - startTime;
 
     // Get all runs for a given workflow ID
     const fetchWorkflowRunIds = await api.retryOrTimeout(
-      () => api.getWorkflowRunIds(workflowId, branch),
-      Math.max(constants.WORKFLOW_FETCH_TIMEOUT_MS, timeoutMs),
+      () => api.fetchWorkflowRunIds(workflowId, branch),
+      Math.max(constants.WORKFLOW_FETCH_TIMEOUT_MS, workflowTimeoutMs),
     );
     if (!fetchWorkflowRunIds.success) {
       core.debug(

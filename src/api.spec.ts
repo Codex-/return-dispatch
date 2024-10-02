@@ -14,8 +14,8 @@ import type { ActionConfig } from "./action.ts";
 import {
   dispatchWorkflow,
   fetchWorkflowId,
-  getWorkflowRunIds,
-  getWorkflowRunJobSteps,
+  fetchWorkflowRunIds,
+  fetchWorkflowRunJobSteps,
   fetchWorkflowRunUrl,
   init,
   retryOrTimeout,
@@ -249,14 +249,14 @@ describe("API", () => {
 
       // Behaviour
       await expect(fetchWorkflowId("implode")).rejects.toThrow(
-        `Failed to get workflows, expected 200 but received ${errorStatus}`,
+        `Failed to fetch workflows, expected 200 but received ${errorStatus}`,
       );
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"fetchWorkflowId: An unexpected error has occurred: Failed to get workflows, expected 200 but received 401"`,
+        `"fetchWorkflowId: An unexpected error has occurred: Failed to fetch workflows, expected 200 but received 401"`,
       );
     });
 
@@ -283,7 +283,7 @@ describe("API", () => {
     });
   });
 
-  describe("getWorkflowRunIds", () => {
+  describe("fetchWorkflowRunIds", () => {
     const workflowIdCfg: ActionConfig = {
       token: "secret",
       ref: "/refs/heads/feature_branch",
@@ -315,7 +315,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunIds(0, branch)).resolves.toStrictEqual(
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual(
         mockData.workflow_runs.map((run) => run.id),
       );
 
@@ -346,15 +346,15 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunIds(0, branch)).rejects.toThrow(
-        `Failed to get Workflow runs, expected 200 but received ${errorStatus}`,
+      await expect(fetchWorkflowRunIds(0, branch)).rejects.toThrow(
+        `Failed to fetch Workflow runs, expected 200 but received ${errorStatus}`,
       );
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalled();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"getWorkflowRunIds: An unexpected error has occurred: Failed to get Workflow runs, expected 200 but received 401"`,
+        `"fetchWorkflowRunIds: An unexpected error has occurred: Failed to fetch Workflow runs, expected 200 but received 401"`,
       );
     });
 
@@ -374,7 +374,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunIds(0, branch)).resolves.toStrictEqual([]);
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual([]);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -410,7 +410,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
       expect(parsedRef).toStrictEqual("master");
 
       // Logging
@@ -447,7 +447,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging
@@ -484,7 +484,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging
@@ -502,7 +502,7 @@ describe("API", () => {
     });
   });
 
-  describe("getWorkflowRunJobSteps", () => {
+  describe("fetchWorkflowRunJobSteps", () => {
     it("should get the step names for a given Workflow Run ID", async () => {
       const mockData = {
         total_count: 1,
@@ -533,7 +533,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunJobSteps(0)).resolves.toStrictEqual([
+      await expect(fetchWorkflowRunJobSteps(0)).resolves.toStrictEqual([
         "Test Step 1",
         "Test Step 2",
       ]);
@@ -565,15 +565,15 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunJobSteps(0)).rejects.toThrow(
-        `Failed to get Workflow Run Jobs, expected 200 but received ${errorStatus}`,
+      await expect(fetchWorkflowRunJobSteps(0)).rejects.toThrow(
+        `Failed to fetch Workflow Run Jobs, expected 200 but received ${errorStatus}`,
       );
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"getWorkflowRunJobSteps: An unexpected error has occurred: Failed to get Workflow Run Jobs, expected 200 but received 401"`,
+        `"fetchWorkflowRunJobSteps: An unexpected error has occurred: Failed to fetch Workflow Run Jobs, expected 200 but received 401"`,
       );
     });
 
@@ -598,7 +598,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(getWorkflowRunJobSteps(0)).resolves.toStrictEqual([]);
+      await expect(fetchWorkflowRunJobSteps(0)).resolves.toStrictEqual([]);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -642,14 +642,14 @@ describe("API", () => {
 
       // Behaviour
       await expect(fetchWorkflowRunUrl(0)).rejects.toThrow(
-        `Failed to get Workflow Run state, expected 200 but received ${errorStatus}`,
+        `Failed to fetch Workflow Run state, expected 200 but received ${errorStatus}`,
       );
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"fetchWorkflowRunUrl: An unexpected error has occurred: Failed to get Workflow Run state, expected 200 but received 401"`,
+        `"fetchWorkflowRunUrl: An unexpected error has occurred: Failed to fetch Workflow Run state, expected 200 but received 401"`,
       );
     });
   });

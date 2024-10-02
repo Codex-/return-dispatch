@@ -33,7 +33,7 @@ export async function main(): Promise<void> {
       distinctId: config.distinctId,
       workflow: config.workflow,
       workflowId,
-      workflowTimeoutSeconds: config.workflowTimeoutSeconds,
+      workflowTimeoutMs: config.workflowTimeoutSeconds * 1000,
     });
     if (result.success) {
       handleActionSuccess(result.value.id, result.value.url);
