@@ -116,7 +116,7 @@ export function handleActionFail(): void {
   core.setFailed("Timeout exceeded while attempting to get Run ID");
 }
 
-interface GetRunIdOpts {
+export interface GetRunIdAndUrlOpts {
   startTime: number;
   branch: BranchNameResult;
   distinctId: string;
@@ -124,14 +124,14 @@ interface GetRunIdOpts {
   workflowId: number;
   workflowTimeoutMs: number;
 }
-export async function getRunId({
+export async function getRunIdAndUrl({
   startTime,
   branch,
   distinctId,
   workflow,
   workflowId,
   workflowTimeoutMs,
-}: GetRunIdOpts): Promise<Result<{ id: number; url: string }>> {
+}: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
   const distinctIdRegex = new RegExp(distinctId);
 
   core.info("Attempt to identify run ID from steps...");

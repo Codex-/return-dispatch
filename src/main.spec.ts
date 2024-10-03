@@ -59,7 +59,9 @@ describe("main", () => {
   >;
 
   // Return Dispatch
-  let returnDispatchGetRunIdMock: MockInstance<typeof returnDispatch.getRunId>;
+  let returnDispatchGetRunIdAndUrlMock: MockInstance<
+    typeof returnDispatch.getRunIdAndUrl
+  >;
   let returnDispatchGetWorkflowIdMock: MockInstance<
     typeof returnDispatch.getWorkflowId
   >;
@@ -92,7 +94,7 @@ describe("main", () => {
       "logInfoForBranchNameResult",
     );
 
-    returnDispatchGetRunIdMock = vi.spyOn(returnDispatch, "getRunId");
+    returnDispatchGetRunIdAndUrlMock = vi.spyOn(returnDispatch, "getRunIdAndUrl");
     returnDispatchGetWorkflowIdMock = vi
       .spyOn(returnDispatch, "getWorkflowId")
       .mockResolvedValue(0);
@@ -119,7 +121,9 @@ describe("main", () => {
 
     utilsGetBranchNameMock.mockReturnValue(testBranch);
     returnDispatchGetWorkflowIdMock.mockResolvedValue(0);
-    returnDispatchGetRunIdMock.mockResolvedValue(returnDispatchSuccessResult);
+    returnDispatchGetRunIdAndUrlMock.mockResolvedValue(
+      returnDispatchSuccessResult,
+    );
 
     await main();
 
@@ -149,8 +153,8 @@ describe("main", () => {
     );
 
     // Get run ID
-    expect(returnDispatchGetRunIdMock).toHaveBeenCalledOnce();
-    expect(returnDispatchGetRunIdMock).toHaveBeenCalledWith({
+    expect(returnDispatchGetRunIdAndUrlMock).toHaveBeenCalledOnce();
+    expect(returnDispatchGetRunIdAndUrlMock).toHaveBeenCalledWith({
       startTime: Date.now(),
       branch: testBranch,
       distinctId: testCfg.distinctId,
@@ -196,7 +200,7 @@ describe("main", () => {
     expect(apiDispatchWorkflowMock).not.toHaveBeenCalled();
     expect(utilsGetBranchNameMock).not.toHaveBeenCalled();
     expect(utilsLogInfoForBranchNameResult).not.toHaveBeenCalled();
-    expect(returnDispatchGetRunIdMock).not.toHaveBeenCalled();
+    expect(returnDispatchGetRunIdAndUrlMock).not.toHaveBeenCalled();
     expect(returnDispatchHandleFailMock).not.toHaveBeenCalled();
     expect(returnDispatchHandleSuccessMock).not.toHaveBeenCalled();
 
@@ -232,7 +236,7 @@ describe("main", () => {
     expect(apiDispatchWorkflowMock).not.toHaveBeenCalled();
     expect(utilsGetBranchNameMock).not.toHaveBeenCalled();
     expect(utilsLogInfoForBranchNameResult).not.toHaveBeenCalled();
-    expect(returnDispatchGetRunIdMock).not.toHaveBeenCalled();
+    expect(returnDispatchGetRunIdAndUrlMock).not.toHaveBeenCalled();
     expect(returnDispatchHandleFailMock).not.toHaveBeenCalled();
     expect(returnDispatchHandleSuccessMock).not.toHaveBeenCalled();
 
