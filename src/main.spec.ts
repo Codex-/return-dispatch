@@ -94,7 +94,10 @@ describe("main", () => {
       "logInfoForBranchNameResult",
     );
 
-    returnDispatchGetRunIdAndUrlMock = vi.spyOn(returnDispatch, "getRunIdAndUrl");
+    returnDispatchGetRunIdAndUrlMock = vi.spyOn(
+      returnDispatch,
+      "getRunIdAndUrl",
+    );
     returnDispatchGetWorkflowIdMock = vi
       .spyOn(returnDispatch, "getWorkflowId")
       .mockResolvedValue(0);

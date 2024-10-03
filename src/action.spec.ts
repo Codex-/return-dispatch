@@ -1,14 +1,6 @@
 import * as core from "@actions/core";
 import { v4 } from "uuid";
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-  type MockInstance,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { type ActionConfig, getConfig } from "./action.ts";
 
