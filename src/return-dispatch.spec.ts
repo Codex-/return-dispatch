@@ -17,12 +17,15 @@ import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import {
   attemptToFindRunId,
+  getRunIdAndUrl,
   getWorkflowId,
   handleActionFail,
   handleActionSuccess,
   shouldRetryOrThrow,
+  type GetRunIdAndUrlOpts,
 } from "./return-dispatch.ts";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
+import type { BranchNameResult } from "./utils.ts";
 
 vi.mock("@actions/core");
 vi.mock("./api.ts");
@@ -177,7 +180,7 @@ describe("return-dispatch", () => {
     it("should return a not found result if there is nothing to iterate on", async () => {
       const result = await attemptToFindRunId(new RegExp(testId), []);
       if (result.success) {
-        throw new Error("Failed, result found when none expected");
+        expect.fail("result found when none expected");
       }
 
       // Behaviour
@@ -195,7 +198,7 @@ describe("return-dispatch", () => {
         undefined as any,
       ]);
       if (result.success) {
-        throw new Error("Failed, result found when none expected");
+        expect.fail("result found when none expected");
       }
 
       // Behaviour
@@ -213,7 +216,7 @@ describe("return-dispatch", () => {
 
       const result = await attemptToFindRunId(new RegExp(testId), [0]);
       if (!result.success) {
-        throw new Error("Failed, result not found when expected");
+        expect.fail("result not found when expected");
       }
 
       // Behaviour
@@ -235,7 +238,7 @@ describe("return-dispatch", () => {
 
       const result = await attemptToFindRunId(new RegExp(testId), [0, 0]);
       if (!result.success) {
-        throw new Error("Failed, result not found when expected");
+        expect.fail("result not found when expected");
       }
 
       // Behaviour
@@ -260,7 +263,7 @@ describe("return-dispatch", () => {
 
       const result = await attemptToFindRunId(new RegExp(testId), [0]);
       if (!result.success) {
-        throw new Error("Failed, result not found when expected");
+        expect.fail("result not found when expected");
       }
 
       // Behaviour
@@ -318,7 +321,7 @@ describe("return-dispatch", () => {
 
         const result = await attemptToFindRunIdPromise;
         if (result.success) {
-          throw new Error("Failed, result found when none expected");
+          expect.fail("result found when none expected");
         }
 
         // Behaviour
@@ -432,6 +435,226 @@ describe("return-dispatch", () => {
           `"Failed: Timeout exceeded while attempting to get Run ID"`,
         );
       });
+    });
+
+    describe("getRunIdAndUrl", () => {
+      const distinctId = crypto.randomUUID();
+      const workflow = "workflow.yml";
+      const workflowId = 123;
+      const branch: BranchNameResult = Object.freeze({
+        isTag: false,
+        ref: "/refs/heads/main",
+        branchName: "main",
+      });
+      const defaultOpts: GetRunIdAndUrlOpts = {
+        startTime: Date.now(),
+        branch: branch,
+        distinctId: distinctId,
+        workflow: workflow,
+        workflowId: workflowId,
+        workflowTimeoutMs: 100,
+      };
+
+      let apiFetchWorkflowRunIdsMock: MockInstance<
+        typeof api.fetchWorkflowRunIds
+      >;
+      let apiFetchWorkflowRunJobStepsMock: MockInstance<
+        typeof api.fetchWorkflowRunJobSteps
+      >;
+      let apiFetchWorkflowRunUrlMock: MockInstance<
+        typeof api.fetchWorkflowRunUrl
+      >;
+      let apiRetryOrTimeoutMock: MockInstance<typeof api.retryOrTimeout>;
+
+      beforeEach(() => {
+        vi.useFakeTimers();
+
+        apiFetchWorkflowRunIdsMock = vi.spyOn(api, "fetchWorkflowRunIds");
+        apiFetchWorkflowRunJobStepsMock = vi.spyOn(
+          api,
+          "fetchWorkflowRunJobSteps",
+        );
+        apiFetchWorkflowRunUrlMock = vi.spyOn(api, "fetchWorkflowRunUrl");
+        apiRetryOrTimeoutMock = vi.spyOn(api, "retryOrTimeout");
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+
+        vi.resetAllMocks();
+      });
+
+      it("should return the ID when found", async () => {
+        const runId = 0;
+        const runUrl = "test-url";
+        apiRetryOrTimeoutMock.mockResolvedValue({
+          success: true,
+          value: [runId],
+        });
+        apiFetchWorkflowRunJobStepsMock.mockResolvedValue([distinctId]);
+        apiFetchWorkflowRunUrlMock.mockResolvedValue(runUrl);
+
+        const run = await getRunIdAndUrl({
+          ...defaultOpts,
+          workflowTimeoutMs: 1000,
+        });
+
+        if (!run.success) {
+          expect.fail("expected call to succeed");
+        }
+
+        // Behaviour
+        expect(run.value.id).toStrictEqual(runId);
+        expect(run.value.url).toStrictEqual(runUrl);
+
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
+        expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
+        expect(apiFetchWorkflowRunIdsMock).not.toHaveBeenCalled();
+
+        // Logging
+        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to identify Run ID for workflow.yml (123)"`,
+        );
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to get step names for Run IDs: [0]"`,
+        );
+
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempt to identify run ID from steps..."`,
+        );
+      });
+
+      it("should call retryOrTimeout with the larger WORKFLOW_FETCH_TIMEOUT_MS timeout value", async () => {
+        const workflowFetchTimeoutMs = 1000;
+        const workflowTimeoutMs = 100;
+        apiRetryOrTimeoutMock.mockResolvedValue({
+          success: true,
+          value: [0],
+        });
+        apiFetchWorkflowRunJobStepsMock.mockResolvedValue([distinctId]);
+        vi.spyOn(constants, "WORKFLOW_FETCH_TIMEOUT_MS", "get").mockReturnValue(
+          workflowFetchTimeoutMs,
+        );
+
+        await getRunIdAndUrl({
+          ...defaultOpts,
+          workflowTimeoutMs: workflowTimeoutMs,
+        });
+
+        // Behaviour
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
+        expect(apiRetryOrTimeoutMock.mock.calls[0]?.[1]).toStrictEqual(
+          workflowFetchTimeoutMs,
+        );
+        expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
+        expect(apiFetchWorkflowRunIdsMock).not.toHaveBeenCalled();
+
+        // Logging
+        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to identify Run ID for workflow.yml (123)"`,
+        );
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to get step names for Run IDs: [0]"`,
+        );
+
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempt to identify run ID from steps..."`,
+        );
+      });
+
+      it("should call retryOrTimeout with the larger workflowTimeoutMs timeout value", async () => {
+        const workflowFetchTimeoutMs = 100;
+        const workflowTimeoutMs = 1000;
+        apiRetryOrTimeoutMock.mockResolvedValue({
+          success: true,
+          value: [0],
+        });
+        apiFetchWorkflowRunJobStepsMock.mockResolvedValue([distinctId]);
+        vi.spyOn(constants, "WORKFLOW_FETCH_TIMEOUT_MS", "get").mockReturnValue(
+          workflowFetchTimeoutMs,
+        );
+
+        await getRunIdAndUrl({
+          ...defaultOpts,
+          workflowTimeoutMs: workflowTimeoutMs,
+        });
+
+        // Behaviour
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
+        expect(apiRetryOrTimeoutMock.mock.calls[0]?.[1]).toStrictEqual(
+          workflowTimeoutMs,
+        );
+        expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
+        expect(apiFetchWorkflowRunIdsMock).not.toHaveBeenCalled();
+
+        // Logging
+        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to identify Run ID for workflow.yml (123)"`,
+        );
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to get step names for Run IDs: [0]"`,
+        );
+
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempt to identify run ID from steps..."`,
+        );
+      });
+
+      it("called fetchWorkflowRunIds with the provided workflowId and branch", async () => {
+        apiRetryOrTimeoutMock.mockImplementation(async (retryFunc) => {
+          await retryFunc();
+          return {
+            success: true,
+            value: [0],
+          };
+        });
+        apiFetchWorkflowRunJobStepsMock.mockResolvedValue([distinctId]);
+        apiFetchWorkflowRunUrlMock.mockResolvedValue("test-url");
+
+        await getRunIdAndUrl(defaultOpts);
+
+        // Behaviour
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
+        expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
+
+        expect(apiFetchWorkflowRunIdsMock).toHaveBeenCalledOnce();
+        expect(apiFetchWorkflowRunIdsMock.mock.lastCall?.[0]).toStrictEqual(
+          workflowId,
+        );
+        expect(apiFetchWorkflowRunIdsMock.mock.lastCall?.[1]).toStrictEqual(
+          branch,
+        );
+
+        // Logging
+        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to identify Run ID for workflow.yml (123)"`,
+        );
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
+          `"Attempting to get step names for Run IDs: [0]"`,
+        );
+
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+          `"Attempt to identify run ID from steps..."`,
+        );
+      });
+
+      it("should retry until an ID is found");
+
+      it("should timeout when unable failing to get the run IDs");
+
+      it("should timeout when unable to find over time");
     });
   });
 });
