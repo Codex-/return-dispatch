@@ -133,6 +133,10 @@ export async function getRunIdAndUrl({
   workflowTimeoutMs,
 }: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
   const distinctIdRegex = new RegExp(distinctId);
+  const retryTimeout = Math.max(
+    constants.WORKFLOW_FETCH_TIMEOUT_MS,
+    workflowTimeoutMs,
+  );
 
   core.info("Attempt to identify run ID from steps...");
   core.debug(`Attempting to identify Run ID for ${workflow} (${workflowId})`);
@@ -146,7 +150,7 @@ export async function getRunIdAndUrl({
     // Get all runs for a given workflow ID
     const fetchWorkflowRunIds = await api.retryOrTimeout(
       () => api.fetchWorkflowRunIds(workflowId, branch),
-      Math.max(constants.WORKFLOW_FETCH_TIMEOUT_MS, workflowTimeoutMs),
+      retryTimeout,
     );
     if (!fetchWorkflowRunIds.success) {
       core.debug(
