@@ -25,7 +25,7 @@ import {
   type GetRunIdAndUrlOpts,
 } from "./return-dispatch.ts";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
-import type { BranchNameResult } from "./utils.ts";
+import * as utils from "./utils.ts";
 
 vi.mock("@actions/core");
 vi.mock("./api.ts");
@@ -38,6 +38,16 @@ describe("return-dispatch", () => {
     assertOnlyCalled,
     assertNoneCalled,
   } = mockLoggingFunctions();
+
+  function resetLogMocks(): void {
+    for (const logMock of [
+      coreDebugLogMock,
+      coreInfoLogMock,
+      coreErrorLogMock,
+    ]) {
+      logMock.mockReset();
+    }
+  }
 
   afterAll(() => {
     vi.restoreAllMocks();
@@ -457,7 +467,7 @@ describe("return-dispatch", () => {
       const distinctId = crypto.randomUUID();
       const workflow = "workflow.yml";
       const workflowId = 123;
-      const branch: BranchNameResult = Object.freeze({
+      const branch: utils.BranchNameResult = Object.freeze({
         isTag: false,
         ref: "/refs/heads/main",
         branchName: "main",
@@ -481,6 +491,7 @@ describe("return-dispatch", () => {
         typeof api.fetchWorkflowRunUrl
       >;
       let apiRetryOrTimeoutMock: MockInstance<typeof api.retryOrTimeout>;
+      let utilSleepMock: MockInstance<typeof utils.sleep>;
 
       beforeEach(() => {
         vi.useFakeTimers();
@@ -492,6 +503,12 @@ describe("return-dispatch", () => {
         );
         apiFetchWorkflowRunUrlMock = vi.spyOn(api, "fetchWorkflowRunUrl");
         apiRetryOrTimeoutMock = vi.spyOn(api, "retryOrTimeout");
+
+        utilSleepMock = vi
+          .spyOn(utils, "sleep")
+          .mockImplementation(
+            (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
+          );
       });
 
       afterEach(() => {
@@ -526,21 +543,16 @@ describe("return-dispatch", () => {
         expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
         expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
         expect(apiFetchWorkflowRunIdsMock).not.toHaveBeenCalled();
+        expect(utilSleepMock).not.toHaveBeenCalled();
 
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to identify Run ID for workflow.yml (123)"`,
-        );
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to get step names for Run IDs: [0]"`,
-        );
+        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[1]).toMatchSnapshot();
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempt to identify run ID from steps..."`,
-        );
+        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
       });
 
       it("should call retryOrTimeout with the larger WORKFLOW_FETCH_TIMEOUT_MS timeout value", async () => {
@@ -567,6 +579,7 @@ describe("return-dispatch", () => {
         );
         expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
         expect(apiFetchWorkflowRunIdsMock).not.toHaveBeenCalled();
+        expect(utilSleepMock).not.toHaveBeenCalled();
 
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
@@ -580,7 +593,7 @@ describe("return-dispatch", () => {
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
         expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempt to identify run ID from steps..."`,
+          `"Attempting to identify run ID from steps..."`,
         );
       });
 
@@ -608,21 +621,16 @@ describe("return-dispatch", () => {
         );
         expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
         expect(apiFetchWorkflowRunIdsMock).not.toHaveBeenCalled();
+        expect(utilSleepMock).not.toHaveBeenCalled();
 
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to identify Run ID for workflow.yml (123)"`,
-        );
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to get step names for Run IDs: [0]"`,
-        );
+        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[1]).toMatchSnapshot();
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempt to identify run ID from steps..."`,
-        );
+        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
       });
 
       it("called fetchWorkflowRunIds with the provided workflowId and branch", async () => {
@@ -653,20 +661,83 @@ describe("return-dispatch", () => {
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to identify Run ID for workflow.yml (123)"`,
-        );
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to get step names for Run IDs: [0]"`,
-        );
+        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[1]).toMatchSnapshot();
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempt to identify run ID from steps..."`,
-        );
+        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
       });
 
-      it("should retry until an ID is found");
+      it("should retry until an ID is found", async () => {
+        const runId = 0;
+        const runUrl = "test-url";
+        apiRetryOrTimeoutMock
+          .mockResolvedValue({
+            success: true,
+            value: [runId],
+          })
+          .mockResolvedValueOnce({ success: true, value: [] })
+          .mockResolvedValueOnce({ success: true, value: [] });
+        apiFetchWorkflowRunJobStepsMock.mockResolvedValue([distinctId]);
+        apiFetchWorkflowRunUrlMock.mockResolvedValue(runUrl);
+        vi.spyOn(
+          constants,
+          "WORKFLOW_JOB_STEPS_RETRY_MS",
+          "get",
+        ).mockReturnValue(5000);
+
+        const getRunIdAndUrlPromise = getRunIdAndUrl({
+          ...defaultOpts,
+          workflowTimeoutMs: 60 * 60 * 1000,
+        });
+
+        // First attempt
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
+        await vi.advanceTimersByTimeAsync(1); // deplete queue
+        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
+
+        expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+        expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
+
+        expect(coreDebugLogMock).toHaveBeenCalledTimes(1);
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+        resetLogMocks();
+
+        // Sleep should be called
+        expect(utilSleepMock).toHaveBeenCalledOnce();
+        expect(utilSleepMock).toHaveBeenCalledWith(5000);
+        await vi.advanceTimersByTimeAsync(5000);
+
+        // Second attempt
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledTimes(2);
+        await vi.advanceTimersByTimeAsync(1); // deplete queue
+        assertOnlyCalled(coreInfoLogMock);
+
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+        resetLogMocks();
+        await vi.advanceTimersByTimeAsync(5000);
+
+        // Third attempt
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledTimes(3);
+        await vi.advanceTimersByTimeAsync(1); // deplete queue
+        assertOnlyCalled(coreDebugLogMock);
+
+        expect(coreDebugLogMock).toHaveBeenCalledOnce();
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+        resetLogMocks();
+        await vi.advanceTimersByTimeAsync(5000);
+
+        // Result
+        const run = await getRunIdAndUrlPromise;
+        if (!run.success) {
+          expect.fail("expected call to succeed");
+        }
+        expect(run.value.id).toStrictEqual(runId);
+        expect(run.value.url).toStrictEqual(runUrl);
+        assertNoneCalled();
+      });
 
       it("should timeout when unable failing to get the run IDs");
 
