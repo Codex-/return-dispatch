@@ -739,7 +739,43 @@ describe("return-dispatch", () => {
         assertNoneCalled();
       });
 
-      it("should timeout when unable failing to get the run IDs");
+      it("should timeout when unable failing to get the run IDs", async () => {
+        apiRetryOrTimeoutMock.mockResolvedValue({
+          success: false,
+          reason: "timeout",
+        });
+
+        // Behaviour
+        const getRunIdAndUrlPromise = getRunIdAndUrl({
+          ...defaultOpts,
+        });
+        await vi.advanceTimersByTimeAsync(1000);
+
+        const run = await getRunIdAndUrlPromise;
+
+        if (run.success) {
+          expect.fail("expected call to fail");
+        }
+
+        // Behaviour
+        expect(run.reason).toStrictEqual("timeout");
+
+        expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
+        expect(apiFetchWorkflowRunJobStepsMock).not.toHaveBeenCalled();
+        expect(apiFetchWorkflowRunIdsMock).not.toHaveBeenCalled();
+        expect(utilSleepMock).not.toHaveBeenCalled();
+
+        // Logging
+        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatch(
+          /Timed out while attempting to fetch Workflow Run IDs, waited [0-9]+ms/,
+        );
+
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
+      });
 
       it("should timeout when unable to find over time");
     });
