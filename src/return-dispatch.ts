@@ -167,16 +167,23 @@ export async function getRunIdAndUrl({
     }
 
     const workflowRunIds = fetchWorkflowRunIds.value;
-    core.debug(
-      `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
-    );
 
-    const result = await attemptToFindRunId(distinctIdRegex, workflowRunIds);
-    if (result.success) {
-      return result;
+    if (workflowRunIds.length > 0) {
+      core.debug(
+        `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`,
+      );
+
+      const result = await attemptToFindRunId(distinctIdRegex, workflowRunIds);
+      if (result.success) {
+        return result;
+      }
+
+      core.info(
+        `Exhausted searching IDs in known runs, attempt ${attemptNo}...`,
+      );
+    } else {
+      core.info(`No Run IDs found for workflow, attempt ${attemptNo}...`);
     }
-
-    core.info(`Exhausted searching IDs in known runs, attempt ${attemptNo}...`);
 
     await sleep(constants.WORKFLOW_JOB_STEPS_RETRY_MS);
   }
