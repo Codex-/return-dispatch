@@ -277,6 +277,22 @@ describe("return-dispatch", () => {
       assertNoneCalled();
     });
 
+    it("does nothing if called with an empty array", async () => {
+      const result = await attemptToFindRunId(new RegExp(testId), []);
+      if (result.success) {
+        expect.fail("result found when none expected");
+      }
+
+      // Behaviour
+      expect(result.success).toStrictEqual(false);
+      expect(result.reason).toStrictEqual("invalid input");
+      expect(getWorkflowRunJobStepMock).not.toHaveBeenCalled();
+      expect(fetchWorkflowRunUrlMock).not.toHaveBeenCalled();
+
+      // Logging
+      assertNoneCalled();
+    });
+
     describe("server error retries", () => {
       beforeEach(() => {
         vi.spyOn(

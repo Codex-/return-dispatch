@@ -42,6 +42,13 @@ export async function attemptToFindRunId(
   idRegex: RegExp,
   workflowRunIds: number[],
 ): Promise<Result<{ id: number; url: string }>> {
+  if (workflowRunIds.length === 0) {
+    return {
+      success: false,
+      reason: "invalid input",
+    };
+  }
+
   let currentWorkflowRunIndex = 0;
   let currentFetchWorkflowRunJobStepsAttempt = 0;
   while (currentWorkflowRunIndex < workflowRunIds.length) {
