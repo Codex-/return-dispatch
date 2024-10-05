@@ -4,7 +4,7 @@ import { ActionOutputs } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import type { Result } from "./types.ts";
-import { escapeRegExp, sleep, type BranchNameResult } from "./utils.ts";
+import { sleep, type BranchNameResult } from "./utils.ts";
 
 export function shouldRetryOrThrow(
   error: Error,

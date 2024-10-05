@@ -549,11 +549,11 @@ describe("return-dispatch", () => {
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
-        expect(coreDebugLogMock.mock.calls[1]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("should call retryOrTimeout with the larger WORKFLOW_FETCH_TIMEOUT_MS timeout value", async () => {
@@ -627,11 +627,11 @@ describe("return-dispatch", () => {
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
-        expect(coreDebugLogMock.mock.calls[1]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("called fetchWorkflowRunIds with the provided workflowId and branch", async () => {
@@ -662,11 +662,11 @@ describe("return-dispatch", () => {
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
-        expect(coreDebugLogMock.mock.calls[1]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("should retry until an ID is found", async () => {
@@ -782,13 +782,13 @@ describe("return-dispatch", () => {
         // Logging
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
         expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatch(
           /Timed out while attempting to fetch Workflow Run IDs, waited [0-9]+ms/,
         );
 
         expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]).toMatchSnapshot();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("should timeout when unable to find over time", async () => {
