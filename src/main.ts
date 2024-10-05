@@ -8,7 +8,11 @@ import {
   handleActionSuccess,
   getRunIdAndUrl,
 } from "./return-dispatch.ts";
-import { getBranchName, logInfoForBranchNameResult } from "./utils.ts";
+import {
+  createDistinctIdRegex,
+  getBranchName,
+  logInfoForBranchNameResult,
+} from "./utils.ts";
 
 export async function main(): Promise<void> {
   try {
@@ -27,10 +31,12 @@ export async function main(): Promise<void> {
     const branch = getBranchName(config.ref);
     logInfoForBranchNameResult(branch, config.ref);
 
+    const distinctIdRegex = createDistinctIdRegex(config.distinctId);
+
     const result = await getRunIdAndUrl({
       startTime,
       branch,
-      distinctId: config.distinctId,
+      distinctIdRegex,
       workflow: config.workflow,
       workflowId,
       workflowTimeoutMs: config.workflowTimeoutSeconds * 1000,

@@ -126,7 +126,7 @@ export function handleActionFail(): void {
 export interface GetRunIdAndUrlOpts {
   startTime: number;
   branch: BranchNameResult;
-  distinctId: string;
+  distinctIdRegex: RegExp;
   workflow: string | number;
   workflowId: number;
   workflowTimeoutMs: number;
@@ -134,12 +134,11 @@ export interface GetRunIdAndUrlOpts {
 export async function getRunIdAndUrl({
   startTime,
   branch,
-  distinctId,
+  distinctIdRegex,
   workflow,
   workflowId,
   workflowTimeoutMs,
 }: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
-  const distinctIdRegex = new RegExp(distinctId);
   const retryTimeout = Math.max(
     constants.WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs,

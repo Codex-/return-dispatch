@@ -19737,10 +19737,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports.error = error5;
-    function warning(message, properties = {}) {
+    function warning2(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports.warning = warning;
+    exports.warning = warning2;
     function notice(message, properties = {}) {
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -24034,6 +24034,20 @@ function logInfoForBranchNameResult(branch, ref) {
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+var reHasRegExpChar = RegExp(reRegExpChar.source);
+function escapeRegExp(str) {
+  return reHasRegExpChar.test(str) ? str.replace(reRegExpChar, "\\$&") : str || "";
+}
+function createDistinctIdRegex(distinctId) {
+  const escapedDistinctId = escapeRegExp(distinctId);
+  if (distinctId !== escapedDistinctId) {
+    core2.warning(
+      `Unescaped characters found in distinctId input, using: ${escapedDistinctId}`
+    );
+  }
+  return new RegExp(escapedDistinctId);
+}
 
 // src/api.ts
 var config;
@@ -24346,12 +24360,11 @@ function handleActionFail() {
 async function getRunIdAndUrl({
   startTime,
   branch,
-  distinctId,
+  distinctIdRegex,
   workflow,
   workflowId,
   workflowTimeoutMs
 }) {
-  const distinctIdRegex = new RegExp(distinctId);
   const retryTimeout = Math.max(
     WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs
@@ -24404,10 +24417,11 @@ async function main() {
     core5.info("Attempt to extract branch name from ref...");
     const branch = getBranchName(config2.ref);
     logInfoForBranchNameResult(branch, config2.ref);
+    const distinctIdRegex = createDistinctIdRegex(config2.distinctId);
     const result = await getRunIdAndUrl({
       startTime,
       branch,
-      distinctId: config2.distinctId,
+      distinctIdRegex,
       workflow: config2.workflow,
       workflowId,
       workflowTimeoutMs: config2.workflowTimeoutSeconds * 1e3

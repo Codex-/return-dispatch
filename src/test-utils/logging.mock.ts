@@ -8,6 +8,7 @@ import { type MockInstance, vi, expect } from "vitest";
 interface MockedLoggingFunctions {
   coreDebugLogMock: MockInstance<(message: string) => void>;
   coreInfoLogMock: MockInstance<(message: string) => void>;
+  coreWarningLogMock: MockInstance<(message: string) => void>;
   coreErrorLogMock: MockInstance<(message: string) => void>;
   assertOnlyCalled: (
     ...coreLogMocks: MockInstance<(message: string) => void>[]
@@ -22,6 +23,10 @@ export function mockLoggingFunctions(): MockedLoggingFunctions {
   const coreInfoLogMock: MockInstance<typeof core.info> = vi
     .spyOn(core, "info")
     .mockImplementation(() => undefined);
+  const coreWarningLogMock: MockInstance<typeof core.error> = vi.spyOn(
+    core,
+    "warning",
+  );
   const coreErrorLogMock: MockInstance<typeof core.error> = vi
     .spyOn(core, "error")
     .mockImplementation(() => undefined);
@@ -29,6 +34,7 @@ export function mockLoggingFunctions(): MockedLoggingFunctions {
   const coreLogMockSet = new Set<MockInstance<(message: string) => void>>([
     coreDebugLogMock,
     coreInfoLogMock,
+    coreWarningLogMock,
     coreErrorLogMock,
   ]);
   const assertOnlyCalled = (
@@ -44,6 +50,7 @@ export function mockLoggingFunctions(): MockedLoggingFunctions {
   return {
     coreDebugLogMock,
     coreInfoLogMock,
+    coreWarningLogMock,
     coreErrorLogMock,
     assertOnlyCalled,
     assertNoneCalled,

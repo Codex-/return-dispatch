@@ -64,3 +64,39 @@ export function logInfoForBranchNameResult(
 export function sleep(ms: number): Promise<void> {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
+
+/**
+ * Used to match `RegExp`
+ * [syntax characters](http://ecma-international.org/ecma-262/7.0/#sec-patterns).
+ *
+ * https://github.com/lodash/lodash/blob/main/src/escapeRegExp.ts
+ */
+const reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+const reHasRegExpChar = RegExp(reRegExpChar.source);
+
+/**
+ * Escapes the `RegExp` special characters "^", "$", "\", ".", "*", "+",
+ * "?", "(", ")", "[", "]", "{", "}", and "|" in `string`.
+ *
+ * https://github.com/lodash/lodash/blob/main/src/escapeRegExp.ts
+ */
+export function escapeRegExp(str: string): string {
+  return reHasRegExpChar.test(str)
+    ? str.replace(reRegExpChar, "\\$&")
+    : str || "";
+}
+
+/**
+ * If the input distinct ID contains unescaped characters, log the
+ * escaped distinct ID as a warning.
+ */
+export function createDistinctIdRegex(distinctId: string): RegExp {
+  const escapedDistinctId = escapeRegExp(distinctId);
+  if (distinctId !== escapedDistinctId) {
+    core.warning(
+      `Unescaped characters found in distinctId input, using: ${escapedDistinctId}`,
+    );
+  }
+
+  return new RegExp(escapedDistinctId);
+}
