@@ -8,5 +8,6 @@ export default defineConfig({
       reporter: ["text", "lcov"],
       include: ["src/**/*.ts"],
     },
+    isolate: true,
   },
 });

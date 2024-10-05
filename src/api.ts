@@ -1,9 +1,11 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { type ActionConfig, getConfig } from "./action.ts";
-import { getBranchName } from "./utils.ts";
 
-type Octokit = ReturnType<(typeof github)["getOctokit"]>;
+import { type ActionConfig, getConfig } from "./action.ts";
+import type { Result } from "./types.ts";
+import { sleep, type BranchNameResult } from "./utils.ts";
+
+type Octokit = ReturnType<typeof github.getOctokit>;
 
 let config: ActionConfig;
 let octokit: Octokit;
@@ -15,7 +17,7 @@ export function init(cfg?: ActionConfig): void {
 
 export async function dispatchWorkflow(distinctId: string): Promise<void> {
   try {
-    // https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event
+    // https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event
     const response = await octokit.rest.actions.createWorkflowDispatch({
       owner: config.owner,
       repo: config.repo,
@@ -38,7 +40,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       "Successfully dispatched workflow:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch: ${config.ref}\n` +
-        `  Workflow ID: ${config.workflow}\n` +
+        `  Workflow: ${config.workflow}\n` +
         (config.workflowInputs
           ? `  Workflow Inputs: ${JSON.stringify(config.workflowInputs)}\n`
           : ``) +
@@ -55,14 +57,16 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
   }
 }
 
-export async function getWorkflowId(workflowFilename: string): Promise<number> {
+export async function fetchWorkflowId(
+  workflowFilename: string,
+): Promise<number> {
   try {
     const sanitisedFilename = workflowFilename.replace(
       /[.*+?^${}()|[\]\\]/g,
       "\\$&",
     );
 
-    // https://docs.github.com/en/rest/reference/actions#list-repository-workflows
+    // https://docs.github.com/en/rest/actions/workflows#list-repository-workflows
     const workflowIterator = octokit.paginate.iterator(
       octokit.rest.actions.listRepoWorkflows,
       {
@@ -71,22 +75,22 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
       },
     );
     let workflowId: number | undefined;
-
+    let workflowIdUrl: string | undefined;
     for await (const response of workflowIterator) {
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (response.status !== 200) {
         throw new Error(
-          `Failed to get workflows, expected 200 but received ${response.status}`,
+          `Failed to fetch workflows, expected 200 but received ${response.status}`,
         );
       }
-      // wrong type definition
-      const workflows: typeof response.data.workflows = response.data;
 
-      workflowId = workflows.find((workflow) =>
+      const workflowData = response.data.find((workflow) =>
         new RegExp(sanitisedFilename).test(workflow.path),
-      )?.id;
+      );
+      workflowId = workflowData?.id;
 
       if (workflowId !== undefined) {
+        workflowIdUrl = workflowData?.html_url;
         break;
       }
     }
@@ -95,11 +99,20 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
       throw new Error(`Unable to find ID for Workflow: ${workflowFilename}`);
     }
 
+    core.info(
+      `Fetched Workflow ID:\n` +
+        `  Repository: ${config.owner}/${config.repo}\n` +
+        `  Workflow ID: '${workflowId}'\n` +
+        `  Input Filename: '${workflowFilename}'\n` +
+        `  Sanitised Filename: '${sanitisedFilename}'\n` +
+        `  URL: ${workflowIdUrl}`,
+    );
+
     return workflowId;
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowId: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowId: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
@@ -107,7 +120,7 @@ export async function getWorkflowId(workflowFilename: string): Promise<number> {
   }
 }
 
-export async function getWorkflowRunUrl(runId: number): Promise<string> {
+export async function fetchWorkflowRunUrl(runId: number): Promise<string> {
   try {
     // https://docs.github.com/en/rest/reference/actions#get-a-workflow-run
     const response = await octokit.rest.actions.getWorkflowRun({
@@ -119,7 +132,7 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow Run state, expected 200 but received ${response.status}`,
+        `Failed to fetch Workflow Run state, expected 200 but received ${response.status}`,
       );
     }
 
@@ -134,7 +147,7 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunUrl: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowRunUrl: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
@@ -142,29 +155,35 @@ export async function getWorkflowRunUrl(runId: number): Promise<string> {
   }
 }
 
-export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
+export async function fetchWorkflowRunIds(
+  workflowId: number,
+  branch: BranchNameResult,
+): Promise<number[]> {
   try {
-    const branchName = getBranchName(config.ref);
+    const useBranchFilter =
+      !branch.isTag &&
+      branch.branchName !== undefined &&
+      branch.branchName !== "";
 
-    // https://docs.github.com/en/rest/reference/actions#list-workflow-runs
+    // https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
       workflow_id: workflowId,
-      ...(branchName
+      ...(useBranchFilter
         ? {
-            branch: branchName,
-            per_page: 5,
+            branch: branch.branchName,
+            per_page: 10,
           }
         : {
-            per_page: 10,
+            per_page: 20,
           }),
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow runs, expected 200 but received ${response.status}`,
+        `Failed to fetch Workflow runs, expected 200 but received ${response.status}`,
       );
     }
 
@@ -172,10 +191,13 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
       (workflowRun) => workflowRun.id,
     );
 
+    const branchMsg = useBranchFilter
+      ? `true (${branch.branchName})`
+      : `false (${branch.ref})`;
     core.debug(
       "Fetched Workflow Runs:\n" +
         `  Repository: ${config.owner}/${config.repo}\n` +
-        `  Branch: ${branchName}\n` +
+        `  Branch Filter: ${branchMsg}\n` +
         `  Workflow ID: ${workflowId}\n` +
         `  Runs Fetched: [${runIds.join(", ")}]`,
     );
@@ -184,7 +206,7 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunIds: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowRunIds: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
@@ -192,9 +214,11 @@ export async function getWorkflowRunIds(workflowId: number): Promise<number[]> {
   }
 }
 
-export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
+export async function fetchWorkflowRunJobSteps(
+  runId: number,
+): Promise<string[]> {
   try {
-    // https://docs.github.com/en/rest/reference/actions#list-jobs-for-a-workflow-run
+    // https://docs.github.com/en/rest/actions/workflow-jobs#list-jobs-for-a-workflow-run
     const response = await octokit.rest.actions.listJobsForWorkflowRun({
       owner: config.owner,
       repo: config.repo,
@@ -205,7 +229,7 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (response.status !== 200) {
       throw new Error(
-        `Failed to get Workflow Run Jobs, expected 200 but received ${response.status}`,
+        `Failed to fetch Workflow Run Jobs, expected 200 but received ${response.status}`,
       );
     }
 
@@ -220,30 +244,19 @@ export async function getWorkflowRunJobSteps(runId: number): Promise<string[]> {
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Workflow Run ID: ${runId}\n` +
         `  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]\n` +
-        `  Steps Fetched: [${steps.join(", ")}]`,
+        `  Steps Fetched: [${steps.map((step) => `"${step}"`).join(", ")}]`,
     );
 
     return steps;
   } catch (error) {
     if (error instanceof Error) {
       core.error(
-        `getWorkflowRunJobSteps: An unexpected error has occurred: ${error.message}`,
+        `fetchWorkflowRunJobSteps: An unexpected error has occurred: ${error.message}`,
       );
       core.debug(error.stack ?? "");
     }
     throw error;
   }
-}
-
-type RetryOrTimeoutResult<T> = ResultFound<T> | ResultTimeout;
-
-interface ResultFound<T> {
-  timeout: false;
-  value: T;
-}
-
-interface ResultTimeout {
-  timeout: true;
 }
 
 /**
@@ -252,7 +265,7 @@ interface ResultTimeout {
 export async function retryOrTimeout<T>(
   retryFunc: () => Promise<T[]>,
   timeoutMs: number,
-): Promise<RetryOrTimeoutResult<T[]>> {
+): Promise<Result<T[]>> {
   const startTime = Date.now();
   let elapsedTime = 0;
   while (elapsedTime < timeoutMs) {
@@ -260,11 +273,11 @@ export async function retryOrTimeout<T>(
 
     const response = await retryFunc();
     if (response.length > 0) {
-      return { timeout: false, value: response };
+      return { success: true, value: response };
     }
 
-    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+    await sleep(1000);
   }
 
-  return { timeout: true };
+  return { success: false, reason: "timeout" };
 }
