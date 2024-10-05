@@ -15,7 +15,7 @@ Ensure you have configured your remote action correctly, see below for an exampl
 ```yaml
 steps:
   - name: Dispatch an action and get the run ID and URL
-    uses: codex-/return-dispatch@v1
+    uses: codex-/return-dispatch@v2
     id: return_dispatch
     with:
       token: ${{ secrets.TOKEN }} # Note this is NOT GITHUB_TOKEN but a PAT
