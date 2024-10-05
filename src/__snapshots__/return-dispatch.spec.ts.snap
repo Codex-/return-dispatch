@@ -75,3 +75,19 @@ exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when u
   "Attempting to identify run ID from steps...",
 ]
 `;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 1`] = `"Attempting to identify run ID from steps..."`;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 2`] = `"Exhausted searching IDs in known runs, attempt 1..."`;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 3`] = `"Attempting to identify Run ID for workflow.yml (123)"`;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 4`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 5`] = `"Exhausted searching IDs in known runs, attempt 2..."`;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 6`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 7`] = `"Exhausted searching IDs in known runs, attempt 3..."`;
+
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 8`] = `"Attempting to get step names for Run IDs: [0]"`;
