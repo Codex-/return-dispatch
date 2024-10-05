@@ -24222,7 +24222,7 @@ async function fetchWorkflowRunJobSteps(runId) {
   Repository: ${config.owner}/${config.repo}
   Workflow Run ID: ${runId}
   Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]
-  Steps Fetched: [${steps.join(", ")}]`
+  Steps Fetched: [${steps.map((step) => `"${step}"`).join(", ")}]`
     );
     return steps;
   } catch (error5) {
@@ -24357,7 +24357,7 @@ async function getRunIdAndUrl({
     workflowTimeoutMs
   );
   core4.info("Attempting to identify run ID from steps...");
-  core4.debug(`Attempting to identify Run ID for ${workflow} (${workflowId})`);
+  core4.debug(`Attempting to identify run ID for ${workflow} (${workflowId})`);
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;
   while (elapsedTime < workflowTimeoutMs) {
