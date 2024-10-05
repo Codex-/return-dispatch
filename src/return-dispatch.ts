@@ -4,7 +4,7 @@ import { ActionOutputs } from "./action.ts";
 import * as api from "./api.ts";
 import * as constants from "./constants.ts";
 import type { Result } from "./types.ts";
-import { sleep, type BranchNameResult } from "./utils.ts";
+import { escapeRegExp, sleep, type BranchNameResult } from "./utils.ts";
 
 export function shouldRetryOrThrow(
   error: Error,
@@ -126,7 +126,7 @@ export function handleActionFail(): void {
 export interface GetRunIdAndUrlOpts {
   startTime: number;
   branch: BranchNameResult;
-  distinctId: string;
+  distinctIdRegex: RegExp;
   workflow: string | number;
   workflowId: number;
   workflowTimeoutMs: number;
@@ -134,12 +134,11 @@ export interface GetRunIdAndUrlOpts {
 export async function getRunIdAndUrl({
   startTime,
   branch,
-  distinctId,
+  distinctIdRegex,
   workflow,
   workflowId,
   workflowTimeoutMs,
 }: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
-  const distinctIdRegex = new RegExp(distinctId);
   const retryTimeout = Math.max(
     constants.WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs,

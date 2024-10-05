@@ -29,14 +29,6 @@ import * as utils from "./utils.ts";
 
 vi.mock("@actions/core");
 vi.mock("./api.ts");
-// vi.mock(import('./utils.ts'), async (importOriginal) => {
-//   const mod = await importOriginal() // type is inferred
-//   return {
-//     ...mod,
-//     // replace some exports
-//     total: vi.fn(mod.sleep),
-//   }
-// })
 
 describe("return-dispatch", () => {
   const {
@@ -473,6 +465,7 @@ describe("return-dispatch", () => {
 
     describe("getRunIdAndUrl", () => {
       const distinctId = crypto.randomUUID();
+      const distinctIdRegex = new RegExp(distinctId);
       const workflow = "workflow.yml";
       const workflowId = 123;
       const branch: utils.BranchNameResult = Object.freeze({
@@ -483,7 +476,7 @@ describe("return-dispatch", () => {
       const defaultOpts: GetRunIdAndUrlOpts = {
         startTime: Date.now(),
         branch: branch,
-        distinctId: distinctId,
+        distinctIdRegex: distinctIdRegex,
         workflow: workflow,
         workflowId: workflowId,
         workflowTimeoutMs: 100,

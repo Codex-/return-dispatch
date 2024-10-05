@@ -9,13 +9,24 @@ import {
 } from "vitest";
 
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
-import { getBranchName, logInfoForBranchNameResult, sleep } from "./utils.ts";
+import {
+  createDistinctIdRegex,
+  escapeRegExp,
+  getBranchName,
+  logInfoForBranchNameResult,
+  sleep,
+} from "./utils.ts";
 
 vi.mock("@actions/core");
 
 describe("utils", () => {
-  const { coreDebugLogMock, coreInfoLogMock, assertOnlyCalled } =
-    mockLoggingFunctions();
+  const {
+    coreDebugLogMock,
+    coreInfoLogMock,
+    coreWarningLogMock,
+    assertOnlyCalled,
+    assertNoneCalled,
+  } = mockLoggingFunctions();
 
   afterEach(() => {
     vi.resetAllMocks();
@@ -187,6 +198,54 @@ describe("utils", () => {
       await vi.advanceTimersByTimeAsync(1000);
 
       await expect(sleepPromise).resolves.toBeUndefined();
+
+      assertNoneCalled();
+    });
+  });
+
+  describe("escapeRegExp", () => {
+    const escaped = "\\^\\$\\.\\*\\+\\?\\(\\)\\[\\]\\{\\}\\|\\\\";
+    const unescaped = "^$.*+?()[]{}|\\";
+
+    it("should escape values", () => {
+      expect(escapeRegExp(unescaped + unescaped)).toBe(escaped + escaped);
+      assertNoneCalled();
+    });
+
+    it("should handle strings with nothing to escape", () => {
+      expect(escapeRegExp("abc")).toBe("abc");
+      assertNoneCalled();
+    });
+
+    it("should return an empty string for empty values", () => {
+      expect(escapeRegExp("")).toEqual("");
+      assertNoneCalled();
+    });
+  });
+
+  describe("createDistinctIdRegex", () => {
+    it("should return a regex without warning if the input is safe", () => {
+      expect(createDistinctIdRegex("test-cfg")).toStrictEqual(
+        new RegExp("test-cfg"),
+      );
+      assertNoneCalled();
+    });
+
+    it("should return a regex with warning if the input is required escaping", () => {
+      const input = "test$.*+?()[]{}|\\cfg";
+      const escapedInput = escapeRegExp(input);
+
+      const distinctId = createDistinctIdRegex(input);
+
+      // Behaviour
+      expect(distinctId).toStrictEqual(new RegExp(escapedInput));
+
+      // Logging
+      assertOnlyCalled(coreWarningLogMock);
+      expect(coreWarningLogMock).toHaveBeenCalledOnce();
+      expect(coreWarningLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"Unescaped characters found in distinctId input, using: test\\$\\.\\*\\+\\?\\(\\)\\[\\]\\{\\}\\|\\\\cfg"`,
+      );
     });
   });
 });

@@ -57,6 +57,9 @@ describe("main", () => {
   let utilsLogInfoForBranchNameResult: MockInstance<
     typeof utils.logInfoForBranchNameResult
   >;
+  let utilsCreateDistinctIdRegexMock: MockInstance<
+    typeof utils.createDistinctIdRegex
+  >;
 
   // Return Dispatch
   let returnDispatchGetRunIdAndUrlMock: MockInstance<
@@ -93,6 +96,7 @@ describe("main", () => {
       utils,
       "logInfoForBranchNameResult",
     );
+    utilsCreateDistinctIdRegexMock = vi.spyOn(utils, "createDistinctIdRegex");
 
     returnDispatchGetRunIdAndUrlMock = vi.spyOn(
       returnDispatch,
@@ -114,6 +118,7 @@ describe("main", () => {
   });
 
   it("should successfully complete", async () => {
+    const distinctIdRegex = new RegExp(testCfg.distinctId);
     const returnDispatchSuccessResult = {
       success: true,
       value: {
@@ -123,6 +128,7 @@ describe("main", () => {
     } as const;
 
     utilsGetBranchNameMock.mockReturnValue(testBranch);
+    utilsCreateDistinctIdRegexMock.mockReturnValue(distinctIdRegex);
     returnDispatchGetWorkflowIdMock.mockResolvedValue(0);
     returnDispatchGetRunIdAndUrlMock.mockResolvedValue(
       returnDispatchSuccessResult,
@@ -154,13 +160,17 @@ describe("main", () => {
       testBranch,
       testCfg.ref,
     );
+    expect(utilsCreateDistinctIdRegexMock).toHaveBeenCalledOnce();
+    expect(utilsCreateDistinctIdRegexMock).toHaveBeenCalledWith(
+      testCfg.distinctId,
+    );
 
     // Get run ID
     expect(returnDispatchGetRunIdAndUrlMock).toHaveBeenCalledOnce();
     expect(returnDispatchGetRunIdAndUrlMock).toHaveBeenCalledWith({
       startTime: Date.now(),
       branch: testBranch,
-      distinctId: testCfg.distinctId,
+      distinctIdRegex: distinctIdRegex,
       workflow: testCfg.workflow,
       workflowId: 0,
       workflowTimeoutMs: testCfg.workflowTimeoutSeconds * 1000,
