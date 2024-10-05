@@ -146,7 +146,7 @@ export async function getRunIdAndUrl({
   );
 
   core.info("Attempting to identify run ID from steps...");
-  core.debug(`Attempting to identify Run ID for ${workflow} (${workflowId})`);
+  core.debug(`Attempting to identify run ID for ${workflow} (${workflowId})`);
 
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;

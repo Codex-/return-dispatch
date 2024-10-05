@@ -244,7 +244,7 @@ export async function fetchWorkflowRunJobSteps(
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Workflow Run ID: ${runId}\n` +
         `  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]\n` +
-        `  Steps Fetched: [${steps.join(", ")}]`,
+        `  Steps Fetched: [${steps.map((step) => `"${step}"`).join(", ")}]`,
     );
 
     return steps;

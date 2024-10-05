@@ -593,7 +593,7 @@ describe("return-dispatch", () => {
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
         expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
         expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to identify Run ID for workflow.yml (123)"`,
+          `"Attempting to identify run ID for workflow.yml (123)"`,
         );
         expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
           `"Attempting to get step names for Run IDs: [0]"`,

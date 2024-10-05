@@ -547,7 +547,7 @@ describe("API", () => {
           Repository: owner/repo
           Workflow Run ID: 0
           Jobs Fetched: [0]
-          Steps Fetched: [Test Step 1, Test Step 2]"
+          Steps Fetched: ["Test Step 1", "Test Step 2"]"
       `,
       );
     });

@@ -2,7 +2,7 @@
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > called fetchWorkflowRunIds with the provided workflowId and branch 1`] = `
 [
-  "Attempting to identify Run ID for workflow.yml (123)",
+  "Attempting to identify run ID for workflow.yml (123)",
 ]
 `;
 
@@ -20,7 +20,7 @@ exports[`return-dispatch > handleAction > getRunIdAndUrl > called fetchWorkflowR
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > should call retryOrTimeout with the larger workflowTimeoutMs timeout value 1`] = `
 [
-  "Attempting to identify Run ID for workflow.yml (123)",
+  "Attempting to identify run ID for workflow.yml (123)",
 ]
 `;
 
@@ -40,7 +40,7 @@ exports[`return-dispatch > handleAction > getRunIdAndUrl > should retry until an
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > should retry until an ID is found 2`] = `"No Run IDs found for workflow, attempt 1..."`;
 
-exports[`return-dispatch > handleAction > getRunIdAndUrl > should retry until an ID is found 3`] = `"Attempting to identify Run ID for workflow.yml (123)"`;
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should retry until an ID is found 3`] = `"Attempting to identify run ID for workflow.yml (123)"`;
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > should retry until an ID is found 4`] = `"No Run IDs found for workflow, attempt 2..."`;
 
@@ -48,7 +48,7 @@ exports[`return-dispatch > handleAction > getRunIdAndUrl > should retry until an
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > should return the ID when found 1`] = `
 [
-  "Attempting to identify Run ID for workflow.yml (123)",
+  "Attempting to identify run ID for workflow.yml (123)",
 ]
 `;
 
@@ -66,7 +66,7 @@ exports[`return-dispatch > handleAction > getRunIdAndUrl > should return the ID 
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable failing to get the run IDs 1`] = `
 [
-  "Attempting to identify Run ID for workflow.yml (123)",
+  "Attempting to identify run ID for workflow.yml (123)",
 ]
 `;
 
@@ -80,7 +80,7 @@ exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when u
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 2`] = `"Exhausted searching IDs in known runs, attempt 1..."`;
 
-exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 3`] = `"Attempting to identify Run ID for workflow.yml (123)"`;
+exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 3`] = `"Attempting to identify run ID for workflow.yml (123)"`;
 
 exports[`return-dispatch > handleAction > getRunIdAndUrl > should timeout when unable to find over time 4`] = `"Attempting to get step names for Run IDs: [0]"`;
 
