@@ -681,8 +681,7 @@ describe("API", () => {
       const attempt = () => Promise.resolve([]);
 
       const retryOrTimeoutPromise = retryOrTimeout(attempt, 1000);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      vi.advanceTimersByTimeAsync(2000);
+      await vi.advanceTimersByTimeAsync(2000);
 
       const result = await retryOrTimeoutPromise;
       if (result.success) {
@@ -701,8 +700,7 @@ describe("API", () => {
         .mockResolvedValueOnce([]);
 
       const retryOrDiePromise = retryOrTimeout(attempt, 5000);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      vi.advanceTimersByTimeAsync(3000);
+      await vi.advanceTimersByTimeAsync(3000);
 
       const result = await retryOrDiePromise;
       if (!result.success) {
@@ -712,6 +710,26 @@ describe("API", () => {
       expect(result.success).toStrictEqual(true);
       expect(result.value).toStrictEqual(attemptResult);
       expect(attempt).toHaveBeenCalledTimes(3);
+    });
+
+    it("should iterate only once if timed out", async () => {
+      const attempt = vi.fn(() => Promise.resolve([]));
+
+      const retryOrTimeoutPromise = retryOrTimeout(attempt, 1000);
+
+      expect(attempt).toHaveBeenCalledOnce();
+
+      await vi.advanceTimersByTimeAsync(2000);
+
+      const result = await retryOrTimeoutPromise;
+
+      if (result.success) {
+        expect.fail("expected retryOrTimeout to timeout");
+      }
+      expect(attempt).toHaveBeenCalledOnce();
+
+      expect(result.success).toStrictEqual(false);
+      expect(result.reason).toStrictEqual("timeout");
     });
   });
 });

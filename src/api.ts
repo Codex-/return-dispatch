@@ -269,14 +269,13 @@ export async function retryOrTimeout<T>(
   const startTime = Date.now();
   let elapsedTime = 0;
   while (elapsedTime < timeoutMs) {
-    elapsedTime = Date.now() - startTime;
-
     const response = await retryFunc();
     if (response.length > 0) {
       return { success: true, value: response };
     }
 
     await sleep(1000);
+    elapsedTime = Date.now() - startTime;
   }
 
   return { success: false, reason: "timeout" };
