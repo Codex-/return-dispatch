@@ -33,11 +33,15 @@ export async function main(): Promise<void> {
 
     const distinctIdRegex = createDistinctIdRegex(config.distinctId);
 
+    core.info("Attempting to identify run ID from steps...");
+    core.debug(
+      `Attempting to identify run ID for ${config.workflow} (${workflowId})`,
+    );
+
     const result = await getRunIdAndUrl({
       startTime,
       branch,
       distinctIdRegex,
-      workflow: config.workflow,
       workflowId,
       workflowTimeoutMs: config.workflowTimeoutSeconds * 1000,
     });

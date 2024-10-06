@@ -466,7 +466,6 @@ describe("return-dispatch", () => {
     describe("getRunIdAndUrl", () => {
       const distinctId = crypto.randomUUID();
       const distinctIdRegex = new RegExp(distinctId);
-      const workflow = "workflow.yml";
       const workflowId = 123;
       const branch: utils.BranchNameResult = Object.freeze({
         isTag: false,
@@ -477,7 +476,6 @@ describe("return-dispatch", () => {
         startTime: Date.now(),
         branch: branch,
         distinctIdRegex: distinctIdRegex,
-        workflow: workflow,
         workflowId: workflowId,
         workflowTimeoutMs: 100,
       };
@@ -547,13 +545,10 @@ describe("return-dispatch", () => {
         expect(utilSleepMock).not.toHaveBeenCalled();
 
         // Logging
-        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
-        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        assertOnlyCalled(coreDebugLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledOnce();
         expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
         expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
-
-        expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("should call retryOrTimeout with the larger WORKFLOW_FETCH_TIMEOUT_MS timeout value", async () => {
@@ -583,18 +578,10 @@ describe("return-dispatch", () => {
         expect(utilSleepMock).not.toHaveBeenCalled();
 
         // Logging
-        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
-        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        assertOnlyCalled(coreDebugLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledOnce();
         expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to identify run ID for workflow.yml (123)"`,
-        );
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
           `"Attempting to get step names for Run IDs: [0]"`,
-        );
-
-        expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-          `"Attempting to identify run ID from steps..."`,
         );
       });
 
@@ -625,13 +612,9 @@ describe("return-dispatch", () => {
         expect(utilSleepMock).not.toHaveBeenCalled();
 
         // Logging
-        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
-        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        assertOnlyCalled(coreDebugLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledOnce();
         expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
-
-        expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("called fetchWorkflowRunIds with the provided workflowId and branch", async () => {
@@ -660,13 +643,9 @@ describe("return-dispatch", () => {
         );
 
         // Logging
-        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
-        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        assertOnlyCalled(coreDebugLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledOnce();
         expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
-
-        expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("should retry until an ID is found", async () => {
@@ -698,12 +677,8 @@ describe("return-dispatch", () => {
 
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
 
-        expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
         expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
-        expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
-
-        expect(coreDebugLogMock).toHaveBeenCalledOnce();
-        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
         expect(utilSleepMock).toHaveBeenCalledOnce();
         expect(utilSleepMock).toHaveBeenCalledWith(5000);
@@ -780,15 +755,11 @@ describe("return-dispatch", () => {
         expect(utilSleepMock).not.toHaveBeenCalled();
 
         // Logging
-        assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
-        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
-        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatch(
+        assertOnlyCalled(coreDebugLogMock);
+        expect(coreDebugLogMock).toHaveBeenCalledOnce();
+        expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatch(
           /Timed out while attempting to fetch Workflow Run IDs, waited [0-9]+ms/,
         );
-
-        expect(coreInfoLogMock).toHaveBeenCalledOnce();
-        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
       });
 
       it("should timeout when unable to find over time", async () => {
@@ -817,13 +788,11 @@ describe("return-dispatch", () => {
         expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
         assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
 
-        expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
         expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
-        expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
-        expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+        expect(coreDebugLogMock).toHaveBeenCalledOnce();
         expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
-        expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
         expect(utilSleepMock).toHaveBeenCalledOnce();
         expect(utilSleepMock).toHaveBeenCalledWith(5000);

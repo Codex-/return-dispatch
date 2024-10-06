@@ -171,7 +171,6 @@ describe("main", () => {
       startTime: Date.now(),
       branch: testBranch,
       distinctIdRegex: distinctIdRegex,
-      workflow: testCfg.workflow,
       workflowId: 0,
       workflowTimeoutMs: testCfg.workflowTimeoutSeconds * 1000,
     });
@@ -187,12 +186,18 @@ describe("main", () => {
 
     // Logging
     assertOnlyCalled(coreInfoLogMock, coreDebugLogMock);
-    expect(coreInfoLogMock).toHaveBeenCalledOnce();
+    expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
     expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
       `"Attempt to extract branch name from ref..."`,
     );
-    expect(coreDebugLogMock).toHaveBeenCalledOnce();
+    expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
+      `"Attempting to identify run ID from steps..."`,
+    );
+    expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
     expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+      `"Attempting to identify run ID for test-workflow (0)"`,
+    );
+    expect(coreDebugLogMock.mock.calls[1]?.[0]).toMatchInlineSnapshot(
       `"Completed (0ms)"`,
     );
   });

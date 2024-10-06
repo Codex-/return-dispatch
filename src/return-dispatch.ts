@@ -127,7 +127,6 @@ export interface GetRunIdAndUrlOpts {
   startTime: number;
   branch: BranchNameResult;
   distinctIdRegex: RegExp;
-  workflow: string | number;
   workflowId: number;
   workflowTimeoutMs: number;
 }
@@ -135,7 +134,6 @@ export async function getRunIdAndUrl({
   startTime,
   branch,
   distinctIdRegex,
-  workflow,
   workflowId,
   workflowTimeoutMs,
 }: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
@@ -143,9 +141,6 @@ export async function getRunIdAndUrl({
     constants.WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs,
   );
-
-  core.info("Attempting to identify run ID from steps...");
-  core.debug(`Attempting to identify run ID for ${workflow} (${workflowId})`);
 
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;
