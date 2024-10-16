@@ -23933,7 +23933,7 @@ function getConfig() {
     ref: core.getInput("ref", { required: true }),
     repo: core.getInput("repo", { required: true }),
     owner: core.getInput("owner", { required: true }),
-    workflow: getWorkflowValueAsNumber(
+    workflow: tryGetWorkflowAsNumber(
       core.getInput("workflow", { required: true })
     ),
     workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
@@ -23979,7 +23979,7 @@ function getWorkflowInputs(workflowInputs) {
     throw error5;
   }
 }
-function getWorkflowValueAsNumber(workflowInput) {
+function tryGetWorkflowAsNumber(workflowInput) {
   try {
     return getNumberFromValue(workflowInput);
   } catch {
@@ -24093,10 +24093,8 @@ async function dispatchWorkflow(distinctId) {
 }
 async function fetchWorkflowId(workflowFilename) {
   try {
-    const sanitisedFilename = workflowFilename.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    );
+    const sanitisedFilename = workflowFilename.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").trim();
+    const filenameRegex = new RegExp(`/${sanitisedFilename}`);
     const workflowIterator = octokit.paginate.iterator(
       octokit.rest.actions.listRepoWorkflows,
       {
@@ -24113,7 +24111,7 @@ async function fetchWorkflowId(workflowFilename) {
         );
       }
       const workflowData = response.data.find(
-        (workflow) => new RegExp(sanitisedFilename).test(workflow.path)
+        (workflow) => filenameRegex.test(workflow.path)
       );
       workflowId = workflowData?.id;
       if (workflowId !== void 0) {
@@ -24253,12 +24251,12 @@ async function retryOrTimeout(retryFunc, timeoutMs) {
   const startTime = Date.now();
   let elapsedTime = 0;
   while (elapsedTime < timeoutMs) {
-    elapsedTime = Date.now() - startTime;
     const response = await retryFunc();
     if (response.length > 0) {
       return { success: true, value: response };
     }
     await sleep(1e3);
+    elapsedTime = Date.now() - startTime;
   }
   return { success: false, reason: "timeout" };
 }
@@ -24361,7 +24359,6 @@ async function getRunIdAndUrl({
   startTime,
   branch,
   distinctIdRegex,
-  workflow,
   workflowId,
   workflowTimeoutMs
 }) {
@@ -24369,8 +24366,6 @@ async function getRunIdAndUrl({
     WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs
   );
-  core4.info("Attempting to identify run ID from steps...");
-  core4.debug(`Attempting to identify run ID for ${workflow} (${workflowId})`);
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;
   while (elapsedTime < workflowTimeoutMs) {
@@ -24418,11 +24413,14 @@ async function main() {
     const branch = getBranchName(config2.ref);
     logInfoForBranchNameResult(branch, config2.ref);
     const distinctIdRegex = createDistinctIdRegex(config2.distinctId);
+    core5.info("Attempting to identify run ID from steps...");
+    core5.debug(
+      `Attempting to identify run ID for ${config2.workflow} (${workflowId})`
+    );
     const result = await getRunIdAndUrl({
       startTime,
       branch,
       distinctIdRegex,
-      workflow: config2.workflow,
       workflowId,
       workflowTimeoutMs: config2.workflowTimeoutSeconds * 1e3
     });
