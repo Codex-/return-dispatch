@@ -61,7 +61,7 @@ export function getConfig(): ActionConfig {
     ref: core.getInput("ref", { required: true }),
     repo: core.getInput("repo", { required: true }),
     owner: core.getInput("owner", { required: true }),
-    workflow: getWorkflowValueAsNumber(
+    workflow: tryGetWorkflowAsNumber(
       core.getInput("workflow", { required: true }),
     ),
     workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
@@ -121,7 +121,7 @@ function getWorkflowInputs(
   }
 }
 
-function getWorkflowValueAsNumber(workflowInput: string): string | number {
+function tryGetWorkflowAsNumber(workflowInput: string): string | number {
   try {
     // We can assume that the string is defined and not empty at this point.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
