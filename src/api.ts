@@ -61,10 +61,10 @@ export async function fetchWorkflowId(
   workflowFilename: string,
 ): Promise<number> {
   try {
-    const sanitisedFilename = workflowFilename.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&",
-    );
+    const sanitisedFilename = workflowFilename
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .trim();
+    const filenameRegex = new RegExp(`/${sanitisedFilename}`);
 
     // https://docs.github.com/en/rest/actions/workflows#list-repository-workflows
     const workflowIterator = octokit.paginate.iterator(
@@ -85,7 +85,7 @@ export async function fetchWorkflowId(
       }
 
       const workflowData = response.data.find((workflow) =>
-        new RegExp(sanitisedFilename).test(workflow.path),
+        filenameRegex.test(workflow.path),
       );
       workflowId = workflowData?.id;
 

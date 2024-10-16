@@ -281,6 +281,46 @@ describe("API", () => {
         `"fetchWorkflowId: An unexpected error has occurred: Unable to find ID for Workflow: slice"`,
       );
     });
+
+    it("should return the workflow ID when the name is a substring of another workflow name", async () => {
+      const mockData = [
+        {
+          id: 0,
+          path: ".github/workflows/small-cake.yml",
+        },
+        {
+          id: 1,
+          path: ".github/workflows/big-cake.yml",
+        },
+        {
+          id: 2,
+          path: ".github/workflows/cake.yml",
+        },
+      ];
+      vi.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        }),
+      );
+
+      // Behaviour
+      expect(await fetchWorkflowId("cake.yml")).toStrictEqual(mockData[2]!.id);
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow ID:
+          Repository: owner/repo
+          Workflow ID: '2'
+          Input Filename: 'cake.yml'
+          Sanitised Filename: 'cake\\.yml'
+          URL: undefined"
+      `,
+      );
+    });
   });
 
   describe("fetchWorkflowRunIds", () => {
