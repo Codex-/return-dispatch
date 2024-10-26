@@ -24370,7 +24370,6 @@ async function getRunIdAndUrl({
   let elapsedTime = Date.now() - startTime;
   while (elapsedTime < workflowTimeoutMs) {
     attemptNo++;
-    elapsedTime = Date.now() - startTime;
     const fetchWorkflowRunIds2 = await retryOrTimeout(
       () => fetchWorkflowRunIds(workflowId, branch),
       retryTimeout
@@ -24397,6 +24396,7 @@ async function getRunIdAndUrl({
       core4.info(`No Run IDs found for workflow, attempt ${attemptNo}...`);
     }
     await sleep(WORKFLOW_JOB_STEPS_RETRY_MS);
+    elapsedTime = Date.now() - startTime;
   }
   return { success: false, reason: "timeout" };
 }
