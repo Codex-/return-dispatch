@@ -146,7 +146,6 @@ export async function getRunIdAndUrl({
   let elapsedTime = Date.now() - startTime;
   while (elapsedTime < workflowTimeoutMs) {
     attemptNo++;
-    elapsedTime = Date.now() - startTime;
 
     // Get all runs for a given workflow ID
     const fetchWorkflowRunIds = await api.retryOrTimeout(
@@ -180,6 +179,7 @@ export async function getRunIdAndUrl({
     }
 
     await sleep(constants.WORKFLOW_JOB_STEPS_RETRY_MS);
+    elapsedTime = Date.now() - startTime;
   }
 
   return { success: false, reason: "timeout" };

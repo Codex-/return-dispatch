@@ -779,7 +779,7 @@ describe("return-dispatch", () => {
 
         const getRunIdAndUrlPromise = getRunIdAndUrl({
           ...defaultOpts,
-          workflowTimeoutMs: 10 * 1000,
+          workflowTimeoutMs: 15 * 1000,
         });
 
         // First attempt
