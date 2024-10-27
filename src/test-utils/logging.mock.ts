@@ -74,10 +74,12 @@ function assertOnlyCalledInner(
   // Once Node 22 is LTS, this can be:
   // const diff = coreLogMockSet.symmetricDifference(new Set(coreLogMocks));
 
-  const diff = symDiff([[...coreLogMockSet], coreLogMocks]);
-
-  for (const logMock of diff) {
+  const notCalled = symDiff([[...coreLogMockSet], coreLogMocks]);
+  for (const logMock of notCalled) {
     expect(logMock).not.toHaveBeenCalled();
+  }
+  for (const logMock of coreLogMocks) {
+    expect(logMock).toHaveBeenCalled();
   }
 }
 

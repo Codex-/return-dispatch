@@ -674,7 +674,7 @@ describe("return-dispatch", () => {
       expect(apiRetryOrTimeoutMock).toHaveBeenCalledOnce();
       await vi.advanceTimersByTimeAsync(1); // deplete queue
 
-      assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
+      assertOnlyCalled(coreInfoLogMock);
 
       expect(coreInfoLogMock).toHaveBeenCalledOnce();
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
