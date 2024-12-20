@@ -28,6 +28,7 @@ describe("Action", () => {
         workflow: "workflow_name",
         workflow_inputs: JSON.stringify(workflowInputs),
         workflow_timeout_seconds: "60",
+        workflow_job_steps_retry_seconds: "3",
         distinct_id: "distinct_id",
       };
 
@@ -48,6 +49,8 @@ describe("Action", () => {
             return mockEnvConfig.workflow_inputs;
           case "workflow_timeout_seconds":
             return mockEnvConfig.workflow_timeout_seconds;
+          case "workflow_job_steps_retry_seconds":
+            return mockEnvConfig.workflow_job_steps_retry_seconds;
           case "distinct_id":
             return mockEnvConfig.distinct_id;
           default:
@@ -72,6 +75,7 @@ describe("Action", () => {
       expect(config.workflow).toStrictEqual("workflow_name");
       expect(config.workflowInputs).toStrictEqual(workflowInputs);
       expect(config.workflowTimeoutSeconds).toStrictEqual(60);
+      expect(config.workflowJobStepsRetrySeconds).toStrictEqual(3);
       expect(config.distinctId).toStrictEqual("distinct_id");
     });
 
@@ -87,6 +91,13 @@ describe("Action", () => {
       const config: ActionConfig = getConfig();
 
       expect(config.workflowTimeoutSeconds).toStrictEqual(300);
+    });
+
+    it("should provide a default workflow job step retry if none is supplied", () => {
+      mockEnvConfig.workflow_job_steps_retry_seconds = "";
+      const config: ActionConfig = getConfig();
+
+      expect(config.workflowJobStepsRetrySeconds).toStrictEqual(5);
     });
 
     it("should handle no inputs being provided", () => {
