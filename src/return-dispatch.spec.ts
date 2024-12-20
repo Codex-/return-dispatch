@@ -479,6 +479,7 @@ describe("return-dispatch", () => {
       distinctIdRegex: distinctIdRegex,
       workflowId: workflowId,
       workflowTimeoutMs: 100,
+      workflowJobStepsRetryMs: 5,
     };
 
     let apiFetchWorkflowRunIdsMock: MockInstance<
@@ -661,13 +662,14 @@ describe("return-dispatch", () => {
         .mockResolvedValueOnce({ success: true, value: [] });
       apiFetchWorkflowRunJobStepsMock.mockResolvedValue([distinctId]);
       apiFetchWorkflowRunUrlMock.mockResolvedValue(runUrl);
-      vi.spyOn(constants, "WORKFLOW_JOB_STEPS_RETRY_MS", "get").mockReturnValue(
-        5000,
-      );
 
+      const retryMs = 5000;
+      const timeoutMs = 60 * 60 * 100;
+    
       const getRunIdAndUrlPromise = getRunIdAndUrl({
         ...defaultOpts,
-        workflowTimeoutMs: 60 * 60 * 1000,
+        workflowTimeoutMs: timeoutMs,
+        workflowJobStepsRetryMs: retryMs,
       });
 
       // First attempt
@@ -680,10 +682,10 @@ describe("return-dispatch", () => {
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledOnce();
-      expect(utilSleepMock).toHaveBeenCalledWith(5000);
+      expect(utilSleepMock).toHaveBeenCalledWith(retryMs);
 
       resetLogMocks();
-      await vi.advanceTimersByTimeAsync(5000);
+      await vi.advanceTimersByTimeAsync(retryMs);
 
       // Second attempt
       expect(apiRetryOrTimeoutMock).toHaveBeenCalledTimes(2);
@@ -694,10 +696,10 @@ describe("return-dispatch", () => {
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledTimes(2);
-      expect(utilSleepMock).toHaveBeenCalledWith(5000);
+      expect(utilSleepMock).toHaveBeenCalledWith(retryMs * 2);
 
       resetLogMocks();
-      await vi.advanceTimersByTimeAsync(5000);
+      await vi.advanceTimersByTimeAsync(retryMs * 2);
 
       // Third attempt
       expect(apiRetryOrTimeoutMock).toHaveBeenCalledTimes(3);
@@ -770,13 +772,14 @@ describe("return-dispatch", () => {
       });
       apiFetchWorkflowRunJobStepsMock.mockResolvedValue([]);
       apiFetchWorkflowRunUrlMock.mockResolvedValue(runUrl);
-      vi.spyOn(constants, "WORKFLOW_JOB_STEPS_RETRY_MS", "get").mockReturnValue(
-        5000,
-      );
+
+      const retryMs = 3000;
+      const timeoutMs = 15 * 1000;
 
       const getRunIdAndUrlPromise = getRunIdAndUrl({
         ...defaultOpts,
-        workflowTimeoutMs: 15 * 1000,
+        workflowTimeoutMs: timeoutMs,
+        workflowJobStepsRetryMs: retryMs,
       });
 
       // First attempt
@@ -792,10 +795,10 @@ describe("return-dispatch", () => {
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledOnce();
-      expect(utilSleepMock).toHaveBeenCalledWith(5000);
+      expect(utilSleepMock).toHaveBeenCalledWith(retryMs);
 
       resetLogMocks();
-      await vi.advanceTimersByTimeAsync(5000);
+      await vi.advanceTimersByTimeAsync(retryMs);
 
       // Second attempt
       expect(apiRetryOrTimeoutMock).toHaveBeenCalledTimes(2);
@@ -809,10 +812,10 @@ describe("return-dispatch", () => {
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledTimes(2);
-      expect(utilSleepMock).toHaveBeenCalledWith(5000);
+      expect(utilSleepMock).toHaveBeenCalledWith(retryMs * 2);
 
       resetLogMocks();
-      await vi.advanceTimersByTimeAsync(5000);
+      await vi.advanceTimersByTimeAsync(retryMs * 2);
 
       // Timeout attempt
       expect(apiRetryOrTimeoutMock).toHaveBeenCalledTimes(3);
@@ -826,10 +829,10 @@ describe("return-dispatch", () => {
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledTimes(3);
-      expect(utilSleepMock).toHaveBeenCalledWith(5000);
+      expect(utilSleepMock).toHaveBeenCalledWith(retryMs * 3);
 
       resetLogMocks();
-      await vi.advanceTimersByTimeAsync(5000);
+      await vi.advanceTimersByTimeAsync(retryMs * 3);
 
       // Result
       const run = await getRunIdAndUrlPromise;

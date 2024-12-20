@@ -2,6 +2,7 @@ import * as core from "@actions/core";
 import { v4 as uuid } from "uuid";
 
 const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
+const WORKFLOW_JOB_STEPS_RETRY_SECONDS = 5
 
 /**
  * action.yaml definition.
@@ -43,6 +44,11 @@ export interface ActionConfig {
   workflowTimeoutSeconds: number;
 
   /**
+   * Time in retries for identifying the Run ID.
+   */
+  workflowJobStepsRetrySeconds: number;
+
+  /**
    * Specify a static ID to use instead of a distinct ID.
    */
   distinctId: string;
@@ -68,6 +74,9 @@ export function getConfig(): ActionConfig {
     workflowTimeoutSeconds:
       getNumberFromValue(core.getInput("workflow_timeout_seconds")) ??
       WORKFLOW_TIMEOUT_SECONDS,
+    workflowJobStepsRetrySeconds:
+      getNumberFromValue(core.getInput("workflow_job_steps_retry_seconds")) ??
+      WORKFLOW_JOB_STEPS_RETRY_SECONDS,
     distinctId:
       getOptionalWorkflowValue(core.getInput("distinct_id")) ?? uuid(),
   };

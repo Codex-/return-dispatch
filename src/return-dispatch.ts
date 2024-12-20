@@ -129,6 +129,7 @@ export interface GetRunIdAndUrlOpts {
   distinctIdRegex: RegExp;
   workflowId: number;
   workflowTimeoutMs: number;
+  workflowJobStepsRetryMs: number;
 }
 export async function getRunIdAndUrl({
   startTime,
@@ -136,14 +137,16 @@ export async function getRunIdAndUrl({
   distinctIdRegex,
   workflowId,
   workflowTimeoutMs,
+  workflowJobStepsRetryMs,
 }: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
   const retryTimeout = Math.max(
-    constants.WORKFLOW_FETCH_TIMEOUT_MS,
+    workflowJobStepsRetryMs,
     workflowTimeoutMs,
   );
 
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;
+
   while (elapsedTime < workflowTimeoutMs) {
     attemptNo++;
 
@@ -178,9 +181,17 @@ export async function getRunIdAndUrl({
       core.info(`No Run IDs found for workflow, attempt ${attemptNo}...`);
     }
 
-    await sleep(constants.WORKFLOW_JOB_STEPS_RETRY_MS);
+    const waitTime = Math.min(
+      workflowJobStepsRetryMs * attemptNo, // Lineal backoff
+      workflowTimeoutMs - elapsedTime, // Ensure we don't exceed the timeout
+    );
+
+    core.info(`Waiting for ${waitTime}ms before the next attempt...`);
+    await sleep(waitTime);
+
     elapsedTime = Date.now() - startTime;
   }
 
   return { success: false, reason: "timeout" };
 }
+

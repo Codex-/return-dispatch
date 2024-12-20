@@ -95,6 +95,8 @@ describe("API", () => {
           return JSON.stringify({ testInput: "test" });
         case "workflow_timeout_seconds":
           return "30";
+        case "workflow_job_steps_retry_seconds":
+          return "5";
         default:
           return "";
       }
@@ -332,6 +334,7 @@ describe("API", () => {
       workflow: "workflow_name",
       workflowInputs: { testInput: "test" },
       workflowTimeoutSeconds: 60,
+      workflowJobStepsRetrySeconds: 3,
       distinctId: "test-uuid",
     };
 
