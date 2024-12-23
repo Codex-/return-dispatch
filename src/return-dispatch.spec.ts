@@ -665,7 +665,7 @@ describe("return-dispatch", () => {
 
       const retryMs = 5000;
       const timeoutMs = 60 * 60 * 100;
-    
+
       const getRunIdAndUrlPromise = getRunIdAndUrl({
         ...defaultOpts,
         workflowTimeoutMs: timeoutMs,
@@ -678,8 +678,9 @@ describe("return-dispatch", () => {
 
       assertOnlyCalled(coreInfoLogMock);
 
-      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+      expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledOnce();
       expect(utilSleepMock).toHaveBeenCalledWith(retryMs);
@@ -788,8 +789,9 @@ describe("return-dispatch", () => {
       expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledOnce();
       assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
 
-      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+      expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
