@@ -140,7 +140,7 @@ export async function getRunIdAndUrl({
   workflowJobStepsRetryMs,
 }: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
   const retryTimeout = Math.max(
-    workflowJobStepsRetryMs,
+    constants.WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs,
   );
 
@@ -194,4 +194,3 @@ export async function getRunIdAndUrl({
 
   return { success: false, reason: "timeout" };
 }
-

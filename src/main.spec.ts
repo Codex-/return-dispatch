@@ -174,7 +174,7 @@ describe("main", () => {
       distinctIdRegex: distinctIdRegex,
       workflowId: 0,
       workflowTimeoutMs: testCfg.workflowTimeoutSeconds * 1000,
-      workflowJobStepsRetryMs :testCfg.workflowJobStepsRetrySeconds * 1000,
+      workflowJobStepsRetryMs: testCfg.workflowJobStepsRetrySeconds * 1000,
     });
 
     // Result

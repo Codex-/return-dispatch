@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import * as core from "@actions/core";
 
 const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
-const WORKFLOW_JOB_STEPS_RETRY_SECONDS = 5
+const WORKFLOW_JOB_STEPS_RETRY_SECONDS = 5;
 
 /**
  * action.yaml definition.
