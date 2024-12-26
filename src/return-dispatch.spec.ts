@@ -694,8 +694,9 @@ describe("return-dispatch", () => {
 
       assertOnlyCalled(coreInfoLogMock);
 
-      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+      expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledTimes(2);
       expect(utilSleepMock).toHaveBeenCalledWith(retryMs * 2);
@@ -808,8 +809,9 @@ describe("return-dispatch", () => {
       expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledTimes(2);
       assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
 
-      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+      expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatchSnapshot();
 
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
@@ -825,14 +827,17 @@ describe("return-dispatch", () => {
       expect(apiFetchWorkflowRunJobStepsMock).toHaveBeenCalledTimes(3);
       assertOnlyCalled(coreDebugLogMock, coreInfoLogMock);
 
-      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock).toHaveBeenCalledTimes(2);
       expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
+      expect(coreInfoLogMock.mock.calls[1]?.[0]).toMatch(
+        /Waiting for \d{4,5}ms before the next attempt\.\.\./,
+      );
 
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledTimes(3);
-      expect(utilSleepMock).toHaveBeenCalledWith(retryMs * 3);
+      expect(utilSleepMock.mock.calls[2]?.[0]).toBeLessThanOrEqual(retryMs * 3);
 
       resetLogMocks();
       await vi.advanceTimersByTimeAsync(retryMs * 3);
