@@ -34,25 +34,25 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.16.0",
+    "@eslint/js": "^9.17.0",
     "@opentf/std": "^0.13.0",
     "@total-typescript/ts-reset": "^0.6.1",
     "@types/eslint__js": "^8.42.3",
-    "@types/node": "~20.17.9",
+    "@types/node": "~20.17.10",
     "@types/uuid": "^10.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.18.0",
-    "@typescript-eslint/parser": "^8.18.0",
-    "@vitest/coverage-v8": "^2.1.6",
-    "chalk": "^5.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.19.0",
+    "@typescript-eslint/parser": "^8.19.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "chalk": "^5.4.1",
     "changelogithub": "^0.13.11",
-    "esbuild": "^0.24.0",
-    "eslint": "^9.16.0",
+    "esbuild": "^0.24.2",
+    "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.7.0",
-    "eslint-plugin-import-x": "^4.5.0",
-    "prettier": "3.4.1",
+    "eslint-plugin-import-x": "^4.6.1",
+    "prettier": "3.4.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.0",
-    "vitest": "^2.1.6"
+    "typescript-eslint": "^8.19.0",
+    "vitest": "^2.1.8"
   }
 }
