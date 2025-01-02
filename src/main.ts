@@ -44,6 +44,7 @@ export async function main(): Promise<void> {
       distinctIdRegex,
       workflowId,
       workflowTimeoutMs: config.workflowTimeoutSeconds * 1000,
+      workflowJobStepsRetryMs: config.workflowJobStepsRetrySeconds * 1000,
     });
     if (result.success) {
       handleActionSuccess(result.value.id, result.value.url);
