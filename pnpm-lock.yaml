@@ -14,9 +14,6 @@ importers:
       '@actions/github':
         specifier: ^6.0.0
         version: 6.0.0
-      uuid:
-        specifier: ^10.0.0
-        version: 10.0.0
     devDependencies:
       '@eslint/js':
         specifier: ^9.17.0
@@ -33,9 +30,6 @@ importers:
       '@types/node':
         specifier: ~20.17.10
         version: 20.17.11
-      '@types/uuid':
-        specifier: ^10.0.0
-        version: 10.0.0
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.19.0
         version: 8.19.0(@typescript-eslint/parser@8.19.0(eslint@9.17.0(jiti@1.21.7))(typescript@5.7.2))(eslint@9.17.0(jiti@1.21.7))(typescript@5.7.2)
@@ -689,9 +683,6 @@ packages:
 
   '@types/node@20.17.11':
     resolution: {integrity: sha512-Ept5glCK35R8yeyIeYlRIZtX6SLRyqMhOFTgj5SOkMpLTdw3SEHI9fHx60xaUZ+V1aJxQJODE+7/j5ocZydYTg==}
-
-  '@types/uuid@10.0.0':
-    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
   '@typescript-eslint/eslint-plugin@8.19.0':
     resolution: {integrity: sha512-NggSaEZCdSrFddbctrVjkVZvFC6KGfKfNK0CU7mNK/iKHGKbzT4Wmgm08dKpcZECBu9f5FypndoMyRHkdqfT1Q==}
@@ -1779,10 +1770,6 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  uuid@10.0.0:
-    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    hasBin: true
-
   vite-node@2.1.8:
     resolution: {integrity: sha512-uPAwSr57kYjAUux+8E2j0q0Fxpn8M9VoyfGiRI8Kfktz9NcYMCenwY5RnZxnF1WTu3TGiYipirIzacLL3VVGFg==}
     engines: {node: ^18.0.0 || >=20.0.0}
@@ -2318,8 +2305,6 @@ snapshots:
   '@types/node@20.17.11':
     dependencies:
       undici-types: 6.19.8
-
-  '@types/uuid@10.0.0': {}
 
   '@typescript-eslint/eslint-plugin@8.19.0(@typescript-eslint/parser@8.19.0(eslint@9.17.0(jiti@1.21.7))(typescript@5.7.2))(eslint@9.17.0(jiti@1.21.7))(typescript@5.7.2)':
     dependencies:
@@ -3519,8 +3504,6 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
-
-  uuid@10.0.0: {}
 
   vite-node@2.1.8(@types/node@20.17.11):
     dependencies:

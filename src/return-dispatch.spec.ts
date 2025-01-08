@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
+
 import * as core from "@actions/core";
-import { v4 as uuid } from "uuid";
 import {
   afterAll,
   afterEach,
@@ -175,7 +176,7 @@ describe("return-dispatch", () => {
   });
 
   describe("attemptToFindRunId", () => {
-    const testId = uuid();
+    const testId = randomUUID();
 
     let getWorkflowRunJobStepMock: MockInstance<
       typeof api.fetchWorkflowRunJobSteps

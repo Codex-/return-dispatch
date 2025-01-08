@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
+
 import * as core from "@actions/core";
-import { v4 as uuid } from "uuid";
 
 const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
 
@@ -69,7 +70,7 @@ export function getConfig(): ActionConfig {
       getNumberFromValue(core.getInput("workflow_timeout_seconds")) ??
       WORKFLOW_TIMEOUT_SECONDS,
     distinctId:
-      getOptionalWorkflowValue(core.getInput("distinct_id")) ?? uuid(),
+      getOptionalWorkflowValue(core.getInput("distinct_id")) ?? randomUUID(),
   };
 }
 
