@@ -23879,6 +23879,7 @@ var core5 = __toESM(require_core(), 1);
 var core = __toESM(require_core(), 1);
 import { randomUUID } from "node:crypto";
 var WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
+var WORKFLOW_JOB_STEPS_RETRY_SECONDS = 5;
 function getConfig() {
   return {
     token: core.getInput("token", { required: true }),
@@ -23890,6 +23891,7 @@ function getConfig() {
     ),
     workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
     workflowTimeoutSeconds: getNumberFromValue(core.getInput("workflow_timeout_seconds")) ?? WORKFLOW_TIMEOUT_SECONDS,
+    workflowJobStepsRetrySeconds: getNumberFromValue(core.getInput("workflow_job_steps_retry_seconds")) ?? WORKFLOW_JOB_STEPS_RETRY_SECONDS,
     distinctId: getOptionalWorkflowValue(core.getInput("distinct_id")) ?? randomUUID()
   };
 }
@@ -24218,7 +24220,6 @@ var core4 = __toESM(require_core(), 1);
 
 // src/constants.ts
 var WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1e3;
-var WORKFLOW_JOB_STEPS_RETRY_MS = 5e3;
 var WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX = 3;
 var WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS = 500;
 
@@ -24312,7 +24313,8 @@ async function getRunIdAndUrl({
   branch,
   distinctIdRegex,
   workflowId,
-  workflowTimeoutMs
+  workflowTimeoutMs,
+  workflowJobStepsRetryMs
 }) {
   const retryTimeout = Math.max(
     WORKFLOW_FETCH_TIMEOUT_MS,
@@ -24347,7 +24349,14 @@ async function getRunIdAndUrl({
     } else {
       core4.info(`No Run IDs found for workflow, attempt ${attemptNo}...`);
     }
-    await sleep(WORKFLOW_JOB_STEPS_RETRY_MS);
+    const waitTime = Math.min(
+      workflowJobStepsRetryMs * attemptNo,
+      // Lineal backoff
+      workflowTimeoutMs - elapsedTime
+      // Ensure we don't exceed the timeout
+    );
+    core4.info(`Waiting for ${waitTime}ms before the next attempt...`);
+    await sleep(waitTime);
     elapsedTime = Date.now() - startTime;
   }
   return { success: false, reason: "timeout" };
@@ -24374,7 +24383,8 @@ async function main() {
       branch,
       distinctIdRegex,
       workflowId,
-      workflowTimeoutMs: config2.workflowTimeoutSeconds * 1e3
+      workflowTimeoutMs: config2.workflowTimeoutSeconds * 1e3,
+      workflowJobStepsRetryMs: config2.workflowJobStepsRetrySeconds * 1e3
     });
     if (result.success) {
       handleActionSuccess(result.value.id, result.value.url);
