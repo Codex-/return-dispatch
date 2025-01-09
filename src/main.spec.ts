@@ -35,6 +35,7 @@ describe("main", () => {
     ref: "test-ref",
     workflow: "test-workflow",
     workflowTimeoutSeconds: 0,
+    workflowJobStepsRetrySeconds: 0,
   } satisfies Partial<action.ActionConfig> as action.ActionConfig;
   const testBranch: utils.BranchNameResult = {
     branchName: "test-branch",
@@ -173,6 +174,7 @@ describe("main", () => {
       distinctIdRegex: distinctIdRegex,
       workflowId: 0,
       workflowTimeoutMs: testCfg.workflowTimeoutSeconds * 1000,
+      workflowJobStepsRetryMs: testCfg.workflowJobStepsRetrySeconds * 1000,
     });
 
     // Result
