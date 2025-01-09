@@ -31,7 +31,9 @@ inputs:
     description: Time until giving up waiting for the start of the workflow run.
     default: 300
   workflow_job_steps_retry_seconds:
-    description: Duration to wait between retries while monitoring for the workflow run to start.
+    description: |
+      The interval (in seconds) to wait between retries, each retry uses a linear backoff strategy.
+      Where the wait time increases by this value with each attempt (e.g., 1st retry = this value, 2nd retry = 2x this value, etc.).
     default: 5
   distinct_id:
     description: Specify a static string to use instead of a random distinct ID.

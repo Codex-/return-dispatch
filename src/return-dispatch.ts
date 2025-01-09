@@ -146,7 +146,6 @@ export async function getRunIdAndUrl({
 
   let attemptNo = 0;
   let elapsedTime = Date.now() - startTime;
-
   while (elapsedTime < workflowTimeoutMs) {
     attemptNo++;
 

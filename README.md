@@ -25,6 +25,8 @@ steps:
       workflow: automation-test.yml
       workflow_inputs: '{ "some_input": "value" }' # Optional
       workflow_timeout_seconds: 120 # Default: 300
+      # Lineal backoff retry attempts are made where the attempt count is
+      # the magnitude and the scaling value is `workflow_job_steps_retry_seconds`
       workflow_job_steps_retry_seconds: 10 # Default: 5
       distinct_id: someDistinctId # Optional
 

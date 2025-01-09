@@ -837,7 +837,11 @@ describe("return-dispatch", () => {
       expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchSnapshot();
 
       expect(utilSleepMock).toHaveBeenCalledTimes(3);
-      expect(utilSleepMock.mock.calls[2]?.[0]).toBeLessThanOrEqual(retryMs * 3);
+      const elapsedTime = Date.now() - defaultOpts.startTime; // `waitTime` should be using `workflowTimeoutMs` at this point
+      expect(utilSleepMock.mock.lastCall?.[0]).approximately(
+        timeoutMs - elapsedTime,
+        5,
+      );
 
       resetLogMocks();
       await vi.advanceTimersByTimeAsync(retryMs * 3);
