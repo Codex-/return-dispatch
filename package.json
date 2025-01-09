@@ -37,9 +37,9 @@
     "@opentf/std": "^0.13.0",
     "@total-typescript/ts-reset": "^0.6.1",
     "@types/eslint__js": "^8.42.3",
-    "@types/node": "~20.17.10",
-    "@typescript-eslint/eslint-plugin": "^8.19.0",
-    "@typescript-eslint/parser": "^8.19.0",
+    "@types/node": "~20.17.12",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
     "@vitest/coverage-v8": "^2.1.8",
     "chalk": "^5.4.1",
     "changelogithub": "^0.13.11",
@@ -49,8 +49,8 @@
     "eslint-import-resolver-typescript": "^3.7.0",
     "eslint-plugin-import-x": "^4.6.1",
     "prettier": "3.4.2",
-    "typescript": "^5.7.2",
-    "typescript-eslint": "^8.19.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.19.1",
     "vitest": "^2.1.8"
   }
 }
