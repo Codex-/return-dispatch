@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: asdf-vm/actions/install@v3
+      - uses: jdx/mise-action@v2
       - run: pnpm i
       - name: build
         run: pnpm run build:types
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: asdf-vm/actions/install@v3
+      - uses: jdx/mise-action@v2
       - run: pnpm i
       - name: test
         run: pnpm run test:coverage
