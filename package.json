@@ -11,7 +11,7 @@
     "build:types": "tsc",
     "format:check": "prettier --check **/*.ts",
     "format": "pnpm run format:check --write",
-    "lint": "eslint",
+    "lint": "eslint .",
     "lint:fix": "pnpm run lint --fix",
     "release": "release-it",
     "test": "vitest",
