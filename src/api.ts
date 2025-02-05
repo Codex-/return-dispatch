@@ -24,7 +24,7 @@ export async function dispatchWorkflow(distinctId: string): Promise<void> {
       workflow_id: config.workflow,
       ref: config.ref,
       inputs: {
-        ...(config.workflowInputs ? config.workflowInputs : undefined),
+        ...(config.workflowInputs ?? undefined),
         distinct_id: distinctId,
       },
     });
