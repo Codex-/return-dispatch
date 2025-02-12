@@ -10,13 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: pnpm
+      - uses: jdx/mise-action@v2
       - run: pnpm i
       - name: build
         run: pnpm run build:types
@@ -38,15 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20.x
-          cache: pnpm
+      - uses: jdx/mise-action@v2
       - run: pnpm i
       - name: test
         run: pnpm run test:coverage
       - name: codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -15,7 +15,7 @@ Ensure you have configured your remote action correctly, see below for an exampl
 ```yaml
 steps:
   - name: Dispatch an action and get the run ID and URL
-    uses: codex-/return-dispatch@v1
+    uses: codex-/return-dispatch@v2
     id: return_dispatch
     with:
       token: ${{ secrets.TOKEN }} # Note this is NOT GITHUB_TOKEN but a PAT
@@ -25,6 +25,11 @@ steps:
       workflow: automation-test.yml
       workflow_inputs: '{ "some_input": "value" }' # Optional
       workflow_timeout_seconds: 120 # Default: 300
+      workflow_job_steps_retry_seconds:
+        # Lineal backoff retry attempts are made where the attempt count is
+        # the magnitude and the scaling value is `workflow_job_steps_retry_seconds`
+        10 # Default: 5
+      distinct_id: someDistinctId # Optional
 
   - name: Use the output run ID and URL
     run: |
@@ -71,21 +76,21 @@ The permissions required for this action to function correctly are:
 
 For the sake of transparency please note that this action uses the following API calls:
 
-- [Create a workflow dispatch event](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event)
+- [Create a workflow dispatch event](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event)
   - POST `/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`
   - Permissions:
     - `repo`
     - `actions:write`
-- [List repository workflows](https://docs.github.com/en/rest/reference/actions#list-repository-workflows)
+- [List repository workflows](https://docs.github.com/en/rest/actions/workflows#list-repository-workflows)
   - GET `/repos/{owner}/{repo}/actions/workflows`
   - Permissions:
     - `repo`
     - `actions:read`
-- [List workflow runs](https://docs.github.com/en/rest/reference/actions#list-workflow-runs)
+- [List workflow runs](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository)
   - GET `/repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`
   - Permissions:
     - `repo`
-- [List jobs for a workflow run](https://docs.github.com/en/rest/reference/actions#list-jobs-for-a-workflow-run)
+- [List jobs for a workflow run](https://docs.github.com/en/rest/actions/workflow-jobs#list-jobs-for-a-workflow-run)
   - GET `/repos/{owner}/{repo}/actions/runs/{run_id}/jobs`
   - Permissions:
     - `repo`

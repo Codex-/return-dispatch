@@ -1,102 +1,75 @@
 import * as core from "@actions/core";
-import { v4 as uuid } from "uuid";
-import { ActionOutputs, getConfig } from "./action.ts";
+
+import { getConfig } from "./action.ts";
 import * as api from "./api.ts";
+import {
+  getWorkflowId,
+  handleActionFail,
+  handleActionSuccess,
+  getRunIdAndUrl,
+} from "./return-dispatch.ts";
+import {
+  createDistinctIdRegex,
+  getBranchName,
+  logInfoForBranchNameResult,
+} from "./utils.ts";
 
-const DISTINCT_ID = uuid();
-const WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1000;
-const WORKFLOW_JOB_STEPS_RETRY_MS = 5000;
-
-async function run(): Promise<void> {
+export async function main(): Promise<void> {
   try {
-    const config = getConfig();
     const startTime = Date.now();
+
+    const config = getConfig();
     api.init(config);
 
-    let workflowId: number;
-    // Get the workflow ID if give a string
-    if (typeof config.workflow === "string") {
-      core.info(`Fetching Workflow ID for ${config.workflow}...`);
-      workflowId = await api.getWorkflowId(config.workflow);
-      core.info(`Fetched Workflow ID: ${workflowId}`);
-    } else {
-      workflowId = config.workflow;
-    }
+    const workflowId = await getWorkflowId(config.workflow);
 
     // Dispatch the action
-    await api.dispatchWorkflow(DISTINCT_ID);
+    await api.dispatchWorkflow(config.distinctId);
 
-    const timeoutMs = config.workflowTimeoutSeconds * 1000;
-    let attemptNo = 0;
-    let elapsedTime = Date.now() - startTime;
-    core.info("Attempt to extract run ID from steps...");
-    while (elapsedTime < timeoutMs) {
-      attemptNo++;
-      elapsedTime = Date.now() - startTime;
+    // Attempt to get the branch from config ref
+    core.info("Attempt to extract branch name from ref...");
+    const branch = getBranchName(config.ref);
+    logInfoForBranchNameResult(branch, config.ref);
 
-      core.debug(`Attempting to fetch Run IDs for Workflow ID ${workflowId}`);
+    const distinctIdRegex = createDistinctIdRegex(config.distinctId);
 
-      // Get all runs for a given workflow ID
-      const workflowRunIds = await api.retryOrDie(
-        () => api.getWorkflowRunIds(workflowId),
-        WORKFLOW_FETCH_TIMEOUT_MS > timeoutMs
-          ? timeoutMs
-          : WORKFLOW_FETCH_TIMEOUT_MS,
-      );
+    core.info("Attempting to identify run ID from steps...");
+    core.debug(
+      `Attempting to identify run ID for ${config.workflow} (${workflowId})`,
+    );
 
-      core.debug(
-        `Attempting to get step names for Run IDs: [${workflowRunIds}]`,
-      );
-
-      const idRegex = new RegExp(DISTINCT_ID);
-
-      /**
-       * Attempt to read the distinct ID in the steps
-       * for each existing run ID.
-       */
-      for (const id of workflowRunIds) {
-        try {
-          const steps = await api.getWorkflowRunJobSteps(id);
-
-          for (const step of steps) {
-            if (idRegex.test(step)) {
-              const url = await api.getWorkflowRunUrl(id);
-              core.info(
-                "Successfully identified remote Run:\n" +
-                  `  Run ID: ${id}\n` +
-                  `  URL: ${url}`,
-              );
-              core.setOutput(ActionOutputs.runId, id);
-              core.setOutput(ActionOutputs.runUrl, url);
-              return;
-            }
-          }
-        } catch (error) {
-          if (error instanceof Error && error.message !== "Not Found") {
-            throw error;
-          }
-          core.debug(`Could not identify ID in run: ${id}, continuing...`);
-        }
-      }
-
-      core.info(
-        `Exhausted searching IDs in known runs, attempt ${attemptNo}...`,
-      );
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, WORKFLOW_JOB_STEPS_RETRY_MS),
-      );
+    const result = await getRunIdAndUrl({
+      startTime,
+      branch,
+      distinctIdRegex,
+      workflowId,
+      workflowTimeoutMs: config.workflowTimeoutSeconds * 1000,
+      workflowJobStepsRetryMs: config.workflowJobStepsRetrySeconds * 1000,
+    });
+    if (result.success) {
+      handleActionSuccess(result.value.id, result.value.url);
+      core.debug(`Completed (${Date.now() - startTime}ms)`);
+    } else {
+      handleActionFail();
+      core.debug(`Timed out (${Date.now() - startTime}ms)`);
     }
-
-    throw new Error("Timeout exceeded while attempting to get Run ID");
   } catch (error) {
     if (error instanceof Error) {
-      core.error(`Failed to complete: ${error.message}`);
-      core.warning("Does the token have the correct permissions?");
-      error.stack && core.debug(error.stack);
-      core.setFailed(error.message);
+      const failureMsg = `Failed: An unhandled error has occurred: ${error.message}`;
+      core.setFailed(failureMsg);
+      core.error(failureMsg);
+      core.debug(error.stack ?? "");
+    } else {
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      const failureMsg = `Failed: An unknown error has occurred: ${error}`;
+      core.setFailed(failureMsg);
+      core.error(failureMsg);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      core.debug(error as any);
     }
   }
 }
 
-(() => run())();
+if (!process.env.VITEST) {
+  await main();
+}

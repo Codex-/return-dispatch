@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`return-dispatch > getRunIdAndUrl > called fetchWorkflowRunIds with the provided workflowId and branch 1`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > getRunIdAndUrl > should call retryOrTimeout with the larger workflowTimeoutMs timeout value 1`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > getRunIdAndUrl > should retry until an ID is found 1`] = `"No Run IDs found for workflow, attempt 1..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should retry until an ID is found 2`] = `"Waiting for 5000ms before the next attempt..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should retry until an ID is found 3`] = `"No Run IDs found for workflow, attempt 2..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should retry until an ID is found 4`] = `"Waiting for 10000ms before the next attempt..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should retry until an ID is found 5`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > getRunIdAndUrl > should return the ID when found 1`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > getRunIdAndUrl > should return the ID when found 2`] = `undefined`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 1`] = `"Exhausted searching IDs in known runs, attempt 1..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 2`] = `"Waiting for 3000ms before the next attempt..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 3`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 4`] = `"Exhausted searching IDs in known runs, attempt 2..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 5`] = `"Waiting for 6000ms before the next attempt..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 6`] = `"Attempting to get step names for Run IDs: [0]"`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 7`] = `"Exhausted searching IDs in known runs, attempt 3..."`;
+
+exports[`return-dispatch > getRunIdAndUrl > should timeout when unable to find over time 8`] = `"Attempting to get step names for Run IDs: [0]"`;

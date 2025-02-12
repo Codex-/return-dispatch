@@ -1,17 +1,27 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { v4 as uuid } from "uuid";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
+import type { ActionConfig } from "./action.ts";
 import {
   dispatchWorkflow,
-  getWorkflowId,
-  getWorkflowRunIds,
-  getWorkflowRunJobSteps,
-  getWorkflowRunUrl,
+  fetchWorkflowId,
+  fetchWorkflowRunIds,
+  fetchWorkflowRunJobSteps,
+  fetchWorkflowRunUrl,
   init,
-  retryOrDie,
+  retryOrTimeout,
 } from "./api.ts";
+import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
+import { getBranchName } from "./utils.ts";
 
 vi.mock("@actions/core");
 vi.mock("@actions/github");
@@ -21,29 +31,32 @@ interface MockResponse {
   status: number;
 }
 
-async function* mockPageIterator<T, P>(apiMethod: (params: P) => T, params: P) {
+function* mockPageIterator<T, P>(
+  apiMethod: (params: P) => T,
+  params: P,
+): Generator<T, void> {
   yield apiMethod(params);
 }
 
 const mockOctokit = {
   rest: {
     actions: {
-      createWorkflowDispatch: async (_req?: any): Promise<MockResponse> => {
+      createWorkflowDispatch: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      getWorkflowRun: async (_req?: any): Promise<MockResponse> => {
+      getWorkflowRun: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listRepoWorkflows: async (_req?: any): Promise<MockResponse> => {
+      listRepoWorkflows: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listWorkflowRuns: async (_req?: any): Promise<MockResponse> => {
+      listWorkflowRuns: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      downloadWorkflowRunLogs: async (_req?: any): Promise<MockResponse> => {
+      downloadWorkflowRunLogs: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
-      listJobsForWorkflowRun: async (_req?: any): Promise<MockResponse> => {
+      listJobsForWorkflowRun: (_req?: any): Promise<MockResponse> => {
         throw new Error("Should be mocked");
       },
     },
@@ -54,6 +67,17 @@ const mockOctokit = {
 };
 
 describe("API", () => {
+  const {
+    coreDebugLogMock,
+    coreInfoLogMock,
+    coreErrorLogMock,
+    assertOnlyCalled,
+  } = mockLoggingFunctions();
+
+  afterAll(() => {
+    vi.restoreAllMocks();
+  });
+
   beforeEach(() => {
     vi.spyOn(core, "getInput").mockImplementation((key: string) => {
       switch (key) {
@@ -71,16 +95,19 @@ describe("API", () => {
           return JSON.stringify({ testInput: "test" });
         case "workflow_timeout_seconds":
           return "30";
+        case "workflow_job_steps_retry_seconds":
+          return "5";
         default:
           return "";
       }
     });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     vi.spyOn(github, "getOctokit").mockReturnValue(mockOctokit as any);
     init();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
   describe("dispatchWorkflow", () => {
@@ -95,7 +122,20 @@ describe("API", () => {
         }),
       );
 
-      await dispatchWorkflow("");
+      // Behaviour
+      await expect(dispatchWorkflow("")).resolves.not.toThrow();
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(`
+        "Successfully dispatched workflow:
+          Repository: owner/repo
+          Branch: ref
+          Workflow: workflow
+          Workflow Inputs: {"testInput":"test"}
+          Distinct ID: "
+      `);
     });
 
     it("should throw if a non-204 status is returned", async () => {
@@ -110,32 +150,56 @@ describe("API", () => {
         }),
       );
 
+      // Behaviour
       await expect(dispatchWorkflow("")).rejects.toThrow(
         `Failed to dispatch action, expected 204 but received ${errorStatus}`,
       );
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
+      expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"dispatchWorkflow: An unexpected error has occurred: Failed to dispatch action, expected 204 but received 401"`,
+      );
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
     });
 
     it("should dispatch with a distinctId in the inputs", async () => {
-      const distinctId = uuid();
+      const distinctId = "50b4f5fa-f9ce-4661-80e6-6d660a4a3a0d";
       let dispatchedId: string | undefined;
       vi.spyOn(
         mockOctokit.rest.actions,
         "createWorkflowDispatch",
-      ).mockImplementation(async (req?: any) => {
+      ).mockImplementation((req?: any) => {
         dispatchedId = req.inputs.distinct_id;
 
-        return {
+        return Promise.resolve({
           data: undefined,
           status: 204,
-        };
+        });
       });
 
-      await dispatchWorkflow(distinctId);
+      // Behaviour
+      await expect(dispatchWorkflow(distinctId)).resolves.not.toThrow();
       expect(dispatchedId).toStrictEqual(distinctId);
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Successfully dispatched workflow:
+          Repository: owner/repo
+          Branch: ref
+          Workflow: workflow
+          Workflow Inputs: {"testInput":"test"}
+          Distinct ID: 50b4f5fa-f9ce-4661-80e6-6d660a4a3a0d"
+      `,
+      );
     });
   });
 
-  describe("getWorkflowId", () => {
+  describe("fetchWorkflowId", () => {
     it("should return the workflow ID for a given workflow filename", async () => {
       const mockData = [
         {
@@ -158,7 +222,22 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowId("slice.yml")).toStrictEqual(mockData[2]!.id);
+      // Behaviour
+      expect(await fetchWorkflowId("slice.yml")).toStrictEqual(mockData[2]!.id);
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow ID:
+          Repository: owner/repo
+          Workflow ID: '2'
+          Input Filename: 'slice.yml'
+          Sanitised Filename: 'slice\\.yml'
+          URL: undefined"
+      `,
+      );
     });
 
     it("should throw if a non-200 status is returned", async () => {
@@ -170,8 +249,16 @@ describe("API", () => {
         }),
       );
 
-      await expect(getWorkflowId("implode")).rejects.toThrow(
-        `Failed to get workflows, expected 200 but received ${errorStatus}`,
+      // Behaviour
+      await expect(fetchWorkflowId("implode")).rejects.toThrow(
+        `Failed to fetch workflows, expected 200 but received ${errorStatus}`,
+      );
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
+      expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"fetchWorkflowId: An unexpected error has occurred: Failed to fetch workflows, expected 200 but received 401"`,
       );
     });
 
@@ -184,21 +271,71 @@ describe("API", () => {
         }),
       );
 
-      await expect(getWorkflowId(workflowName)).rejects.toThrow(
+      // Behaviour
+      await expect(fetchWorkflowId(workflowName)).rejects.toThrow(
         `Unable to find ID for Workflow: ${workflowName}`,
+      );
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
+      expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"fetchWorkflowId: An unexpected error has occurred: Unable to find ID for Workflow: slice"`,
+      );
+    });
+
+    it("should return the workflow ID when the name is a substring of another workflow name", async () => {
+      const mockData = [
+        {
+          id: 0,
+          path: ".github/workflows/small-cake.yml",
+        },
+        {
+          id: 1,
+          path: ".github/workflows/big-cake.yml",
+        },
+        {
+          id: 2,
+          path: ".github/workflows/cake.yml",
+        },
+      ];
+      vi.spyOn(mockOctokit.rest.actions, "listRepoWorkflows").mockReturnValue(
+        Promise.resolve({
+          data: mockData,
+          status: 200,
+        }),
+      );
+
+      // Behaviour
+      expect(await fetchWorkflowId("cake.yml")).toStrictEqual(mockData[2]!.id);
+
+      // Logging
+      assertOnlyCalled(coreInfoLogMock);
+      expect(coreInfoLogMock).toHaveBeenCalledOnce();
+      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow ID:
+          Repository: owner/repo
+          Workflow ID: '2'
+          Input Filename: 'cake.yml'
+          Sanitised Filename: 'cake\\.yml'
+          URL: undefined"
+      `,
       );
     });
   });
 
-  describe("getWorkflowRunIds", () => {
-    const workflowIdCfg = {
+  describe("fetchWorkflowRunIds", () => {
+    const workflowIdCfg: ActionConfig = {
       token: "secret",
-      ref: "feature_branch",
+      ref: "/refs/heads/feature_branch",
       repo: "repository",
       owner: "owner",
       workflow: "workflow_name",
       workflowInputs: { testInput: "test" },
       workflowTimeoutSeconds: 60,
+      workflowJobStepsRetrySeconds: 3,
+      distinctId: "test-uuid",
     };
 
     beforeEach(() => {
@@ -206,6 +343,9 @@ describe("API", () => {
     });
 
     it("should get the run IDs for a given workflow ID", async () => {
+      const branch = getBranchName(workflowIdCfg.ref);
+      coreDebugLogMock.mockReset();
+
       const mockData = {
         total_count: 3,
         workflow_runs: [{ id: 0 }, { id: 1 }, { id: 2 }],
@@ -217,12 +357,29 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowRunIds(0)).toStrictEqual(
+      // Behaviour
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual(
         mockData.workflow_runs.map((run) => run.id),
+      );
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Runs:
+          Repository: owner/repository
+          Branch Filter: true (feature_branch)
+          Workflow ID: 0
+          Runs Fetched: [0, 1, 2]"
+      `,
       );
     });
 
     it("should throw if a non-200 status is returned", async () => {
+      const branch = getBranchName(workflowIdCfg.ref);
+      coreDebugLogMock.mockReset();
+
       const errorStatus = 401;
       vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockReturnValue(
         Promise.resolve({
@@ -231,12 +388,23 @@ describe("API", () => {
         }),
       );
 
-      await expect(getWorkflowRunIds(0)).rejects.toThrow(
-        `Failed to get Workflow runs, expected 200 but received ${errorStatus}`,
+      // Behaviour
+      await expect(fetchWorkflowRunIds(0, branch)).rejects.toThrow(
+        `Failed to fetch Workflow runs, expected 200 but received ${errorStatus}`,
+      );
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalled();
+      expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"fetchWorkflowRunIds: An unexpected error has occurred: Failed to fetch Workflow runs, expected 200 but received 401"`,
       );
     });
 
     it("should return an empty array if there are no runs", async () => {
+      const branch = getBranchName(workflowIdCfg.ref);
+      coreDebugLogMock.mockReset();
+
       const mockData = {
         total_count: 0,
         workflow_runs: [],
@@ -248,14 +416,30 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowRunIds(0)).toStrictEqual([]);
+      // Behaviour
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual([]);
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Runs:
+          Repository: owner/repository
+          Branch Filter: true (feature_branch)
+          Workflow ID: 0
+          Runs Fetched: []"
+      `,
+      );
     });
 
     it("should filter by branch name", async () => {
-      workflowIdCfg.ref = "/refs/heads/master";
+      const branch = getBranchName("/refs/heads/master");
+      coreDebugLogMock.mockReset();
+
       let parsedRef!: string;
       vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
-        async (req: any) => {
+        (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -264,19 +448,35 @@ describe("API", () => {
             },
             status: 200,
           };
-          return mockResponse;
+          return Promise.resolve(mockResponse);
         },
       );
 
-      await getWorkflowRunIds(0);
+      // Behaviour
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
       expect(parsedRef).toStrictEqual("master");
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Runs:
+          Repository: owner/repository
+          Branch Filter: true (master)
+          Workflow ID: 0
+          Runs Fetched: []"
+      `,
+      );
     });
 
     it("should not use a branch filter if using a tag ref", async () => {
-      workflowIdCfg.ref = "/refs/tags/1.5.0";
+      const branch = getBranchName("/refs/tags/1.5.0");
+      coreDebugLogMock.mockReset();
+
       let parsedRef!: string;
       vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
-        async (req: any) => {
+        (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -285,19 +485,35 @@ describe("API", () => {
             },
             status: 200,
           };
-          return mockResponse;
+          return Promise.resolve(mockResponse);
         },
       );
 
-      await getWorkflowRunIds(0);
+      // Behaviour
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Runs:
+          Repository: owner/repository
+          Branch Filter: false (/refs/tags/1.5.0)
+          Workflow ID: 0
+          Runs Fetched: []"
+      `,
+      );
     });
 
     it("should not use a branch filter if non-standard ref", async () => {
-      workflowIdCfg.ref = "/refs/cake";
+      const branch = getBranchName("/refs/cake");
+      coreDebugLogMock.mockReset();
+
       let parsedRef!: string;
       vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
-        async (req: any) => {
+        (req: any) => {
           parsedRef = req.branch;
           const mockResponse: MockResponse = {
             data: {
@@ -306,16 +522,30 @@ describe("API", () => {
             },
             status: 200,
           };
-          return mockResponse;
+          return Promise.resolve(mockResponse);
         },
       );
 
-      await getWorkflowRunIds(0);
+      // Behaviour
+      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Runs:
+          Repository: owner/repository
+          Branch Filter: false (/refs/cake)
+          Workflow ID: 0
+          Runs Fetched: []"
+      `,
+      );
     });
   });
 
-  describe("getWorkflowRunJobSteps", () => {
+  describe("fetchWorkflowRunJobSteps", () => {
     it("should get the step names for a given Workflow Run ID", async () => {
       const mockData = {
         total_count: 1,
@@ -345,10 +575,24 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowRunJobSteps(0)).toStrictEqual([
+      // Behaviour
+      await expect(fetchWorkflowRunJobSteps(0)).resolves.toStrictEqual([
         "Test Step 1",
         "Test Step 2",
       ]);
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Run Job Steps:
+          Repository: owner/repo
+          Workflow Run ID: 0
+          Jobs Fetched: [0]
+          Steps Fetched: ["Test Step 1", "Test Step 2"]"
+      `,
+      );
     });
 
     it("should throw if a non-200 status is returned", async () => {
@@ -363,8 +607,16 @@ describe("API", () => {
         }),
       );
 
-      await expect(getWorkflowRunJobSteps(0)).rejects.toThrow(
-        `Failed to get Workflow Run Jobs, expected 200 but received ${errorStatus}`,
+      // Behaviour
+      await expect(fetchWorkflowRunJobSteps(0)).rejects.toThrow(
+        `Failed to fetch Workflow Run Jobs, expected 200 but received ${errorStatus}`,
+      );
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
+      expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"fetchWorkflowRunJobSteps: An unexpected error has occurred: Failed to fetch Workflow Run Jobs, expected 200 but received 401"`,
       );
     });
 
@@ -388,11 +640,25 @@ describe("API", () => {
         }),
       );
 
-      expect(await getWorkflowRunJobSteps(0)).toStrictEqual([]);
+      // Behaviour
+      await expect(fetchWorkflowRunJobSteps(0)).resolves.toStrictEqual([]);
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledOnce();
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Run Job Steps:
+          Repository: owner/repo
+          Workflow Run ID: 0
+          Jobs Fetched: [0]
+          Steps Fetched: []"
+      `,
+      );
     });
   });
 
-  describe("getWorkflowRunUrl", () => {
+  describe("fetchWorkflowRunUrl", () => {
     it("should return the workflow run state for a given run ID", async () => {
       const mockData = {
         html_url: "master sword",
@@ -404,7 +670,7 @@ describe("API", () => {
         }),
       );
 
-      const url = await getWorkflowRunUrl(123456);
+      const url = await fetchWorkflowRunUrl(123456);
       expect(url).toStrictEqual(mockData.html_url);
     });
 
@@ -417,13 +683,21 @@ describe("API", () => {
         }),
       );
 
-      await expect(getWorkflowRunUrl(0)).rejects.toThrow(
-        `Failed to get Workflow Run state, expected 200 but received ${errorStatus}`,
+      // Behaviour
+      await expect(fetchWorkflowRunUrl(0)).rejects.toThrow(
+        `Failed to fetch Workflow Run state, expected 200 but received ${errorStatus}`,
+      );
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+      expect(coreErrorLogMock).toHaveBeenCalledOnce();
+      expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `"fetchWorkflowRunUrl: An unexpected error has occurred: Failed to fetch Workflow Run state, expected 200 but received 401"`,
       );
     });
   });
 
-  describe("retryOrDie", () => {
+  describe("retryOrTimeout", () => {
     beforeEach(() => {
       vi.useFakeTimers();
     });
@@ -432,42 +706,73 @@ describe("API", () => {
       vi.useRealTimers();
     });
 
-    it("should return a populated array", async () => {
-      const attempt = async () => {
-        return [0];
-      };
+    it("should return a result", async () => {
+      const attemptResult = [0];
+      const attempt = () => Promise.resolve(attemptResult);
 
-      expect(await retryOrDie(attempt, 1000)).toHaveLength(1);
+      const result = await retryOrTimeout(attempt, 1000);
+      if (!result.success) {
+        expect.fail("expected retryOrTimeout not to timeout");
+      }
+
+      expect(result.success).toStrictEqual(true);
+      expect(result.value).toStrictEqual(attemptResult);
     });
 
-    it("should throw if the given timeout is exceeded", async () => {
+    it("should return a timeout result if the given timeout is exceeded", async () => {
       // Never return data.
-      const attempt = async () => [];
+      const attempt = () => Promise.resolve([]);
 
-      const retryOrDiePromise = retryOrDie(attempt, 1000);
-      vi.advanceTimersByTime(2000);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      vi.advanceTimersByTimeAsync(2000);
+      const retryOrTimeoutPromise = retryOrTimeout(attempt, 1000);
+      await vi.advanceTimersByTimeAsync(2000);
 
-      await expect(retryOrDiePromise).rejects.toThrow(
-        "Timed out while attempting to fetch data",
-      );
+      const result = await retryOrTimeoutPromise;
+      if (result.success) {
+        expect.fail("expected retryOrTimeout to timeout");
+      }
+
+      expect(result.success).toStrictEqual(false);
     });
 
     it("should retry to get a populated array", async () => {
+      const attemptResult = [0];
       const attempt = vi
         .fn()
-        .mockResolvedValue([0])
+        .mockResolvedValue(attemptResult)
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
 
-      const retryOrDiePromise = retryOrDie(attempt, 5000);
-      vi.advanceTimersByTime(3000);
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      vi.advanceTimersByTimeAsync(3000);
+      const retryOrDiePromise = retryOrTimeout(attempt, 5000);
+      await vi.advanceTimersByTimeAsync(3000);
 
-      expect(await retryOrDiePromise).toHaveLength(1);
+      const result = await retryOrDiePromise;
+      if (!result.success) {
+        expect.fail("expected retryOrTimeout not to timeout");
+      }
+
+      expect(result.success).toStrictEqual(true);
+      expect(result.value).toStrictEqual(attemptResult);
       expect(attempt).toHaveBeenCalledTimes(3);
+    });
+
+    it("should iterate only once if timed out", async () => {
+      const attempt = vi.fn(() => Promise.resolve([]));
+
+      const retryOrTimeoutPromise = retryOrTimeout(attempt, 1000);
+
+      expect(attempt).toHaveBeenCalledOnce();
+
+      await vi.advanceTimersByTimeAsync(2000);
+
+      const result = await retryOrTimeoutPromise;
+
+      if (result.success) {
+        expect.fail("expected retryOrTimeout to timeout");
+      }
+      expect(attempt).toHaveBeenCalledOnce();
+
+      expect(result.success).toStrictEqual(false);
+      expect(result.reason).toStrictEqual("timeout");
     });
   });
 });
