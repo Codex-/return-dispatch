@@ -43,7 +43,7 @@
     "@vitest/coverage-v8": "^2.1.9",
     "chalk": "^5.4.1",
     "changelogithub": "^13.12.1",
-    "esbuild": "^0.24.2",
+    "esbuild": "^0.25.0",
     "eslint": "^9.19.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.7.0",
