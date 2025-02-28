@@ -36,7 +36,6 @@
     "@eslint/js": "^9.20.0",
     "@opentf/std": "^0.13.0",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/eslint__js": "^9.14.0",
     "@types/node": "~20.17.19",
     "@typescript-eslint/eslint-plugin": "^8.24.1",
     "@typescript-eslint/parser": "^8.24.1",
