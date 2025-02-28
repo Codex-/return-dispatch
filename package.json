@@ -36,7 +36,6 @@
     "@eslint/js": "^9.20.0",
     "@opentf/std": "^0.13.0",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/eslint__js": "^8.42.3",
     "@types/node": "~20.17.19",
     "@typescript-eslint/eslint-plugin": "^8.24.1",
     "@typescript-eslint/parser": "^8.24.1",
@@ -52,5 +51,10 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.1",
     "vitest": "^3.0.6"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
