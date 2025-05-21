@@ -15,7 +15,8 @@
     "lint:fix": "pnpm run lint --fix",
     "release": "release-it",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "preinstall": "npx npm-force-resolutions"
   },
   "repository": {
     "type": "git",
@@ -52,7 +53,7 @@
     "typescript-eslint": "^8.31.1",
     "vitest": "^3.1.2"
   },
-  "overrides": {
+  "resolutions": {
     "vite": ">=6.2.7"
   },
   "pnpm": {
