@@ -483,34 +483,28 @@ describe("return-dispatch", () => {
       workflowJobStepsRetryMs: 5,
     };
 
-    let apiFetchWorkflowRunIdsMock: MockInstance<
+    const apiFetchWorkflowRunIdsMock: MockInstance<
       typeof api.fetchWorkflowRunIds
-    >;
-    let apiFetchWorkflowRunJobStepsMock: MockInstance<
+    > = vi.spyOn(api, "fetchWorkflowRunIds");
+    const apiFetchWorkflowRunJobStepsMock: MockInstance<
       typeof api.fetchWorkflowRunJobSteps
-    >;
-    let apiFetchWorkflowRunUrlMock: MockInstance<
+    > = vi.spyOn(api, "fetchWorkflowRunJobSteps");
+    const apiFetchWorkflowRunUrlMock: MockInstance<
       typeof api.fetchWorkflowRunUrl
-    >;
-    let apiRetryOrTimeoutMock: MockInstance<typeof api.retryOrTimeout>;
-    let utilSleepMock: MockInstance<typeof utils.sleep>;
+    > = vi.spyOn(api, "fetchWorkflowRunUrl");
+    const apiRetryOrTimeoutMock: MockInstance<typeof api.retryOrTimeout> =
+      vi.spyOn(api, "retryOrTimeout");
+    const utilSleepMock: MockInstance<typeof utils.sleep> = vi.spyOn(
+      utils,
+      "sleep",
+    );
 
     beforeEach(() => {
       vi.useFakeTimers();
 
-      apiFetchWorkflowRunIdsMock = vi.spyOn(api, "fetchWorkflowRunIds");
-      apiFetchWorkflowRunJobStepsMock = vi.spyOn(
-        api,
-        "fetchWorkflowRunJobSteps",
+      utilSleepMock.mockImplementation(
+        (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
       );
-      apiFetchWorkflowRunUrlMock = vi.spyOn(api, "fetchWorkflowRunUrl");
-      apiRetryOrTimeoutMock = vi.spyOn(api, "retryOrTimeout");
-
-      utilSleepMock = vi
-        .spyOn(utils, "sleep")
-        .mockImplementation(
-          (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
-        );
     });
 
     afterEach(() => {
