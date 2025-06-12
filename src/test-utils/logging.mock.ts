@@ -23,7 +23,7 @@ export function mockLoggingFunctions(): MockedLoggingFunctions {
   const coreInfoLogMock: MockInstance<typeof core.info> = vi
     .spyOn(core, "info")
     .mockImplementation(() => undefined);
-  const coreWarningLogMock: MockInstance<typeof core.error> = vi.spyOn(
+  const coreWarningLogMock: MockInstance<typeof core.warning> = vi.spyOn(
     core,
     "warning",
   );
