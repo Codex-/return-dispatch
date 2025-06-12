@@ -39,7 +39,7 @@
     "@types/node": "~20.19.0",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
-    "@vitest/coverage-v8": "^3.2.3",
+    "@vitest/coverage-v8": "~3.1.4",
     "chalk": "^5.4.1",
     "changelogithub": "^13.15.0",
     "esbuild": "^0.25.5",
@@ -50,7 +50,7 @@
     "prettier": "3.5.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0",
-    "vitest": "^3.2.3"
+    "vitest": "~3.1.4"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
