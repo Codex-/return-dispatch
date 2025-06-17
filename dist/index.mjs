@@ -24129,13 +24129,15 @@ async function fetchWorkflowRunUrl(runId) {
     throw error5;
   }
 }
-async function fetchWorkflowRunIds(workflowId, branch) {
+async function fetchWorkflowRunIds(workflowId, branch, startTime) {
   try {
     const useBranchFilter = !branch.isTag && branch.branchName !== void 0 && branch.branchName !== "";
+    const afterStartTime = ">" + new Date(startTime).toISOString();
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
       workflow_id: workflowId,
+      created: afterStartTime,
       ...useBranchFilter ? {
         branch: branch.branchName,
         per_page: 10
@@ -24330,7 +24332,7 @@ async function getRunIdAndUrl({
   while (elapsedTime < workflowTimeoutMs) {
     attemptNo++;
     const fetchWorkflowRunIds2 = await retryOrTimeout(
-      () => fetchWorkflowRunIds(workflowId, branch),
+      () => fetchWorkflowRunIds(workflowId, branch, startTime),
       retryTimeout
     );
     if (!fetchWorkflowRunIds2.success) {

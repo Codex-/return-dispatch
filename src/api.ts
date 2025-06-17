@@ -158,6 +158,7 @@ export async function fetchWorkflowRunUrl(runId: number): Promise<string> {
 export async function fetchWorkflowRunIds(
   workflowId: number,
   branch: BranchNameResult,
+  startTime: number,
 ): Promise<number[]> {
   try {
     const useBranchFilter =
@@ -165,11 +166,14 @@ export async function fetchWorkflowRunIds(
       branch.branchName !== undefined &&
       branch.branchName !== "";
 
+    const afterStartTime = '>' + (new Date(startTime)).toISOString();
+
     // https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
       workflow_id: workflowId,
+      created: afterStartTime,
       ...(useBranchFilter
         ? {
             branch: branch.branchName,

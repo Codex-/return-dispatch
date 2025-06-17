@@ -358,7 +358,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual(
+      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.toStrictEqual(
         mockData.workflow_runs.map((run) => run.id),
       );
 
@@ -389,7 +389,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).rejects.toThrow(
+      await expect(fetchWorkflowRunIds(0, branch, Date.now())).rejects.toThrow(
         `Failed to fetch Workflow runs, expected 200 but received ${errorStatus}`,
       );
 
@@ -417,7 +417,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual([]);
+      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.toStrictEqual([]);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -453,7 +453,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.not.toThrow();
       expect(parsedRef).toStrictEqual("master");
 
       // Logging
@@ -490,7 +490,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging
@@ -527,7 +527,7 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging

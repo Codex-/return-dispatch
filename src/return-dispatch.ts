@@ -151,7 +151,7 @@ export async function getRunIdAndUrl({
 
     // Get all runs for a given workflow ID
     const fetchWorkflowRunIds = await api.retryOrTimeout(
-      () => api.fetchWorkflowRunIds(workflowId, branch),
+      () => api.fetchWorkflowRunIds(workflowId, branch, startTime),
       retryTimeout,
     );
     if (!fetchWorkflowRunIds.success) {
