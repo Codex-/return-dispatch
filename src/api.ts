@@ -166,14 +166,14 @@ export async function fetchWorkflowRunIds(
       branch.branchName !== undefined &&
       branch.branchName !== "";
 
-    const afterStartTime = ">" + new Date(startTime).toISOString();
+    const createdFrom = ">=" + new Date(startTime).toISOString();
 
     // https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
       workflow_id: workflowId,
-      created: afterStartTime,
+      created: createdFrom,
       event: "workflow_dispatch",
       ...(useBranchFilter
         ? {
@@ -204,6 +204,7 @@ export async function fetchWorkflowRunIds(
         `  Repository: ${config.owner}/${config.repo}\n` +
         `  Branch Filter: ${branchMsg}\n` +
         `  Workflow ID: ${workflowId}\n` +
+        `  Created: ${createdFrom}\n` +
         `  Runs Fetched: [${runIds.join(", ")}]`,
     );
 
