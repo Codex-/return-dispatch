@@ -139,6 +139,7 @@ export async function getRunIdAndUrl({
   workflowTimeoutMs,
   workflowJobStepsRetryMs,
 }: GetRunIdAndUrlOpts): Promise<Result<{ id: number; url: string }>> {
+  const startTimeISO = new Date(startTime).toISOString();
   const retryTimeout = Math.max(
     constants.WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs,
@@ -151,7 +152,7 @@ export async function getRunIdAndUrl({
 
     // Get all runs for a given workflow ID
     const fetchWorkflowRunIds = await api.retryOrTimeout(
-      () => api.fetchWorkflowRunIds(workflowId, branch, startTime),
+      () => api.fetchWorkflowRunIds(workflowId, branch, startTimeISO),
       retryTimeout,
     );
     if (!fetchWorkflowRunIds.success) {
