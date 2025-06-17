@@ -174,6 +174,7 @@ export async function fetchWorkflowRunIds(
       repo: config.repo,
       workflow_id: workflowId,
       created: afterStartTime,
+      event: 'workflow_dispatch',
       ...(useBranchFilter
         ? {
             branch: branch.branchName,
