@@ -358,9 +358,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.toStrictEqual(
-        mockData.workflow_runs.map((run) => run.id),
-      );
+      await expect(
+        fetchWorkflowRunIds(0, branch, Date.now()),
+      ).resolves.toStrictEqual(mockData.workflow_runs.map((run) => run.id));
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -417,7 +417,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.toStrictEqual([]);
+      await expect(
+        fetchWorkflowRunIds(0, branch, Date.now()),
+      ).resolves.toStrictEqual([]);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -453,7 +455,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.not.toThrow();
+      await expect(
+        fetchWorkflowRunIds(0, branch, Date.now()),
+      ).resolves.not.toThrow();
       expect(parsedRef).toStrictEqual("master");
 
       // Logging
@@ -490,7 +494,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.not.toThrow();
+      await expect(
+        fetchWorkflowRunIds(0, branch, Date.now()),
+      ).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging
@@ -527,7 +533,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch, Date.now())).resolves.not.toThrow();
+      await expect(
+        fetchWorkflowRunIds(0, branch, Date.now()),
+      ).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging
