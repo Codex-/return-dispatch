@@ -24129,13 +24129,16 @@ async function fetchWorkflowRunUrl(runId) {
     throw error5;
   }
 }
-async function fetchWorkflowRunIds(workflowId, branch) {
+async function fetchWorkflowRunIds(workflowId, branch, startTimeISO) {
   try {
     const useBranchFilter = !branch.isTag && branch.branchName !== void 0 && branch.branchName !== "";
+    const createdFrom = `>=${startTimeISO}`;
     const response = await octokit.rest.actions.listWorkflowRuns({
       owner: config.owner,
       repo: config.repo,
       workflow_id: workflowId,
+      created: createdFrom,
+      event: "workflow_dispatch",
       ...useBranchFilter ? {
         branch: branch.branchName,
         per_page: 10
@@ -24157,6 +24160,7 @@ async function fetchWorkflowRunIds(workflowId, branch) {
   Repository: ${config.owner}/${config.repo}
   Branch Filter: ${branchMsg}
   Workflow ID: ${workflowId}
+  Created: ${createdFrom}
   Runs Fetched: [${runIds.join(", ")}]`
     );
     return runIds;
@@ -24321,6 +24325,7 @@ async function getRunIdAndUrl({
   workflowTimeoutMs,
   workflowJobStepsRetryMs
 }) {
+  const startTimeISO = new Date(startTime).toISOString();
   const retryTimeout = Math.max(
     WORKFLOW_FETCH_TIMEOUT_MS,
     workflowTimeoutMs
@@ -24330,7 +24335,7 @@ async function getRunIdAndUrl({
   while (elapsedTime < workflowTimeoutMs) {
     attemptNo++;
     const fetchWorkflowRunIds2 = await retryOrTimeout(
-      () => fetchWorkflowRunIds(workflowId, branch),
+      () => fetchWorkflowRunIds(workflowId, branch, startTimeISO),
       retryTimeout
     );
     if (!fetchWorkflowRunIds2.success) {
