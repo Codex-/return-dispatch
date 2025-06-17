@@ -2,7 +2,7 @@
 
 import jsEslint from "@eslint/js";
 import eslintConfigPrettier from "eslint-config-prettier";
-import eslintPluginImportX from "eslint-plugin-import-x";
+import * as eslintPluginImportX from "eslint-plugin-import-x";
 import * as tsEslint from "typescript-eslint";
 
 export default tsEslint.config(

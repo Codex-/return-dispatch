@@ -20,7 +20,7 @@ jobs:
         run: pnpm run test
       - name: lint
         if: ${{ always() }}
-        run: pnpm run lint
+        run: pnpm run lint --max-warnings=0
       - name: style
         if: ${{ always() }}
         run: pnpm run format:check
