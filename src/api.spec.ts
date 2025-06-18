@@ -20,6 +20,7 @@ import {
   init,
   retryOrTimeout,
 } from "./api.ts";
+import { clearEtags } from "./etags.js";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
 import { getBranchName } from "./utils.ts";
 
@@ -29,6 +30,7 @@ vi.mock("@actions/github");
 interface MockResponse {
   data: any;
   status: number;
+  headers: object;
 }
 
 function* mockPageIterator<T, P>(
@@ -65,6 +67,10 @@ const mockOctokit = {
     iterator: mockPageIterator,
   },
 };
+
+afterEach(() => {
+  clearEtags();
+});
 
 describe("API", () => {
   const {
@@ -119,6 +125,7 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: 204,
+          headers: {},
         }),
       );
 
@@ -147,6 +154,7 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
+          headers: {},
         }),
       );
 
@@ -176,6 +184,7 @@ describe("API", () => {
         return Promise.resolve({
           data: undefined,
           status: 204,
+          headers: {},
         });
       });
 
@@ -219,6 +228,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
+          headers: {},
         }),
       );
 
@@ -246,6 +256,7 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
+          headers: {},
         }),
       );
 
@@ -268,6 +279,7 @@ describe("API", () => {
         Promise.resolve({
           data: [],
           status: 200,
+          headers: {},
         }),
       );
 
@@ -303,6 +315,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
+          headers: {},
         }),
       );
 
@@ -355,6 +368,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
+          headers: {},
         }),
       );
 
@@ -387,6 +401,7 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
+          headers: {},
         }),
       );
 
@@ -417,6 +432,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
+          headers: {},
         }),
       );
 
@@ -454,6 +470,7 @@ describe("API", () => {
               workflow_runs: [],
             },
             status: 200,
+            headers: {},
           };
           return Promise.resolve(mockResponse);
         },
@@ -494,6 +511,7 @@ describe("API", () => {
               workflow_runs: [],
             },
             status: 200,
+            headers: {},
           };
           return Promise.resolve(mockResponse);
         },
@@ -534,6 +552,7 @@ describe("API", () => {
               workflow_runs: [],
             },
             status: 200,
+            headers: {},
           };
           return Promise.resolve(mockResponse);
         },
@@ -553,6 +572,118 @@ describe("API", () => {
         "Fetched Workflow Runs:
           Repository: owner/repository
           Branch Filter: false (/refs/cake)
+          Workflow ID: 0
+          Created: >=2025-06-17T22:24:23.238Z
+          Runs Fetched: []"
+      `,
+      );
+    });
+
+    it("should send the previous etag in the If-None-Match header", async () => {
+      const branch = getBranchName(workflowIdCfg.ref);
+      coreDebugLogMock.mockReset();
+
+      const mockData = {
+        total_count: 0,
+        workflow_runs: [],
+      };
+      const etag =
+        "37c2311495bbea359329d0bb72561bdb2b2fffea1b7a54f696b5a287e7ccad1e";
+      let submittedEtag = null;
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
+        ({ headers }) => {
+          if (headers?.["If-None-Match"]) {
+            submittedEtag = headers["If-None-Match"];
+            return Promise.resolve({
+              data: null,
+              status: 304,
+              headers: {
+                etag: `W/"${submittedEtag}"`,
+              },
+            });
+          }
+          return Promise.resolve({
+            data: mockData,
+            status: 200,
+            headers: {
+              etag: `W/"${etag}"`,
+            },
+          });
+        },
+      );
+
+      // Behaviour
+      // First API call will return 200 with an etag response header
+      await fetchWorkflowRunIds(0, branch, startTimeISO);
+      expect(submittedEtag).eq(null);
+      // Second API call with same parameters should pass the If-None-Match header
+      await fetchWorkflowRunIds(0, branch, startTimeISO);
+      expect(submittedEtag).eq(etag);
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Runs:
+          Repository: owner/repository
+          Branch Filter: true (feature_branch)
+          Workflow ID: 0
+          Created: >=2025-06-17T22:24:23.238Z
+          Runs Fetched: []"
+      `,
+      );
+    });
+
+    it("should not send the previous etag in the If-None-Match header when different request params are used", async () => {
+      const branch = getBranchName(workflowIdCfg.ref);
+      coreDebugLogMock.mockReset();
+
+      const mockData = {
+        total_count: 0,
+        workflow_runs: [],
+      };
+      const etag =
+        "37c2311495bbea359329d0bb72561bdb2b2fffea1b7a54f696b5a287e7ccad1e";
+      let submittedEtag = null;
+      vi.spyOn(mockOctokit.rest.actions, "listWorkflowRuns").mockImplementation(
+        ({ headers }) => {
+          if (headers?.["If-None-Match"]) {
+            submittedEtag = headers["If-None-Match"];
+            return Promise.resolve({
+              data: null,
+              status: 304,
+              headers: {
+                etag: `W/"${submittedEtag}"`,
+              },
+            });
+          }
+          return Promise.resolve({
+            data: mockData,
+            status: 200,
+            headers: {
+              etag: `W/"${etag}"`,
+            },
+          });
+        },
+      );
+
+      // Behaviour
+      // First API call will return 200 with an etag response header
+      await fetchWorkflowRunIds(0, branch, startTimeISO);
+      expect(submittedEtag).eq(null);
+      // Second API call, without If-None-Match header because of different parameters
+      await fetchWorkflowRunIds(1, branch, startTimeISO);
+      expect(submittedEtag).eq(null);
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Runs:
+          Repository: owner/repository
+          Branch Filter: true (feature_branch)
           Workflow ID: 0
           Created: >=2025-06-17T22:24:23.238Z
           Runs Fetched: []"
@@ -588,6 +719,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
+          headers: {},
         }),
       );
 
@@ -620,6 +752,7 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
+          headers: {},
         }),
       );
 
@@ -653,6 +786,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
+          headers: {},
         }),
       );
 
@@ -672,6 +806,122 @@ describe("API", () => {
       `,
       );
     });
+
+    it("should send the previous etag in the If-None-Match header", async () => {
+      const mockData = {
+        total_count: 1,
+        jobs: [
+          {
+            id: 0,
+            steps: undefined,
+          },
+        ],
+      };
+      const etag =
+        "37c2311495bbea359329d0bb72561bdb2b2fffea1b7a54f696b5a287e7ccad1e";
+      let submittedEtag = null;
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "listJobsForWorkflowRun",
+      ).mockImplementation(({ headers }) => {
+        if (headers?.["If-None-Match"]) {
+          submittedEtag = headers["If-None-Match"];
+          return Promise.resolve({
+            data: null,
+            status: 304,
+            headers: {
+              etag: `W/"${submittedEtag}"`,
+            },
+          });
+        }
+        return Promise.resolve({
+          data: mockData,
+          status: 200,
+          headers: {
+            etag: `W/"${etag}"`,
+          },
+        });
+      });
+
+      // Behaviour
+      // First API call will return 200 with an etag response header
+      await fetchWorkflowRunJobSteps(0);
+      expect(submittedEtag).eq(null);
+      // Second API call with same parameters should pass the If-None-Match header
+      await fetchWorkflowRunJobSteps(0);
+      expect(submittedEtag).eq(etag);
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+        "Fetched Workflow Run Job Steps:
+          Repository: owner/repo
+          Workflow Run ID: 0
+          Jobs Fetched: [0]
+          Steps Fetched: []"
+      `,
+      );
+    });
+
+    it("should not send the previous etag in the If-None-Match header when different request params are used", async () => {
+      const mockData = {
+        total_count: 1,
+        jobs: [
+          {
+            id: 0,
+            steps: undefined,
+          },
+        ],
+      };
+      const etag =
+        "37c2311495bbea359329d0bb72561bdb2b2fffea1b7a54f696b5a287e7ccad1e";
+      let submittedEtag = null;
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "listJobsForWorkflowRun",
+      ).mockImplementation(({ headers }) => {
+        if (headers?.["If-None-Match"]) {
+          submittedEtag = headers["If-None-Match"];
+          return Promise.resolve({
+            data: null,
+            status: 304,
+            headers: {
+              etag: `W/"${submittedEtag}"`,
+            },
+          });
+        }
+        return Promise.resolve({
+          data: mockData,
+          status: 200,
+          headers: {
+            etag: `W/"${etag}"`,
+          },
+        });
+      });
+
+      // Behaviour
+      // First API call will return 200 with an etag response header
+      await fetchWorkflowRunJobSteps(0);
+      expect(submittedEtag).eq(null);
+      // Second API call, without If-None-Match header because of different parameters
+      await fetchWorkflowRunJobSteps(1);
+      expect(submittedEtag).eq(null);
+
+      // Logging
+      assertOnlyCalled(coreDebugLogMock);
+      expect(coreDebugLogMock).toHaveBeenCalledTimes(2);
+      expect(coreDebugLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
+        `
+          "Fetched Workflow Run Job Steps:
+            Repository: owner/repo
+            Workflow Run ID: 0
+            Jobs Fetched: [0]
+            Steps Fetched: []"
+        `,
+      );
+    });
   });
 
   describe("fetchWorkflowRunUrl", () => {
@@ -683,6 +933,7 @@ describe("API", () => {
         Promise.resolve({
           data: mockData,
           status: 200,
+          headers: {},
         }),
       );
 
@@ -696,6 +947,7 @@ describe("API", () => {
         Promise.resolve({
           data: undefined,
           status: errorStatus,
+          headers: {},
         }),
       );
 
