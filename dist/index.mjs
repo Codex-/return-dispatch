@@ -23953,6 +23953,39 @@ function getOptionalWorkflowValue(workflowInput) {
 var core3 = __toESM(require_core(), 1);
 var github = __toESM(require_github(), 1);
 
+// src/etags.ts
+var etagStore = /* @__PURE__ */ new Map();
+async function withEtag(endpoint, params, requester) {
+  const { etag, savedResponse } = getEtag(endpoint, params) ?? {};
+  const paramsWithEtag = { ...params };
+  if (etag)
+    paramsWithEtag.headers = {
+      "If-None-Match": etag,
+      ...params.headers ?? {}
+    };
+  const response = await requester(paramsWithEtag);
+  if (response.status === 304 && etag && etag === extractEtag(response) && savedResponse !== void 0) {
+    return savedResponse;
+  }
+  rememberEtag(endpoint, params, response);
+  return response;
+}
+function extractEtag(response) {
+  if ("string" !== typeof response.headers.etag) return;
+  return response.headers.etag.split('"')[1] ?? "";
+}
+function getEtag(endpoint, params) {
+  return etagStore.get(JSON.stringify({ endpoint, params }));
+}
+function rememberEtag(endpoint, params, response) {
+  const etag = extractEtag(response);
+  if (!etag) return;
+  etagStore.set(JSON.stringify({ endpoint, params }), {
+    etag,
+    savedResponse: response
+  });
+}
+
 // src/utils.ts
 var core2 = __toESM(require_core(), 1);
 function getBranchNameFromRef(ref) {
@@ -24133,19 +24166,25 @@ async function fetchWorkflowRunIds(workflowId, branch, startTimeISO) {
   try {
     const useBranchFilter = !branch.isTag && branch.branchName !== void 0 && branch.branchName !== "";
     const createdFrom = `>=${startTimeISO}`;
-    const response = await octokit.rest.actions.listWorkflowRuns({
-      owner: config.owner,
-      repo: config.repo,
-      workflow_id: workflowId,
-      created: createdFrom,
-      event: "workflow_dispatch",
-      ...useBranchFilter ? {
-        branch: branch.branchName,
-        per_page: 10
-      } : {
-        per_page: 20
+    const response = await withEtag(
+      "listWorkflowRuns",
+      {
+        owner: config.owner,
+        repo: config.repo,
+        workflow_id: workflowId,
+        created: createdFrom,
+        event: "workflow_dispatch",
+        ...useBranchFilter ? {
+          branch: branch.branchName,
+          per_page: 10
+        } : {
+          per_page: 20
+        }
+      },
+      async (params) => {
+        return await octokit.rest.actions.listWorkflowRuns(params);
       }
-    });
+    );
     if (response.status !== 200) {
       throw new Error(
         `Failed to fetch Workflow runs, expected 200 but received ${response.status}`
@@ -24176,12 +24215,18 @@ async function fetchWorkflowRunIds(workflowId, branch, startTimeISO) {
 }
 async function fetchWorkflowRunJobSteps(runId) {
   try {
-    const response = await octokit.rest.actions.listJobsForWorkflowRun({
-      owner: config.owner,
-      repo: config.repo,
-      run_id: runId,
-      filter: "latest"
-    });
+    const response = await withEtag(
+      "listJobsForWorkflowRun",
+      {
+        owner: config.owner,
+        repo: config.repo,
+        run_id: runId,
+        filter: "latest"
+      },
+      async (params) => {
+        return await octokit.rest.actions.listJobsForWorkflowRun(params);
+      }
+    );
     if (response.status !== 200) {
       throw new Error(
         `Failed to fetch Workflow Run Jobs, expected 200 but received ${response.status}`
