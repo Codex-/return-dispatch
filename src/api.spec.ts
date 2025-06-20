@@ -20,7 +20,7 @@ import {
   init,
   retryOrTimeout,
 } from "./api.ts";
-import { clearEtags } from "./etags.js";
+import { clearEtags } from "./etags.ts";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
 import { getBranchName } from "./utils.ts";
 
@@ -30,7 +30,7 @@ vi.mock("@actions/github");
 interface MockResponse {
   data: any;
   status: number;
-  headers: object;
+  headers: Record<string, string>;
 }
 
 function* mockPageIterator<T, P>(
@@ -615,10 +615,10 @@ describe("API", () => {
       // Behaviour
       // First API call will return 200 with an etag response header
       await fetchWorkflowRunIds(0, branch, startTimeISO);
-      expect(submittedEtag).eq(null);
+      expect(submittedEtag).toStrictEqual(null);
       // Second API call with same parameters should pass the If-None-Match header
       await fetchWorkflowRunIds(0, branch, startTimeISO);
-      expect(submittedEtag).eq(etag);
+      expect(submittedEtag).toStrictEqual(etag);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -671,10 +671,10 @@ describe("API", () => {
       // Behaviour
       // First API call will return 200 with an etag response header
       await fetchWorkflowRunIds(0, branch, startTimeISO);
-      expect(submittedEtag).eq(null);
+      expect(submittedEtag).toStrictEqual(null);
       // Second API call, without If-None-Match header because of different parameters
       await fetchWorkflowRunIds(1, branch, startTimeISO);
-      expect(submittedEtag).eq(null);
+      expect(submittedEtag).toStrictEqual(null);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -846,10 +846,10 @@ describe("API", () => {
       // Behaviour
       // First API call will return 200 with an etag response header
       await fetchWorkflowRunJobSteps(0);
-      expect(submittedEtag).eq(null);
+      expect(submittedEtag).toStrictEqual(null);
       // Second API call with same parameters should pass the If-None-Match header
       await fetchWorkflowRunJobSteps(0);
-      expect(submittedEtag).eq(etag);
+      expect(submittedEtag).toStrictEqual(etag);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -904,10 +904,10 @@ describe("API", () => {
       // Behaviour
       // First API call will return 200 with an etag response header
       await fetchWorkflowRunJobSteps(0);
-      expect(submittedEtag).eq(null);
+      expect(submittedEtag).toStrictEqual(null);
       // Second API call, without If-None-Match header because of different parameters
       await fetchWorkflowRunJobSteps(1);
-      expect(submittedEtag).eq(null);
+      expect(submittedEtag).toStrictEqual(null);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
