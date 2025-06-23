@@ -326,6 +326,7 @@ describe("API", () => {
   });
 
   describe("fetchWorkflowRunIds", () => {
+    const startTimeISO = "2025-06-17T22:24:23.238Z";
     const workflowIdCfg: ActionConfig = {
       token: "secret",
       ref: "/refs/heads/feature_branch",
@@ -358,9 +359,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual(
-        mockData.workflow_runs.map((run) => run.id),
-      );
+      await expect(
+        fetchWorkflowRunIds(0, branch, startTimeISO),
+      ).resolves.toStrictEqual(mockData.workflow_runs.map((run) => run.id));
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -371,6 +372,7 @@ describe("API", () => {
           Repository: owner/repository
           Branch Filter: true (feature_branch)
           Workflow ID: 0
+          Created: >=2025-06-17T22:24:23.238Z
           Runs Fetched: [0, 1, 2]"
       `,
       );
@@ -389,7 +391,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).rejects.toThrow(
+      await expect(
+        fetchWorkflowRunIds(0, branch, startTimeISO),
+      ).rejects.toThrow(
         `Failed to fetch Workflow runs, expected 200 but received ${errorStatus}`,
       );
 
@@ -417,7 +421,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.toStrictEqual([]);
+      await expect(
+        fetchWorkflowRunIds(0, branch, startTimeISO),
+      ).resolves.toStrictEqual([]);
 
       // Logging
       assertOnlyCalled(coreDebugLogMock);
@@ -428,6 +434,7 @@ describe("API", () => {
           Repository: owner/repository
           Branch Filter: true (feature_branch)
           Workflow ID: 0
+          Created: >=2025-06-17T22:24:23.238Z
           Runs Fetched: []"
       `,
       );
@@ -453,7 +460,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(
+        fetchWorkflowRunIds(0, branch, startTimeISO),
+      ).resolves.not.toThrow();
       expect(parsedRef).toStrictEqual("master");
 
       // Logging
@@ -465,6 +474,7 @@ describe("API", () => {
           Repository: owner/repository
           Branch Filter: true (master)
           Workflow ID: 0
+          Created: >=2025-06-17T22:24:23.238Z
           Runs Fetched: []"
       `,
       );
@@ -490,7 +500,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(
+        fetchWorkflowRunIds(0, branch, startTimeISO),
+      ).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging
@@ -502,6 +514,7 @@ describe("API", () => {
           Repository: owner/repository
           Branch Filter: false (/refs/tags/1.5.0)
           Workflow ID: 0
+          Created: >=2025-06-17T22:24:23.238Z
           Runs Fetched: []"
       `,
       );
@@ -527,7 +540,9 @@ describe("API", () => {
       );
 
       // Behaviour
-      await expect(fetchWorkflowRunIds(0, branch)).resolves.not.toThrow();
+      await expect(
+        fetchWorkflowRunIds(0, branch, startTimeISO),
+      ).resolves.not.toThrow();
       expect(parsedRef).toBeUndefined();
 
       // Logging
@@ -539,6 +554,7 @@ describe("API", () => {
           Repository: owner/repository
           Branch Filter: false (/refs/cake)
           Workflow ID: 0
+          Created: >=2025-06-17T22:24:23.238Z
           Runs Fetched: []"
       `,
       );
