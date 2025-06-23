@@ -23,7 +23,7 @@ export async function withEtag<T, P extends RequestParameters>(
     paramsWithEtag.headers = {
       "If-None-Match": etag,
       ...(params.headers ?? {}),
-    } as RequestHeaders;
+    } satisfies RequestHeaders;
 
   const response = await requester(paramsWithEtag);
 
