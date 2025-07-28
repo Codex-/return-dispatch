@@ -19,6 +19,7 @@ import {
   fetchWorkflowRunUrl,
   init,
   retryOrTimeout,
+  waitForDispatch,
 } from "./api.ts";
 import { clearEtags } from "./etags.ts";
 import { mockLoggingFunctions } from "./test-utils/logging.mock.ts";
@@ -26,6 +27,13 @@ import { getBranchName } from "./utils.ts";
 
 vi.mock("@actions/core");
 vi.mock("@actions/github");
+vi.mock("./utils.ts", async () => {
+  const actual = await vi.importActual("./utils.ts");
+  return {
+    ...actual,
+    sleep: vi.fn().mockResolvedValue(undefined),
+  };
+});
 
 interface MockResponse {
   data: any;
@@ -1045,6 +1053,185 @@ describe("API", () => {
 
       expect(result.success).toStrictEqual(false);
       expect(result.reason).toStrictEqual("timeout");
+    });
+  });
+
+  describe("waitForDispatch", () => {
+    const testConfig: ActionConfig = {
+      token: "secret",
+      ref: "/refs/heads/feature_branch",
+      repo: "repository",
+      owner: "owner",
+      workflow: "workflow_name",
+      workflowInputs: { testInput: "test" },
+      workflowTimeoutSeconds: 60,
+      workflowJobStepsRetrySeconds: 3,
+      distinctId: "test-uuid",
+      maxCompletedFetchAttempts: 3,
+      maxCompletedFetchInterval: 1,
+      propagateFailures: false,
+      waitForRunCompleted: true,
+    };
+
+    beforeEach(() => {
+      init(testConfig);
+    });
+
+    it("should complete successfully when workflow succeeds", async () => {
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          status: "completed",
+          conclusion: "success",
+        },
+      });
+
+      await expect(waitForDispatch(runId, url)).resolves.toBeUndefined();
+
+      expect(mockOctokit.rest.actions.getWorkflowRun).toHaveBeenCalledWith({
+        owner: "owner",
+        repo: "repository",
+        run_id: runId,
+      });
+    });
+
+    it("should handle failure without propagating when propagateFailures is false", async () => {
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          status: "completed",
+          conclusion: "failure",
+        },
+      });
+
+      await expect(waitForDispatch(runId, url)).resolves.toBeUndefined();
+
+      expect(mockOctokit.rest.actions.getWorkflowRun).toHaveBeenCalledWith({
+        owner: "owner",
+        repo: "repository",
+        run_id: runId,
+      });
+    });
+
+    it("should throw error when workflow fails and propagateFailures is true", async () => {
+      const testConfigWithPropagation: ActionConfig = {
+        ...testConfig,
+        propagateFailures: true,
+      };
+      init(testConfigWithPropagation);
+
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          status: "completed",
+          conclusion: "failure",
+        },
+      });
+
+      await expect(waitForDispatch(runId, url)).rejects.toThrow(
+        "Workflow run 123456 failed with conclusion: failure"
+      );
+    });
+
+    it("should handle cancelled workflow with propagateFailures true", async () => {
+      const testConfigWithPropagation: ActionConfig = {
+        ...testConfig,
+        propagateFailures: true,
+      };
+      init(testConfigWithPropagation);
+
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          status: "completed",
+          conclusion: "cancelled",
+        },
+      });
+
+      await expect(waitForDispatch(runId, url)).rejects.toThrow(
+        "Workflow run 123456 completed with conclusion: cancelled"
+      );
+    });
+
+    it("should handle non-terminal status and timeout after max attempts", async () => {
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          status: "in_progress",
+          conclusion: null,
+        },
+      });
+
+      await expect(waitForDispatch(runId, url)).resolves.toBeUndefined();
+
+      // Should be called maxCompletedFetchAttempts times (3)
+      expect(mockOctokit.rest.actions.getWorkflowRun).toHaveBeenCalledTimes(3);
+    });
+
+    it("should throw error when timeout occurs and propagateFailures is true", async () => {
+      const testConfigWithPropagation: ActionConfig = {
+        ...testConfig,
+        propagateFailures: true,
+      };
+      init(testConfigWithPropagation);
+
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          status: "in_progress",
+          conclusion: null,
+        },
+      });
+
+      await expect(waitForDispatch(runId, url)).rejects.toThrow(
+        "Workflow run 123456 did not complete after 3 attempts"
+      );
+    });
+
+    it("should handle API errors gracefully when propagateFailures is false", async () => {
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockRejectedValue(
+        new Error("API Error")
+      );
+
+      await expect(waitForDispatch(runId, url)).resolves.toBeUndefined();
+    });
+
+    it("should propagate API errors when propagateFailures is true", async () => {
+      const testConfigWithPropagation: ActionConfig = {
+        ...testConfig,
+        propagateFailures: true,
+      };
+      init(testConfigWithPropagation);
+
+      const runId = 123456;
+      const url = "https://github.com/owner/repo/actions/runs/123456";
+
+      mockOctokit.rest.actions.getWorkflowRun = vi.fn().mockRejectedValue(
+        new Error("API Error")
+      );
+
+      await expect(waitForDispatch(runId, url)).rejects.toThrow("API Error");
     });
   });
 });
