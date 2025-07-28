@@ -30,6 +30,10 @@ describe("Action", () => {
         workflow_timeout_seconds: "60",
         workflow_job_steps_retry_seconds: "3",
         distinct_id: "distinct_id",
+        wait_for_run_completed: "false",
+        max_completed_fetch_attempts: "30",
+        max_completed_fetch_interval: "10",
+        propagate_failures: "false",
       };
 
       vi.spyOn(core, "getInput").mockImplementation((input: string): string => {
@@ -53,6 +57,14 @@ describe("Action", () => {
             return mockEnvConfig.workflow_job_steps_retry_seconds;
           case "distinct_id":
             return mockEnvConfig.distinct_id;
+          case "wait_for_run_completed":
+            return mockEnvConfig.wait_for_run_completed;
+          case "max_completed_fetch_attempts":
+            return mockEnvConfig.max_completed_fetch_attempts;
+          case "max_completed_fetch_interval":
+            return mockEnvConfig.max_completed_fetch_interval;
+          case "propagate_failures":
+            return mockEnvConfig.propagate_failures;
           default:
             throw new Error("invalid input requested");
         }

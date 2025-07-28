@@ -297,3 +297,71 @@ export async function retryOrTimeout<T>(
 
   return { success: false, reason: "timeout" };
 }
+
+export async function waitForDispatch(runId: number, url: string): Promise<void> {
+  try {
+    core.info(
+      `🔗 Monitor progress at:  ${url}`,
+    );
+    for (let attempt = 0; attempt < config.maxCompletedFetchAttempts; attempt++) {
+      // Show URL reminder every 30 attempts (5 minutes)
+      if (attempt % 30 === 0 && attempt > 0) {
+        core.info(`⏱️  Still waiting... View progress: ${url}`);
+      }
+
+      const result = await octokit.rest.actions.getWorkflowRun({
+        owner: config.owner,
+        repo: config.repo,
+        run_id: runId
+      });
+
+      if (result.data.status === 'completed') {
+        const conclusion = result.data.conclusion;
+        if (conclusion === 'success') {
+          core.info(`✅ Workflow run ${runId} completed successfully.`);
+          return; // Success - exit early
+        } else if (conclusion === 'failure') {
+          core.error(`❌ Workflow run ${runId} failed.`);
+          if (config.propagateFailures) {
+            throw new Error(`Workflow run ${runId} failed with conclusion: ${conclusion}`);
+          }
+          return; // Failed but not propagating - exit early
+        } else {
+          // Other conclusions: cancelled, skipped, neutral, timed_out, action_required
+          core.warning(`⚠️  Workflow run ${runId} completed with conclusion: ${conclusion}`);
+          if (config.propagateFailures && (conclusion === 'cancelled' || conclusion === 'timed_out')) {
+            throw new Error(`Workflow run ${runId} completed with conclusion: ${conclusion}`);
+          }
+          return; // Terminal state - exit early
+        }
+      } else {
+        core.info(`⏳ Workflow run ${runId} is ${result.data.status}...`);
+      }
+
+      // Wait before next attempt (except on the last attempt)
+      if (attempt < config.maxCompletedFetchAttempts - 1) {
+        await sleep(config.maxCompletedFetchInterval * 1000);
+      }
+    }
+
+    // If we reach here, the run is still in progress after all attempts.
+    // We will error if propagateFailures is true, otherwise just log.
+    if (config.propagateFailures) {
+      throw new Error(
+        `Workflow run ${runId} did not complete after ${config.maxCompletedFetchAttempts} attempts.`,
+      );
+    }
+    core.warning(
+      `Workflow run ${runId} did not complete after ${config.maxCompletedFetchAttempts} attempts.`,
+    );
+  } catch (error) {
+    if (error instanceof Error) {
+      core.error(`waitForDispatch: ${error.message}`);
+    } else {
+      core.error(`waitForDispatch: An unexpected error occurred: ${String(error)}`);
+    }
+    if (config.propagateFailures) {
+      throw error;
+    }
+  }
+}

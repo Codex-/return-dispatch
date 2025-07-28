@@ -46,13 +46,23 @@ export async function main(): Promise<void> {
       workflowTimeoutMs: config.workflowTimeoutSeconds * 1000,
       workflowJobStepsRetryMs: config.workflowJobStepsRetrySeconds * 1000,
     });
+
+    // If we find the run id we need then determine if we need to follow the job status
+    // or just return the run id and url.
     if (result.success) {
-      handleActionSuccess(result.value.id, result.value.url);
-      core.debug(`Completed (${Date.now() - startTime}ms)`);
+      if (config.waitForRunCompleted) {
+        // Wait for the workflow run to complete
+        await api.waitForDispatch(result.value.id, result.value.url);
+      } else {
+        handleActionSuccess(result.value.id, result.value.url);
+        core.debug(`Completed (${Date.now() - startTime}ms)`);
+      }
     } else {
       handleActionFail();
       core.debug(`Timed out (${Date.now() - startTime}ms)`);
     }
+
+
   } catch (error) {
     if (error instanceof Error) {
       const failureMsg = `Failed: An unhandled error has occurred: ${error.message}`;

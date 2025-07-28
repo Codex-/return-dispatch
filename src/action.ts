@@ -4,6 +4,9 @@ import * as core from "@actions/core";
 
 const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
 const WORKFLOW_JOB_STEPS_RETRY_SECONDS = 5;
+const WORKFLOW_JOB_COMPLETE_RETRY_SECONDS: number = 10;
+const WORKFLOW_JOB_COMPLETE_CHECK_MAX_ATTEMPTS: number = 30; // 5 minutes with default 10 seconds between attempts
+const WORKFLOW_JOB_COMPLETE_CHECK_PROPAGATE_FAILURES: boolean = false;
 
 /**
  * action.yaml definition.
@@ -53,6 +56,25 @@ export interface ActionConfig {
    * Specify a static ID to use instead of a distinct ID.
    */
   distinctId: string;
+
+  /**
+   * The maximum number of attempts to fetch the completed status workflow run.
+   */
+  maxCompletedFetchAttempts: number;
+
+  /**
+   * The time to wait between attempts to fetch the completed status workflow run.
+   */
+  maxCompletedFetchInterval: number;
+
+  /**
+   * Propagate failures from downstream jobs.
+   */
+  propagateFailures: boolean;
+  /**
+   * Wait for the workflow run to complete.
+   */
+  waitForRunCompleted: boolean;
 }
 
 type ActionWorkflowInputs = Record<string, string | number | boolean>;
@@ -80,7 +102,33 @@ export function getConfig(): ActionConfig {
       WORKFLOW_JOB_STEPS_RETRY_SECONDS,
     distinctId:
       getOptionalWorkflowValue(core.getInput("distinct_id")) ?? randomUUID(),
+    waitForRunCompleted:
+      getBoolFromValue(core.getInput("wait_for_run_completed")) ?? false,
+    maxCompletedFetchAttempts:
+      getNumberFromValue(core.getInput("max_completed_fetch_attempts")) ??
+      WORKFLOW_JOB_COMPLETE_CHECK_MAX_ATTEMPTS,
+    maxCompletedFetchInterval:
+      getNumberFromValue(core.getInput("max_completed_fetch_interval")) ?? 
+      WORKFLOW_JOB_COMPLETE_RETRY_SECONDS,
+    propagateFailures:
+      getBoolFromValue(core.getInput("propagate_failures")) ??
+      WORKFLOW_JOB_COMPLETE_CHECK_PROPAGATE_FAILURES
   };
+}
+
+export function getBoolFromValue(value: string): boolean | undefined {
+  if (value === "") {
+    return undefined;
+  }
+
+  const lowerValue = value.toLowerCase();
+  if (lowerValue === "true") {
+    return true;
+  } else if (lowerValue === "false") {
+    return false;
+  }
+
+  throw new Error(`Expected value to be "true" or "false", got "${value}"`);
 }
 
 function getNumberFromValue(value: string): number | undefined {
