@@ -6,6 +6,8 @@ Dispatch an action to a foreign repository and output the newly created run ID.
 
 This Action exists as a workaround for the issue where dispatching an action to foreign repository does not return any kind of identifier.
 
+The returned run ID can be used to await the completion of the remote run using [`await-remote-run`](https://github.com/Codex-/await-remote-run).
+
 ## Usage
 
 Ensure you have configured your remote action correctly, see below for an example.
@@ -35,6 +37,14 @@ steps:
     run: |
       echo ${{steps.return_dispatch.outputs.run_id}}
       echo ${{steps.return_dispatch.outputs.run_url}}
+
+  - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
+    uses: Codex-/await-remote-run@v1
+    with:
+      token: ${{ github.token }}
+      repo: repository-name
+      owner: repository-owner
+      run_id: ${{ steps.return_dispatch.outputs.run_id }}
 ```
 
 ### Receiving Repository Action
