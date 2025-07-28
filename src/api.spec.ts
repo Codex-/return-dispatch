@@ -350,6 +350,10 @@ describe("API", () => {
       workflowTimeoutSeconds: 60,
       workflowJobStepsRetrySeconds: 3,
       distinctId: "test-uuid",
+      maxCompletedFetchAttempts: 30,
+      maxCompletedFetchInterval: 10,
+      propagateFailures: false,
+      waitForRunCompleted: false,
     };
 
     beforeEach(() => {
