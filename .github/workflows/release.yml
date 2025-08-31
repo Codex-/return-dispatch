@@ -15,7 +15,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.ACTION_GITHUB_TOKEN }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Need history for changelog generation
       - uses: jdx/mise-action@v2
