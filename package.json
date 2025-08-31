@@ -33,24 +33,24 @@
     "@actions/github": "^6.0.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.31.0",
+    "@eslint/js": "^9.34.0",
     "@octokit/types": "^14.1.0",
     "@opentf/std": "^0.13.0",
     "@total-typescript/ts-reset": "^0.6.1",
-    "@types/node": "~20.19.9",
-    "@typescript-eslint/eslint-plugin": "^8.37.0",
-    "@typescript-eslint/parser": "^8.37.0",
-    "@vitest/coverage-v8": "~3.1.4",
-    "chalk": "^5.4.1",
+    "@types/node": "~20.19.11",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "@vitest/coverage-v8": "~3.2.4",
+    "chalk": "^5.6.0",
     "changelogithub": "^13.16.0",
-    "esbuild": "^0.25.8",
-    "eslint": "^9.31.0",
+    "esbuild": "^0.25.9",
+    "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import-x": "^4.16.1",
     "prettier": "3.6.2",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.37.0",
-    "vitest": "~3.1.4"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0",
+    "vitest": "~3.2.4"
   }
 }
