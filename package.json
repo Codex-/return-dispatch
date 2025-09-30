@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
-    "@octokit/types": "^14.1.0",
+    "@octokit/types": "^15.0.0",
     "@opentf/std": "^0.13.0",
     "@total-typescript/ts-reset": "^0.6.1",
     "@types/node": "~20.19.11",
