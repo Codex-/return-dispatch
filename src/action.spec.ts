@@ -126,10 +126,10 @@ describe("Action", () => {
         .mockImplementation(() => undefined);
 
       const callAndAssert = (input: string, errorMsg: string) => {
+        debugMock.mockClear();
         mockEnvConfig.workflow_inputs = input;
         expect(() => getConfig()).toThrowError(errorMsg);
         expect(debugMock).toHaveBeenCalledOnce();
-        debugMock.mockReset();
       };
 
       callAndAssert('{"pie":{"powerLevel":9001}}', '"pie" value is object');
