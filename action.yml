@@ -39,5 +39,5 @@ inputs:
     description: Specify a static string to use instead of a random distinct ID.
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.mjs

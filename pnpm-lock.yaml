@@ -21,15 +21,12 @@ importers:
       '@octokit/types':
         specifier: 16.0.0
         version: 16.0.0
-      '@opentf/std':
-        specifier: ^0.13.0
-        version: 0.13.0
       '@total-typescript/ts-reset':
         specifier: 0.6.1
         version: 0.6.1
       '@types/node':
-        specifier: 20.19.25
-        version: 20.19.25
+        specifier: 24.10.1
+        version: 24.10.1
       '@typescript-eslint/eslint-plugin':
         specifier: 8.46.4
         version: 8.46.4(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
@@ -38,7 +35,7 @@ importers:
         version: 8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       '@vitest/coverage-v8':
         specifier: 4.0.8
-        version: 4.0.8(vitest@4.0.8(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1))
+        version: 4.0.8(vitest@4.0.8(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1))
       chalk:
         specifier: 5.6.2
         version: 5.6.2
@@ -71,7 +68,7 @@ importers:
         version: 8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       vitest:
         specifier: 4.0.8
-        version: 4.0.8(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1)
+        version: 4.0.8(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1)
 
 packages:
 
@@ -577,10 +574,6 @@ packages:
   '@octokit/types@16.0.0':
     resolution: {integrity: sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg==}
 
-  '@opentf/std@0.13.0':
-    resolution: {integrity: sha512-VG9vn7oML5prxWipDvod1X7z9+3fyyCbw+SuD5F7cWx9F1bXFZdAYGIKGqqHLtfxz3mrXZWHcxnm8d0YwQ7tKQ==}
-    engines: {node: '>=16.20.2'}
-
   '@rollup/rollup-android-arm-eabi@4.53.2':
     resolution: {integrity: sha512-yDPzwsgiFO26RJA4nZo8I+xqzh7sJTZIWQOxn+/XOdPE31lAvLIYCKqjV+lNH/vxE2L2iH3plKxDCRK6i+CwhA==}
     cpu: [arm]
@@ -719,8 +712,8 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
-  '@types/node@20.19.25':
-    resolution: {integrity: sha512-ZsJzA5thDQMSQO788d7IocwwQbI8B5OPzmqNvpf3NY/+MHDAS759Wo0gd2WQeXYt5AAAQjzcrTVC6SKCuYgoCQ==}
+  '@types/node@24.10.1':
+    resolution: {integrity: sha512-GNWcUTRBgIRJD5zj+Tq0fKOJ5XZajIiBroOF0yvj2bSU1WvNdYS/dn9UxwsujGW4JX06dnHyjV2y9rRaybH0iQ==}
 
   '@typescript-eslint/eslint-plugin@8.46.4':
     resolution: {integrity: sha512-R48VhmTJqplNyDxCyqqVkFSZIx1qX6PzwqgcXn1olLrzxcSBDlOsbtcnQuQhNtnNiJ4Xe5gREI1foajYaYU2Vg==}
@@ -1772,8 +1765,8 @@ packages:
   ufo@1.6.1:
     resolution: {integrity: sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+  undici-types@7.16.0:
+    resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
   undici@5.29.0:
     resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
@@ -2275,8 +2268,6 @@ snapshots:
     dependencies:
       '@octokit/openapi-types': 27.0.0
 
-  '@opentf/std@0.13.0': {}
-
   '@rollup/rollup-android-arm-eabi@4.53.2':
     optional: true
 
@@ -2367,9 +2358,9 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
-  '@types/node@20.19.25':
+  '@types/node@24.10.1':
     dependencies:
-      undici-types: 6.21.0
+      undici-types: 7.16.0
 
   '@typescript-eslint/eslint-plugin@8.46.4(@typescript-eslint/parser@8.46.4(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
@@ -2523,7 +2514,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vitest/coverage-v8@4.0.8(vitest@4.0.8(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1))':
+  '@vitest/coverage-v8@4.0.8(vitest@4.0.8(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1))':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.8
@@ -2536,7 +2527,7 @@ snapshots:
       magicast: 0.5.1
       std-env: 3.10.0
       tinyrainbow: 3.0.3
-      vitest: 4.0.8(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1)
+      vitest: 4.0.8(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -2549,13 +2540,13 @@ snapshots:
       chai: 6.2.1
       tinyrainbow: 3.0.3
 
-  '@vitest/mocker@4.0.8(vite@7.2.2(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1))':
+  '@vitest/mocker@4.0.8(vite@7.2.2(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1))':
     dependencies:
       '@vitest/spy': 4.0.8
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.2.2(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1)
+      vite: 7.2.2(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1)
 
   '@vitest/pretty-format@4.0.8':
     dependencies:
@@ -3506,7 +3497,7 @@ snapshots:
 
   ufo@1.6.1: {}
 
-  undici-types@6.21.0: {}
+  undici-types@7.16.0: {}
 
   undici@5.29.0:
     dependencies:
@@ -3544,7 +3535,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  vite@7.2.2(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1):
+  vite@7.2.2(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1):
     dependencies:
       esbuild: 0.25.10
       fdir: 6.5.0(picomatch@4.0.3)
@@ -3553,15 +3544,15 @@ snapshots:
       rollup: 4.53.2
       tinyglobby: 0.2.15
     optionalDependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
       fsevents: 2.3.3
       jiti: 2.6.1
       yaml: 2.8.1
 
-  vitest@4.0.8(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1):
+  vitest@4.0.8(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1):
     dependencies:
       '@vitest/expect': 4.0.8
-      '@vitest/mocker': 4.0.8(vite@7.2.2(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1))
+      '@vitest/mocker': 4.0.8(vite@7.2.2(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1))
       '@vitest/pretty-format': 4.0.8
       '@vitest/runner': 4.0.8
       '@vitest/snapshot': 4.0.8
@@ -3578,10 +3569,10 @@ snapshots:
       tinyexec: 0.3.2
       tinyglobby: 0.2.15
       tinyrainbow: 3.0.3
-      vite: 7.2.2(@types/node@20.19.25)(jiti@2.6.1)(yaml@2.8.1)
+      vite: 7.2.2(@types/node@24.10.1)(jiti@2.6.1)(yaml@2.8.1)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
     transitivePeerDependencies:
       - jiti
       - less

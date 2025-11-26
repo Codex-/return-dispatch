@@ -1,8 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es2023",
+    "target": "es2024",
     "module": "nodenext",
     "noEmit": true,
+
+    "lib": [
+      "es2024",
+      "ESNext.Array",
+      "ESNext.Collection",
+      "ESNext.Iterator",
+      "ESNext.Promise"
+    ],
 
     "outDir": "lib",
     "rootDir": "src",
