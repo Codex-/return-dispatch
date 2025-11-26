@@ -3,7 +3,6 @@
   "extends": ["config:recommended", "group:allNonMajor", "schedule:monthly"],
   "timezone": "Pacific/Auckland",
   "labels": ["dependencies"],
-  "rangeStrategy": "bump",
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,

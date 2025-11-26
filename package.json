@@ -29,28 +29,28 @@
   "author": "Alex Miller",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1"
+    "@actions/core": "1.11.1",
+    "@actions/github": "6.0.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@octokit/types": "^16.0.0",
+    "@eslint/js": "9.39.1",
+    "@octokit/types": "16.0.0",
     "@opentf/std": "^0.13.0",
-    "@total-typescript/ts-reset": "^0.6.1",
-    "@types/node": "~20.19.25",
-    "@typescript-eslint/eslint-plugin": "^8.46.4",
-    "@typescript-eslint/parser": "^8.46.4",
-    "@vitest/coverage-v8": "^4.0.8",
-    "chalk": "^5.6.2",
-    "changelogithub": "^13.16.1",
-    "esbuild": "^0.27.0",
-    "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-import-resolver-typescript": "^4.4.4",
-    "eslint-plugin-import-x": "^4.16.1",
+    "@total-typescript/ts-reset": "0.6.1",
+    "@types/node": "20.19.25",
+    "@typescript-eslint/eslint-plugin": "8.46.4",
+    "@typescript-eslint/parser": "8.46.4",
+    "@vitest/coverage-v8": "4.0.8",
+    "chalk": "5.6.2",
+    "changelogithub": "13.16.1",
+    "esbuild": "0.27.0",
+    "eslint": "9.39.1",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-plugin-import-x": "4.16.1",
     "prettier": "3.6.2",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.4",
-    "vitest": "^4.0.8"
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.4",
+    "vitest": "4.0.8"
   }
 }
