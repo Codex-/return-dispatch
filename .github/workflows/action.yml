@@ -9,7 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set target branch
         run: echo "TARGET_BRANCH=${{ github.ref }}" >> $GITHUB_ENV
       - name: Set target branch for PR event
