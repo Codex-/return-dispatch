@@ -145,7 +145,7 @@ describe("API", () => {
       `);
     });
 
-    it("should throw if a non-204 status is returned", async () => {
+    it("should throw if a non-200 or non-204 status is returned", async () => {
       const errorStatus = 401;
       vi.spyOn(
         mockOctokit.rest.actions,
@@ -160,52 +160,53 @@ describe("API", () => {
 
       // Behaviour
       await expect(dispatchWorkflow("")).rejects.toThrow(
-        `Failed to dispatch action, expected 204 but received ${errorStatus}`,
+        `Failed to dispatch action, expected 200 or 204 but received ${errorStatus}`,
       );
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock).toHaveBeenCalledOnce();
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"dispatchWorkflow: An unexpected error has occurred: Failed to dispatch action, expected 204 but received 401"`,
+        `"dispatchWorkflow: An unexpected error has occurred: Failed to dispatch action, expected 200 or 204 but received 401"`,
       );
       expect(coreDebugLogMock).toHaveBeenCalledOnce();
     });
 
-    it("should dispatch with a distinctId in the inputs", async () => {
-      const distinctId = "50b4f5fa-f9ce-4661-80e6-6d660a4a3a0d";
-      let dispatchedId: string | undefined;
-      vi.spyOn(
-        mockOctokit.rest.actions,
-        "createWorkflowDispatch",
-      ).mockImplementation((req?: any) => {
-        dispatchedId = req.inputs.distinct_id;
+    it.each([200, 204])(
+      "should dispatch with a distinctId in the inputs and handle a %d response",
+      async (statusCode) => {
+        const distinctId = "50b4f5fa-f9ce-4661-80e6-6d660a4a3a0d";
+        let dispatchedId: string | undefined;
+        vi.spyOn(
+          mockOctokit.rest.actions,
+          "createWorkflowDispatch",
+        ).mockImplementation((req?: any) => {
+          dispatchedId = req.inputs.distinct_id;
 
-        return Promise.resolve({
-          data: undefined,
-          status: 204,
-          headers: {},
+          return Promise.resolve({
+            data: undefined,
+            status: statusCode,
+            headers: {},
+          });
         });
-      });
 
-      // Behaviour
-      await expect(dispatchWorkflow(distinctId)).resolves.not.toThrow();
-      expect(dispatchedId).toStrictEqual(distinctId);
+        // Behaviour
+        await expect(dispatchWorkflow(distinctId)).resolves.not.toThrow();
+        expect(dispatchedId).toStrictEqual(distinctId);
 
-      // Logging
-      assertOnlyCalled(coreInfoLogMock);
-      expect(coreInfoLogMock).toHaveBeenCalledOnce();
-      expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `
-        "Successfully dispatched workflow:
-          Repository: owner/repo
-          Branch: ref
-          Workflow: workflow
-          Workflow Inputs: {"testInput":"test"}
-          Distinct ID: 50b4f5fa-f9ce-4661-80e6-6d660a4a3a0d"
-      `,
-      );
-    });
+        // Logging
+        assertOnlyCalled(coreInfoLogMock);
+        expect(coreInfoLogMock).toHaveBeenCalledOnce();
+        expect(coreInfoLogMock.mock.calls[0]?.[0]).toMatch(
+          "Successfully dispatched workflow:\n" +
+            "  Repository: owner/repo\n" +
+            "  Branch: ref\n" +
+            "  Workflow: workflow\n" +
+            '  Workflow Inputs: {"testInput":"test"}\n' +
+            "  Distinct ID: 50b4f5fa-f9ce-4661-80e6-6d660a4a3a0d",
+        );
+      },
+    );
   });
 
   describe("fetchWorkflowId", () => {
