@@ -33,23 +33,23 @@
     "@actions/github": "6.0.1"
   },
   "devDependencies": {
-    "@eslint/js": "9.39.1",
+    "@eslint/js": "9.39.2",
     "@octokit/types": "16.0.0",
     "@total-typescript/ts-reset": "0.6.1",
-    "@types/node": "24.10.1",
-    "@typescript-eslint/eslint-plugin": "8.48.0",
-    "@typescript-eslint/parser": "8.48.0",
-    "@vitest/coverage-v8": "4.0.14",
+    "@types/node": "24.10.4",
+    "@typescript-eslint/eslint-plugin": "8.50.0",
+    "@typescript-eslint/parser": "8.50.0",
+    "@vitest/coverage-v8": "4.0.16",
     "chalk": "5.6.2",
     "changelogithub": "14.0.0",
-    "esbuild": "0.27.0",
-    "eslint": "9.39.1",
+    "esbuild": "0.27.2",
+    "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-import-x": "4.16.1",
-    "prettier": "3.7.3",
+    "prettier": "3.7.4",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.48.0",
-    "vitest": "4.0.14"
+    "typescript-eslint": "8.50.0",
+    "vitest": "4.0.16"
   }
 }
