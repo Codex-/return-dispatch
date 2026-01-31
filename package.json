@@ -29,17 +29,17 @@
   "author": "Alex Miller",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "2.0.1",
+    "@actions/core": "2.0.3",
     "@actions/github": "6.0.1"
   },
   "devDependencies": {
     "@eslint/js": "9.39.2",
     "@octokit/types": "16.0.0",
     "@total-typescript/ts-reset": "0.6.1",
-    "@types/node": "24.10.4",
-    "@typescript-eslint/eslint-plugin": "8.50.0",
-    "@typescript-eslint/parser": "8.50.0",
-    "@vitest/coverage-v8": "4.0.16",
+    "@types/node": "24.10.9",
+    "@typescript-eslint/eslint-plugin": "8.54.0",
+    "@typescript-eslint/parser": "8.54.0",
+    "@vitest/coverage-v8": "4.0.18",
     "chalk": "5.6.2",
     "changelogithub": "14.0.0",
     "esbuild": "0.27.2",
@@ -47,9 +47,9 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-import-x": "4.16.1",
-    "prettier": "3.7.4",
+    "prettier": "3.8.1",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.50.0",
-    "vitest": "4.0.16"
+    "typescript-eslint": "8.54.0",
+    "vitest": "4.0.18"
   }
 }
