@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
       - run: pnpm i
       - name: build
         run: pnpm run build:types
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
       - run: pnpm i
       - name: test
         run: pnpm run test:coverage
