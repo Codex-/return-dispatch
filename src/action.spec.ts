@@ -110,14 +110,14 @@ describe("Action", () => {
     it("should throw if invalid workflow inputs JSON is provided", () => {
       mockEnvConfig.workflow_inputs = "{";
 
-      expect(() => getConfig()).toThrowError();
+      expect(() => getConfig()).toThrow(Error);
     });
 
     it("should handle workflow inputs JSON containing strings numbers or booleans", () => {
       mockEnvConfig.workflow_inputs =
         '{"cake":"delicious","pie":9001,"parfait":false}';
 
-      expect(() => getConfig()).not.toThrowError();
+      expect(() => getConfig()).not.toThrow(Error);
     });
 
     it("should throw if a workflow inputs JSON doesn't contain strings numbers or booleans", () => {
@@ -128,7 +128,7 @@ describe("Action", () => {
       const callAndAssert = (input: string, errorMsg: string) => {
         debugMock.mockClear();
         mockEnvConfig.workflow_inputs = input;
-        expect(() => getConfig()).toThrowError(errorMsg);
+        expect(() => getConfig()).toThrow(errorMsg);
         expect(debugMock).toHaveBeenCalledOnce();
       };
 

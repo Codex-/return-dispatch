@@ -102,7 +102,7 @@ describe("return-dispatch", () => {
       const workflowIdPromise = getWorkflowId("hello.yml");
 
       // Behaviour
-      await expect(workflowIdPromise).rejects.toThrowError();
+      await expect(workflowIdPromise).rejects.toThrow(Error);
 
       // Logging
       assertOnlyCalled(coreInfoLogMock);
@@ -378,7 +378,7 @@ describe("return-dispatch", () => {
 
       await expect(() =>
         attemptToFindRunId(new RegExp(testId), [0]),
-      ).rejects.toThrowError(unhandledError);
+      ).rejects.toThrow(unhandledError);
 
       // Behaviour
       expect(getWorkflowRunJobStepMock).toHaveBeenCalledOnce();
