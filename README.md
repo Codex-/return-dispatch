@@ -64,8 +64,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: echo distinct ID ${{ github.event.inputs.distinct_id }}
-        run: echo ${{ github.event.inputs.distinct_id }}
+      - name: echo distinct ID ${{ inputs.distinct_id }}
+        run: echo "${DISTINCT_ID}"
+        env:
+          DISTINCT_ID: ${{ inputs.distinct_id }}
 ```
 
 ## Token
