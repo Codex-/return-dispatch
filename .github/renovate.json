@@ -22,7 +22,7 @@
     }
   ],
   "vulnerabilityAlerts": {
-    "labels": ["security"],
+    "labels": ["dependencies", "security"],
     "automerge": true
   }
 }
