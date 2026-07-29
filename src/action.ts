@@ -1,9 +1,4 @@
-import { randomUUID } from "node:crypto";
-
 import * as core from "@actions/core";
-
-const WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
-const WORKFLOW_JOB_STEPS_RETRY_SECONDS = 5;
 
 /**
  * action.yaml definition.
@@ -38,21 +33,6 @@ export interface ActionConfig {
    * A flat JSON object, only supports strings (as per workflow inputs API).
    */
   workflowInputs?: ActionWorkflowInputs;
-
-  /**
-   * Time until giving up on identifying the Run ID.
-   */
-  workflowTimeoutSeconds: number;
-
-  /**
-   * Time in retries for identifying the Run ID.
-   */
-  workflowJobStepsRetrySeconds: number;
-
-  /**
-   * Specify a static ID to use instead of a distinct ID.
-   */
-  distinctId: string;
 }
 
 type ActionWorkflowInputs = Record<string, string | number | boolean>;
@@ -72,14 +52,6 @@ export function getConfig(): ActionConfig {
       core.getInput("workflow", { required: true }),
     ),
     workflowInputs: getWorkflowInputs(core.getInput("workflow_inputs")),
-    workflowTimeoutSeconds:
-      getNumberFromValue(core.getInput("workflow_timeout_seconds")) ??
-      WORKFLOW_TIMEOUT_SECONDS,
-    workflowJobStepsRetrySeconds:
-      getNumberFromValue(core.getInput("workflow_job_steps_retry_seconds")) ??
-      WORKFLOW_JOB_STEPS_RETRY_SECONDS,
-    distinctId:
-      getOptionalWorkflowValue(core.getInput("distinct_id")) ?? randomUUID(),
   };
 }
 
@@ -140,14 +112,4 @@ function tryGetWorkflowAsNumber(workflowInput: string): string | number {
     // Assume using a workflow name instead of an ID.
     return workflowInput;
   }
-}
-
-/**
- * We want empty strings to simply be undefined.
- *
- * While simple, make it very clear that the usage of `||`
- * is intentional here.
- */
-function getOptionalWorkflowValue(workflowInput: string): string | undefined {
-  return workflowInput || undefined;
 }
