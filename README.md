@@ -56,6 +56,7 @@ One of the following, depending on the token type:
 - [Create a workflow dispatch event](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event)
   - POST `/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`
   - Sent with `return_run_details: true`, so the response carries the new run's ID and URL
+  - Requires github.com or GitHub Enterprise Server 3.21+, older servers cannot return the run details
 
 For more information please see [api.ts](./src/api.ts).
 
