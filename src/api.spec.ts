@@ -143,6 +143,48 @@ describe("API", () => {
       );
     });
 
+    it("should restate the server requirement for a 400 rejecting the unknown field", async () => {
+      // Servers predating `return_run_details` reject it outright rather than
+      // ignoring it, so the empty 204 path is never reached.
+      const requestError = Object.assign(
+        new Error('Unknown request body field: "return_run_details"'),
+        { status: 400 },
+      );
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "createWorkflowDispatch",
+      ).mockRejectedValue(requestError);
+
+      // Behaviour
+      await expect(dispatchWorkflow()).rejects.toThrow(
+        "Dispatch did not return the run details, this action requires github.com or GHES >=3.21",
+      );
+      // The original message is retained for diagnosis
+      await expect(dispatchWorkflow()).rejects.toThrow(
+        'Unknown request body field: "return_run_details"',
+      );
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+    });
+
+    it("should not restate the server requirement for other failures", async () => {
+      const requestError = Object.assign(new Error("No ref found"), {
+        status: 422,
+      });
+      vi.spyOn(
+        mockOctokit.rest.actions,
+        "createWorkflowDispatch",
+      ).mockRejectedValue(requestError);
+
+      // Behaviour
+      await expect(dispatchWorkflow()).rejects.toThrow("No ref found");
+      await expect(dispatchWorkflow()).rejects.not.toThrow("GHES");
+
+      // Logging
+      assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
+    });
+
     it.each([
       ["an empty body", {}],
       ["a body missing the run ID", { html_url: "https://github.com" }],

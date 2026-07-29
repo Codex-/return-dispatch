@@ -57,6 +57,30 @@ function readDispatchedRun(data: unknown): DispatchedWorkflowRun | undefined {
  * Throws if the server does not report the run details, which requires
  * github.com or GitHub Enterprise Server 3.21 or newer.
  */
+const RUN_DETAILS_UNSUPPORTED =
+  "Dispatch did not return the run details, this action requires github.com or GHES >=3.21";
+
+/**
+ * Servers predating `return_run_details` reject the unknown field with a 400
+ * rather than ignoring it, so the empty 204 path is never reached on them.
+ * Restate the requirement, keeping the original message for diagnosis.
+ *
+ * https://github.com/cli/cli/issues/12672
+ */
+function asUnsupportedRunDetailsError(error: unknown): Error | undefined {
+  if (!(error instanceof Error) || !("status" in error)) {
+    return undefined;
+  }
+
+  if (error.status !== 400) {
+    return undefined;
+  }
+
+  return new Error(`${RUN_DETAILS_UNSUPPORTED} (${error.message})`, {
+    cause: error,
+  });
+}
+
 export async function dispatchWorkflow(): Promise<DispatchedWorkflowRun> {
   try {
     // https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event
@@ -79,13 +103,9 @@ export async function dispatchWorkflow(): Promise<DispatchedWorkflowRun> {
       );
     }
 
-    // Servers that do not support `return_run_details` ignore it and respond
-    // with an empty 204.
     const dispatchedRun = readDispatchedRun(response.data);
     if (dispatchedRun === undefined) {
-      throw new Error(
-        "Dispatch did not return the run details, this action requires github.com or GHES >=3.21",
-      );
+      throw new Error(RUN_DETAILS_UNSUPPORTED);
     }
 
     core.info(
@@ -102,12 +122,13 @@ export async function dispatchWorkflow(): Promise<DispatchedWorkflowRun> {
 
     return dispatchedRun;
   } catch (error) {
-    if (error instanceof Error) {
+    const reportedError = asUnsupportedRunDetailsError(error) ?? error;
+    if (reportedError instanceof Error) {
       core.error(
-        `dispatchWorkflow: An unexpected error has occurred: ${error.message}`,
+        `dispatchWorkflow: An unexpected error has occurred: ${reportedError.message}`,
       );
-      core.debug(error.stack ?? "");
+      core.debug(reportedError.stack ?? "");
     }
-    throw error;
+    throw reportedError;
   }
 }
