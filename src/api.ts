@@ -51,12 +51,6 @@ function readDispatchedRun(data: unknown): DispatchedWorkflowRun | undefined {
   return { id, url };
 }
 
-/**
- * Dispatch the workflow and return the run that it created.
- *
- * Throws if the server does not report the run details, which requires
- * github.com or GitHub Enterprise Server 3.21 or newer.
- */
 const RUN_DETAILS_UNSUPPORTED =
   "Dispatch did not return the run details, this action requires github.com or GHES >=3.21";
 
@@ -64,6 +58,9 @@ const RUN_DETAILS_UNSUPPORTED =
  * Servers predating `return_run_details` reject the unknown field with a 400
  * rather than ignoring it, so the empty 204 path is never reached on them.
  * Restate the requirement, keeping the original message for diagnosis.
+ *
+ * Matching on the status alone is deliberate. The 400 message shape is
+ * undocumented and may differ between GHES versions.
  *
  * https://github.com/cli/cli/issues/12672
  */
@@ -81,6 +78,12 @@ function asUnsupportedRunDetailsError(error: unknown): Error | undefined {
   });
 }
 
+/**
+ * Dispatch the workflow and return the run that it created.
+ *
+ * Throws if the server does not report the run details, which requires
+ * github.com or GitHub Enterprise Server 3.21 or newer.
+ */
 export async function dispatchWorkflow(): Promise<DispatchedWorkflowRun> {
   try {
     // https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event
@@ -105,7 +108,10 @@ export async function dispatchWorkflow(): Promise<DispatchedWorkflowRun> {
 
     const dispatchedRun = readDispatchedRun(response.data);
     if (dispatchedRun === undefined) {
-      throw new Error(RUN_DETAILS_UNSUPPORTED);
+      // Unlike the 400 path, the dispatch itself has succeeded here.
+      throw new Error(
+        `${RUN_DETAILS_UNSUPPORTED}. The workflow was dispatched but its run cannot be identified`,
+      );
     }
 
     core.info(

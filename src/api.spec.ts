@@ -135,11 +135,15 @@ describe("API", () => {
       await expect(dispatchWorkflow()).rejects.toThrow(
         "Dispatch did not return the run details, this action requires github.com or GHES >=3.21",
       );
+      // A 204 means the dispatch itself succeeded, which the error must convey
+      await expect(dispatchWorkflow()).rejects.toThrow(
+        "The workflow was dispatched but its run cannot be identified",
+      );
 
       // Logging
       assertOnlyCalled(coreErrorLogMock, coreDebugLogMock);
       expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-        `"dispatchWorkflow: An unexpected error has occurred: Dispatch did not return the run details, this action requires github.com or GHES >=3.21"`,
+        `"dispatchWorkflow: An unexpected error has occurred: Dispatch did not return the run details, this action requires github.com or GHES >=3.21. The workflow was dispatched but its run cannot be identified"`,
       );
     });
 

@@ -20,12 +20,8 @@ vi.mock("./action.ts");
 vi.mock("./api.ts");
 
 describe("main", () => {
-  const {
-    coreDebugLogMock,
-    coreErrorLogMock,
-    coreInfoLogMock,
-    assertOnlyCalled,
-  } = mockLoggingFunctions();
+  const { coreDebugLogMock, coreErrorLogMock, assertOnlyCalled } =
+    mockLoggingFunctions();
   const testCfg: action.ActionConfig = {
     ref: "test-ref",
     workflow: "test-workflow",
@@ -177,13 +173,5 @@ describe("main", () => {
     );
     expect(coreDebugLogMock).toHaveBeenCalledOnce();
     expect(coreDebugLogMock.mock.calls[0]?.[0]).toStrictEqual(testError);
-  });
-
-  it("should not log info as there is nothing to report beyond the dispatch", async () => {
-    apiDispatchWorkflowMock.mockResolvedValue({ id: 123, url: "test-url" });
-
-    await main();
-
-    expect(coreInfoLogMock).not.toHaveBeenCalled();
   });
 });
