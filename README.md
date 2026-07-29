@@ -14,7 +14,7 @@ event and declare any inputs you pass via `workflow_inputs`.
 ```yaml
 steps:
   - name: Dispatch an action and get the run ID and URL
-    uses: codex-/return-dispatch@v2
+    uses: codex-/return-dispatch@v4
     id: return_dispatch
     with:
       token: ${{ secrets.TOKEN }} # Note this is NOT GITHUB_TOKEN but a PAT
@@ -30,7 +30,7 @@ steps:
       echo ${{steps.return_dispatch.outputs.run_url}}
 
   - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
-    uses: Codex-/await-remote-run@v1
+    uses: Codex-/await-remote-run@v2
     with:
       token: ${{ github.token }}
       repo: repository-name
