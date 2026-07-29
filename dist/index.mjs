@@ -20146,17 +20146,11 @@ function debug(message) {
 function error(message, properties = {}) {
   issueCommand("error", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
 }
-function warning(message, properties = {}) {
-  issueCommand("warning", toCommandProperties(properties), message instanceof Error ? message.toString() : message);
-}
 function info(message) {
   process.stdout.write(message + os4.EOL);
 }
 
 // src/action.ts
-import { randomUUID as randomUUID2 } from "node:crypto";
-var WORKFLOW_TIMEOUT_SECONDS = 5 * 60;
-var WORKFLOW_JOB_STEPS_RETRY_SECONDS = 5;
 function getConfig() {
   return {
     token: getInput("token", { required: true }),
@@ -20166,10 +20160,7 @@ function getConfig() {
     workflow: tryGetWorkflowAsNumber(
       getInput("workflow", { required: true })
     ),
-    workflowInputs: getWorkflowInputs(getInput("workflow_inputs")),
-    workflowTimeoutSeconds: getNumberFromValue(getInput("workflow_timeout_seconds")) ?? WORKFLOW_TIMEOUT_SECONDS,
-    workflowJobStepsRetrySeconds: getNumberFromValue(getInput("workflow_job_steps_retry_seconds")) ?? WORKFLOW_JOB_STEPS_RETRY_SECONDS,
-    distinctId: getOptionalWorkflowValue(getInput("distinct_id")) ?? randomUUID2()
+    workflowInputs: getWorkflowInputs(getInput("workflow_inputs"))
   };
 }
 function getNumberFromValue(value) {
@@ -20216,9 +20207,6 @@ function tryGetWorkflowAsNumber(workflowInput) {
   } catch {
     return workflowInput;
   }
-}
-function getOptionalWorkflowValue(workflowInput) {
-  return workflowInput || void 0;
 }
 
 // node_modules/.pnpm/@actions+github@9.1.1/node_modules/@actions/github/lib/context.js
@@ -23967,93 +23955,6 @@ function getOctokit(token, options, ...additionalPlugins) {
   return new GitHubWithPlugins(getOctokitOptions(token, options));
 }
 
-// src/etags.ts
-var etagStore = /* @__PURE__ */ new Map();
-async function withEtag(endpoint2, params, requester) {
-  const { etag, savedResponse } = getEtag(endpoint2, params) ?? {};
-  const paramsWithEtag = { ...params };
-  if (etag)
-    paramsWithEtag.headers = {
-      "If-None-Match": etag,
-      ...params.headers ?? {}
-    };
-  const response = await requester(paramsWithEtag);
-  if (response.status === 304 && etag && etag === extractEtag(response) && savedResponse !== void 0) {
-    return savedResponse;
-  }
-  rememberEtag(endpoint2, params, response);
-  return response;
-}
-function extractEtag(response) {
-  if ("string" !== typeof response.headers.etag) return;
-  return response.headers.etag.split('"')[1] ?? "";
-}
-function getEtag(endpoint2, params) {
-  return etagStore.get(JSON.stringify({ endpoint: endpoint2, params }));
-}
-function rememberEtag(endpoint2, params, response) {
-  const etag = extractEtag(response);
-  if (!etag) return;
-  etagStore.set(JSON.stringify({ endpoint: endpoint2, params }), {
-    etag,
-    savedResponse: response
-  });
-}
-
-// src/utils.ts
-function getBranchNameFromRef(ref) {
-  const refItems = ref.split(/\/?refs\/heads\//);
-  if (refItems.length > 1 && (refItems[1]?.length ?? 0) > 0) {
-    return refItems[1];
-  }
-}
-function isTagRef(ref) {
-  return new RegExp(/\/?refs\/tags\//).test(ref);
-}
-function getBranchName(ref) {
-  if (isTagRef(ref)) {
-    debug(`Unable to filter branch, unsupported ref: ${ref}`);
-    return { isTag: true, ref };
-  }
-  const branch = getBranchNameFromRef(ref);
-  if (branch) {
-    debug(`getBranchNameFromRef: Filtered branch name: ${ref}`);
-  } else {
-    debug(
-      `getBranchName: failed to get branch for ref: ${ref}, please raise an issue with this git ref.`
-    );
-  }
-  return { branchName: branch, isTag: false, ref };
-}
-function logInfoForBranchNameResult(branch, ref) {
-  if (branch.isTag) {
-    info(`Tag found for '${ref}', branch filtering will not be used`);
-  } else if (branch.branchName) {
-    info(`Branch found for '${ref}': ${branch.branchName}`);
-  } else {
-    info(
-      `Branch not found for '${ref}', branch filtering will not be used`
-    );
-  }
-}
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
-var reHasRegExpChar = RegExp(reRegExpChar.source);
-function escapeRegExp(str) {
-  return reHasRegExpChar.test(str) ? str.replace(reRegExpChar, "\\$&") : str || "";
-}
-function createDistinctIdRegex(distinctId) {
-  const escapedDistinctId = escapeRegExp(distinctId);
-  if (distinctId !== escapedDistinctId) {
-    warning(
-      `Unescaped characters found in distinctId input, using: ${escapedDistinctId}`
-    );
-  }
-  return new RegExp(escapedDistinctId);
-}
-
 // src/api.ts
 var config;
 var octokit;
@@ -24061,21 +23962,50 @@ function init(cfg) {
   config = cfg ?? getConfig();
   octokit = getOctokit(config.token);
 }
-async function dispatchWorkflow(distinctId) {
+function readDispatchedRun(data) {
+  if (typeof data !== "object" || data === null) {
+    return void 0;
+  }
+  const { workflow_run_id: id, html_url: url } = data;
+  if (typeof id !== "number" || typeof url !== "string") {
+    return void 0;
+  }
+  return { id, url };
+}
+var RUN_DETAILS_UNSUPPORTED = "Dispatch did not return the run details, this action requires github.com or GHES >=3.21";
+function asUnsupportedRunDetailsError(error2) {
+  if (!(error2 instanceof Error) || !("status" in error2)) {
+    return void 0;
+  }
+  if (error2.status !== 400) {
+    return void 0;
+  }
+  return new Error(`${RUN_DETAILS_UNSUPPORTED} (${error2.message})`, {
+    cause: error2
+  });
+}
+async function dispatchWorkflow() {
   try {
     const response = await octokit.rest.actions.createWorkflowDispatch({
       owner: config.owner,
       repo: config.repo,
       workflow_id: config.workflow,
       ref: config.ref,
-      inputs: {
-        ...config.workflowInputs ?? void 0,
-        distinct_id: distinctId
-      }
+      inputs: config.workflowInputs,
+      // The docs omit `return_run_details`. It is specified only in the OpenAPI
+      // description, which is what conditions the 200 and 204 responses on it.
+      // see: https://github.com/github/rest-api-description/tree/main/descriptions/api.github.com
+      return_run_details: true
     });
     if (!(response.status == 204 || response.status == 200)) {
       throw new Error(
         `Failed to dispatch action, expected 200 or 204 but received ${response.status}`
+      );
+    }
+    const dispatchedRun = readDispatchedRun(response.data);
+    if (dispatchedRun === void 0) {
+      throw new Error(
+        `${RUN_DETAILS_UNSUPPORTED}. The workflow was dispatched but its run cannot be identified`
       );
     }
     info(
@@ -24084,347 +24014,20 @@ async function dispatchWorkflow(distinctId) {
   Branch: ${config.ref}
   Workflow: ${config.workflow}
 ` + (config.workflowInputs ? `  Workflow Inputs: ${JSON.stringify(config.workflowInputs)}
-` : ``) + `  Distinct ID: ${distinctId}`
+` : ``) + `  Run ID: ${dispatchedRun.id}
+  Run URL: ${dispatchedRun.url}`
     );
+    return dispatchedRun;
   } catch (error2) {
-    if (error2 instanceof Error) {
+    const reportedError = asUnsupportedRunDetailsError(error2) ?? error2;
+    if (reportedError instanceof Error) {
       error(
-        `dispatchWorkflow: An unexpected error has occurred: ${error2.message}`
+        `dispatchWorkflow: An unexpected error has occurred: ${reportedError.message}`
       );
-      debug(error2.stack ?? "");
+      debug(reportedError.stack ?? "");
     }
-    throw error2;
+    throw reportedError;
   }
-}
-async function fetchWorkflowId(workflowFilename) {
-  try {
-    const sanitisedFilename = workflowFilename.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").trim();
-    const filenameRegex = new RegExp(`/${sanitisedFilename}`);
-    const workflowIterator = octokit.paginate.iterator(
-      octokit.rest.actions.listRepoWorkflows,
-      {
-        owner: config.owner,
-        repo: config.repo
-      }
-    );
-    let workflowId;
-    let workflowIdUrl;
-    for await (const response of workflowIterator) {
-      if (response.status !== 200) {
-        throw new Error(
-          `Failed to fetch workflows, expected 200 but received ${response.status}`
-        );
-      }
-      const workflowData = response.data.find(
-        (workflow) => filenameRegex.test(workflow.path)
-      );
-      workflowId = workflowData?.id;
-      if (workflowId !== void 0) {
-        workflowIdUrl = workflowData?.html_url;
-        break;
-      }
-    }
-    if (workflowId === void 0) {
-      throw new Error(`Unable to find ID for Workflow: ${workflowFilename}`);
-    }
-    info(
-      `Fetched Workflow ID:
-  Repository: ${config.owner}/${config.repo}
-  Workflow ID: '${workflowId}'
-  Input Filename: '${workflowFilename}'
-  Sanitised Filename: '${sanitisedFilename}'
-  URL: ${workflowIdUrl}`
-    );
-    return workflowId;
-  } catch (error2) {
-    if (error2 instanceof Error) {
-      error(
-        `fetchWorkflowId: An unexpected error has occurred: ${error2.message}`
-      );
-      debug(error2.stack ?? "");
-    }
-    throw error2;
-  }
-}
-async function fetchWorkflowRunUrl(runId) {
-  try {
-    const response = await octokit.rest.actions.getWorkflowRun({
-      owner: config.owner,
-      repo: config.repo,
-      run_id: runId
-    });
-    if (response.status !== 200) {
-      throw new Error(
-        `Failed to fetch Workflow Run state, expected 200 but received ${response.status}`
-      );
-    }
-    debug(
-      `Fetched Run:
-  Repository: ${config.owner}/${config.repo}
-  Run ID: ${runId}
-  URL: ${response.data.html_url}`
-    );
-    return response.data.html_url;
-  } catch (error2) {
-    if (error2 instanceof Error) {
-      error(
-        `fetchWorkflowRunUrl: An unexpected error has occurred: ${error2.message}`
-      );
-      debug(error2.stack ?? "");
-    }
-    throw error2;
-  }
-}
-async function fetchWorkflowRunIds(workflowId, branch, startTimeISO) {
-  try {
-    const useBranchFilter = !branch.isTag && branch.branchName !== void 0 && branch.branchName !== "";
-    const createdFrom = `>=${startTimeISO}`;
-    const response = await withEtag(
-      "listWorkflowRuns",
-      {
-        owner: config.owner,
-        repo: config.repo,
-        workflow_id: workflowId,
-        created: createdFrom,
-        event: "workflow_dispatch",
-        ...useBranchFilter ? {
-          branch: branch.branchName,
-          per_page: 10
-        } : {
-          per_page: 20
-        }
-      },
-      async (params) => {
-        return await octokit.rest.actions.listWorkflowRuns(params);
-      }
-    );
-    if (response.status !== 200) {
-      throw new Error(
-        `Failed to fetch Workflow runs, expected 200 but received ${response.status}`
-      );
-    }
-    const runIds = response.data.workflow_runs.map(
-      (workflowRun) => workflowRun.id
-    );
-    const branchMsg = useBranchFilter ? `true (${branch.branchName})` : `false (${branch.ref})`;
-    debug(
-      `Fetched Workflow Runs:
-  Repository: ${config.owner}/${config.repo}
-  Branch Filter: ${branchMsg}
-  Workflow ID: ${workflowId}
-  Created: ${createdFrom}
-  Runs Fetched: [${runIds.join(", ")}]`
-    );
-    return runIds;
-  } catch (error2) {
-    if (error2 instanceof Error) {
-      error(
-        `fetchWorkflowRunIds: An unexpected error has occurred: ${error2.message}`
-      );
-      debug(error2.stack ?? "");
-    }
-    throw error2;
-  }
-}
-async function fetchWorkflowRunJobSteps(runId) {
-  try {
-    const response = await withEtag(
-      "listJobsForWorkflowRun",
-      {
-        owner: config.owner,
-        repo: config.repo,
-        run_id: runId,
-        filter: "latest"
-      },
-      async (params) => {
-        return await octokit.rest.actions.listJobsForWorkflowRun(params);
-      }
-    );
-    if (response.status !== 200) {
-      throw new Error(
-        `Failed to fetch Workflow Run Jobs, expected 200 but received ${response.status}`
-      );
-    }
-    const jobs = response.data.jobs.map((job) => ({
-      id: job.id,
-      steps: job.steps?.map((step) => step.name) ?? []
-    }));
-    const steps = Array.from(new Set(jobs.flatMap((job) => job.steps)));
-    debug(
-      `Fetched Workflow Run Job Steps:
-  Repository: ${config.owner}/${config.repo}
-  Workflow Run ID: ${runId}
-  Jobs Fetched: [${jobs.map((job) => job.id).join(", ")}]
-  Steps Fetched: [${steps.map((step) => `"${step}"`).join(", ")}]`
-    );
-    return steps;
-  } catch (error2) {
-    if (error2 instanceof Error) {
-      error(
-        `fetchWorkflowRunJobSteps: An unexpected error has occurred: ${error2.message}`
-      );
-      debug(error2.stack ?? "");
-    }
-    throw error2;
-  }
-}
-async function retryOrTimeout(retryFunc, timeoutMs) {
-  const startTime = Date.now();
-  let elapsedTime = 0;
-  while (elapsedTime < timeoutMs) {
-    const response = await retryFunc();
-    if (response.length > 0) {
-      return { success: true, value: response };
-    }
-    await sleep(1e3);
-    elapsedTime = Date.now() - startTime;
-  }
-  return { success: false, reason: "timeout" };
-}
-
-// src/constants.ts
-var WORKFLOW_FETCH_TIMEOUT_MS = 60 * 1e3;
-var WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX = 3;
-var WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS = 500;
-
-// src/return-dispatch.ts
-function shouldRetryOrThrow(error2, currentAttempts) {
-  switch (error2.message) {
-    case "Server Error": {
-      if (currentAttempts < WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MAX) {
-        debug(
-          `Encountered a Server Error while attempting to fetch steps, retrying in ${WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS}ms`
-        );
-        return true;
-      }
-      return false;
-    }
-    case "Not Found": {
-      debug("Could not identify ID in run, continuing...");
-      return false;
-    }
-    default: {
-      debug(`Unhandled error has occurred: ${error2.message}`);
-      throw error2;
-    }
-  }
-}
-async function attemptToFindRunId(idRegex, workflowRunIds) {
-  if (workflowRunIds.length === 0) {
-    return {
-      success: false,
-      reason: "invalid input"
-    };
-  }
-  let currentWorkflowRunIndex = 0;
-  let currentFetchWorkflowRunJobStepsAttempt = 0;
-  while (currentWorkflowRunIndex < workflowRunIds.length) {
-    const id = workflowRunIds[currentWorkflowRunIndex];
-    if (id === void 0) {
-      break;
-    }
-    try {
-      const steps = await fetchWorkflowRunJobSteps(id);
-      for (const step of steps) {
-        if (idRegex.test(step)) {
-          const url = await fetchWorkflowRunUrl(id);
-          return { success: true, value: { id, url } };
-        }
-      }
-    } catch (error2) {
-      if (!(error2 instanceof Error)) {
-        throw error2;
-      }
-      const shouldRetry = shouldRetryOrThrow(
-        error2,
-        currentFetchWorkflowRunJobStepsAttempt
-      );
-      if (shouldRetry) {
-        currentFetchWorkflowRunJobStepsAttempt++;
-        await sleep(WORKFLOW_JOB_STEPS_SERVER_ERROR_RETRY_MS);
-        continue;
-      }
-    }
-    currentFetchWorkflowRunJobStepsAttempt = 0;
-    currentWorkflowRunIndex++;
-  }
-  return { success: false, reason: "timeout" };
-}
-async function getWorkflowId(workflow) {
-  if (typeof workflow === "number") {
-    return workflow;
-  }
-  info(`Fetching Workflow ID for ${workflow}...`);
-  const workflowId = await fetchWorkflowId(workflow);
-  info(`Fetched Workflow ID: ${workflowId}`);
-  return workflowId;
-}
-function handleActionSuccess(id, url) {
-  info(
-    `Successfully identified remote Run:
-  Run ID: ${id}
-  URL: ${url}`
-  );
-  setOutput("run_id" /* runId */, id);
-  setOutput("run_url" /* runUrl */, url);
-}
-function handleActionFail() {
-  error("Failed: Timeout exceeded while attempting to get Run ID");
-  setFailed("Timeout exceeded while attempting to get Run ID");
-}
-async function getRunIdAndUrl({
-  startTime,
-  branch,
-  distinctIdRegex,
-  workflowId,
-  workflowTimeoutMs,
-  workflowJobStepsRetryMs
-}) {
-  const startTimeISO = new Date(startTime).toISOString();
-  const retryTimeout = Math.max(
-    WORKFLOW_FETCH_TIMEOUT_MS,
-    workflowTimeoutMs
-  );
-  let attemptNo = 0;
-  let elapsedTime = Date.now() - startTime;
-  while (elapsedTime < workflowTimeoutMs) {
-    attemptNo++;
-    const fetchWorkflowRunIds2 = await retryOrTimeout(
-      () => fetchWorkflowRunIds(workflowId, branch, startTimeISO),
-      retryTimeout
-    );
-    if (!fetchWorkflowRunIds2.success) {
-      debug(
-        `Timed out while attempting to fetch Workflow Run IDs, waited ${Date.now() - startTime}ms`
-      );
-      break;
-    }
-    const workflowRunIds = fetchWorkflowRunIds2.value;
-    if (workflowRunIds.length > 0) {
-      debug(
-        `Attempting to get step names for Run IDs: [${workflowRunIds.join(", ")}]`
-      );
-      const result = await attemptToFindRunId(distinctIdRegex, workflowRunIds);
-      if (result.success) {
-        return result;
-      }
-      info(
-        `Exhausted searching IDs in known runs, attempt ${attemptNo}...`
-      );
-    } else {
-      info(`No Run IDs found for workflow, attempt ${attemptNo}...`);
-    }
-    const waitTime = Math.min(
-      workflowJobStepsRetryMs * attemptNo,
-      // Lineal backoff
-      workflowTimeoutMs - elapsedTime
-      // Ensure we don't exceed the timeout
-    );
-    info(`Waiting for ${waitTime}ms before the next attempt...`);
-    await sleep(waitTime);
-    elapsedTime = Date.now() - startTime;
-  }
-  return { success: false, reason: "timeout" };
 }
 
 // src/main.ts
@@ -24433,31 +24036,10 @@ async function main() {
     const startTime = Date.now();
     const config2 = getConfig();
     init(config2);
-    const workflowId = await getWorkflowId(config2.workflow);
-    await dispatchWorkflow(config2.distinctId);
-    info("Attempt to extract branch name from ref...");
-    const branch = getBranchName(config2.ref);
-    logInfoForBranchNameResult(branch, config2.ref);
-    const distinctIdRegex = createDistinctIdRegex(config2.distinctId);
-    info("Attempting to identify run ID from steps...");
-    debug(
-      `Attempting to identify run ID for ${config2.workflow} (${workflowId})`
-    );
-    const result = await getRunIdAndUrl({
-      startTime,
-      branch,
-      distinctIdRegex,
-      workflowId,
-      workflowTimeoutMs: config2.workflowTimeoutSeconds * 1e3,
-      workflowJobStepsRetryMs: config2.workflowJobStepsRetrySeconds * 1e3
-    });
-    if (result.success) {
-      handleActionSuccess(result.value.id, result.value.url);
-      debug(`Completed (${Date.now() - startTime}ms)`);
-    } else {
-      handleActionFail();
-      debug(`Timed out (${Date.now() - startTime}ms)`);
-    }
+    const dispatchedRun = await dispatchWorkflow();
+    setOutput("run_id" /* runId */, dispatchedRun.id);
+    setOutput("run_url" /* runUrl */, dispatchedRun.url);
+    debug(`Completed (${Date.now() - startTime}ms)`);
   } catch (error2) {
     if (error2 instanceof Error) {
       const failureMsg = `Failed: An unhandled error has occurred: ${error2.message}`;

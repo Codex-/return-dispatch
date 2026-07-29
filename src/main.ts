@@ -1,18 +1,7 @@
 import * as core from "@actions/core";
 
-import { getConfig } from "./action.ts";
+import { ActionOutputs, getConfig } from "./action.ts";
 import * as api from "./api.ts";
-import {
-  getWorkflowId,
-  handleActionFail,
-  handleActionSuccess,
-  getRunIdAndUrl,
-} from "./return-dispatch.ts";
-import {
-  createDistinctIdRegex,
-  getBranchName,
-  logInfoForBranchNameResult,
-} from "./utils.ts";
 
 export async function main(): Promise<void> {
   try {
@@ -21,38 +10,12 @@ export async function main(): Promise<void> {
     const config = getConfig();
     api.init(config);
 
-    const workflowId = await getWorkflowId(config.workflow);
+    const dispatchedRun = await api.dispatchWorkflow();
 
-    // Dispatch the action
-    await api.dispatchWorkflow(config.distinctId);
+    core.setOutput(ActionOutputs.runId, dispatchedRun.id);
+    core.setOutput(ActionOutputs.runUrl, dispatchedRun.url);
 
-    // Attempt to get the branch from config ref
-    core.info("Attempt to extract branch name from ref...");
-    const branch = getBranchName(config.ref);
-    logInfoForBranchNameResult(branch, config.ref);
-
-    const distinctIdRegex = createDistinctIdRegex(config.distinctId);
-
-    core.info("Attempting to identify run ID from steps...");
-    core.debug(
-      `Attempting to identify run ID for ${config.workflow} (${workflowId})`,
-    );
-
-    const result = await getRunIdAndUrl({
-      startTime,
-      branch,
-      distinctIdRegex,
-      workflowId,
-      workflowTimeoutMs: config.workflowTimeoutSeconds * 1000,
-      workflowJobStepsRetryMs: config.workflowJobStepsRetrySeconds * 1000,
-    });
-    if (result.success) {
-      handleActionSuccess(result.value.id, result.value.url);
-      core.debug(`Completed (${Date.now() - startTime}ms)`);
-    } else {
-      handleActionFail();
-      core.debug(`Timed out (${Date.now() - startTime}ms)`);
-    }
+    core.debug(`Completed (${Date.now() - startTime}ms)`);
   } catch (error) {
     if (error instanceof Error) {
       const failureMsg = `Failed: An unhandled error has occurred: ${error.message}`;
