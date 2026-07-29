@@ -40,7 +40,7 @@
     "@typescript-eslint/eslint-plugin": "8.65.0",
     "@typescript-eslint/parser": "8.65.0",
     "@vitest/coverage-v8": "4.1.10",
-    "chalk": "5.6.2",
+    "chalk": "6.0.0",
     "changelogithub": "14.0.0",
     "esbuild": "0.28.1",
     "eslint": "10.8.0",
