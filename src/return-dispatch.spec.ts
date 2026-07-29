@@ -474,14 +474,9 @@ describe("return-dispatch", () => {
       ref: "/refs/heads/main",
       branchName: "main",
     });
-    const defaultOpts: GetRunIdAndUrlOpts = {
-      startTime: Date.now(),
-      branch: branch,
-      distinctIdRegex: distinctIdRegex,
-      workflowId: workflowId,
-      workflowTimeoutMs: 100,
-      workflowJobStepsRetryMs: 5,
-    };
+    const startTime = 1700000000000;
+
+    let defaultOpts: GetRunIdAndUrlOpts;
 
     const apiFetchWorkflowRunIdsMock: MockInstance<
       typeof api.fetchWorkflowRunIds
@@ -500,7 +495,16 @@ describe("return-dispatch", () => {
     );
 
     beforeEach(() => {
-      vi.useFakeTimers();
+      vi.useFakeTimers({ now: startTime });
+
+      defaultOpts = {
+        startTime: startTime,
+        branch: branch,
+        distinctIdRegex: distinctIdRegex,
+        workflowId: workflowId,
+        workflowTimeoutMs: 100,
+        workflowJobStepsRetryMs: 5,
+      };
 
       utilSleepMock.mockImplementation(
         (ms: number) => new Promise((resolve) => setTimeout(resolve, ms)),
