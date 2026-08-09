@@ -1,11 +1,13 @@
 // @ts-check
 
 import jsEslint from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import eslintConfigPrettier from "eslint-config-prettier";
+import { createTypeScriptImportResolver } from "eslint-import-resolver-typescript";
 import * as eslintPluginImportX from "eslint-plugin-import-x";
 import * as tsEslint from "typescript-eslint";
 
-export default tsEslint.config(
+export default defineConfig(
   jsEslint.configs.recommended,
   eslintPluginImportX.flatConfigs.recommended,
   eslintPluginImportX.flatConfigs.typescript,
@@ -20,14 +22,16 @@ export default tsEslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    settings: {
+      "import-x/resolver-next": [
+        createTypeScriptImportResolver({
+          project: "./tsconfig.json",
+        }),
+      ],
+    },
   },
   {
-    ignores: [
-      "**/coverage",
-      "**/dist",
-      "**/esbuild.config.mjs",
-      "**/vitest.config.ts",
-    ],
+    ignores: ["coverage", "dist", "esbuild.config.mjs", "vitest.config.ts"],
   },
   {
     rules: {
