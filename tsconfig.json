@@ -1,16 +1,9 @@
 {
+  "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
     "target": "es2024",
     "module": "nodenext",
     "noEmit": true,
-
-    "lib": [
-      "es2024",
-      "ESNext.Array",
-      "ESNext.Collection",
-      "ESNext.Iterator",
-      "ESNext.Promise"
-    ],
 
     "outDir": "lib",
     "rootDir": "src",
@@ -21,7 +14,7 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node16",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true,
