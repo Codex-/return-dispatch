@@ -14,12 +14,20 @@ export function init(cfg?: ActionConfig): void {
 }
 
 /**
- * The 200 response body of the workflow dispatch endpoint, returned when
- * `return_run_details` is requested.
+ * The version that returns the created run. The default `2022-11-28` answers
+ * 204 with no body and reports the endpoint as deprecated on every request.
  *
- * Declared locally because `@octokit/openapi-types` still describes this
- * endpoint as 204-only, so the response shape cannot be taken from the types
- * and is validated at runtime instead.
+ * Served by github.com and GHES 3.21 or newer.
+ *
+ * See: https://docs.github.com/en/rest/about-the-rest-api/api-versions
+ */
+const API_VERSION = "2026-03-10";
+
+/**
+ * The 200 response body of the workflow dispatch endpoint.
+ *
+ * Declared locally because `@octokit/openapi-types` still types this endpoint
+ * as 204-only, so the shape is validated at runtime instead.
  *
  * See: https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event--status-codes
  */
@@ -55,14 +63,12 @@ const RUN_DETAILS_UNSUPPORTED =
   "Dispatch did not return the run details, this action requires github.com or GHES >=3.21";
 
 /**
- * Servers predating `return_run_details` reject the unknown field with a 400
- * rather than ignoring it, so the empty 204 path is never reached on them.
- * Restate the requirement, keeping the original message for diagnosis.
+ * Servers without `API_VERSION` reject the request with a 400 rather than
+ * falling back, so the empty 204 path is never reached on them. Restate the
+ * requirement, keeping the original message for diagnosis.
  *
  * Matching on the status alone is deliberate. The 400 message shape is
  * undocumented and may differ between GHES versions.
- *
- * https://github.com/cli/cli/issues/12672
  */
 function asUnsupportedRunDetailsError(error: unknown): Error | undefined {
   if (!(error instanceof Error) || !("status" in error)) {
@@ -93,10 +99,7 @@ export async function dispatchWorkflow(): Promise<DispatchedWorkflowRun> {
       workflow_id: config.workflow,
       ref: config.ref,
       inputs: config.workflowInputs,
-      // The docs omit `return_run_details`. It is specified only in the OpenAPI
-      // description, which is what conditions the 200 and 204 responses on it.
-      // see: https://github.com/github/rest-api-description/tree/main/descriptions/api.github.com
-      return_run_details: true,
+      headers: { "x-github-api-version": API_VERSION },
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition

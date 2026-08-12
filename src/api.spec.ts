@@ -100,10 +100,16 @@ describe("API", () => {
         url: "https://github.com/owner/repo/actions/runs/123456",
       });
 
-      // The run details are opt-in, so the request must ask for them
-      expect(dispatchedRequest?.return_run_details).toStrictEqual(true);
-      // Only the caller's inputs are forwarded, nothing is injected
-      expect(dispatchedRequest?.inputs).toStrictEqual({ testInput: "test" });
+      // Only the pinned API version returns the run details, and only the
+      // caller's inputs are forwarded
+      expect(dispatchedRequest).toStrictEqual({
+        owner: "owner",
+        repo: "repo",
+        workflow_id: "workflow",
+        ref: "ref",
+        inputs: { testInput: "test" },
+        headers: { "x-github-api-version": "2026-03-10" },
+      });
 
       // Logging
       assertOnlyCalled(coreInfoLogMock);
@@ -119,7 +125,7 @@ describe("API", () => {
       `);
     });
 
-    it("should throw for an empty 204, as returned by servers without return_run_details support", async () => {
+    it("should throw for an empty 204, as returned by servers that ignore the API version", async () => {
       vi.spyOn(
         mockOctokit.rest.actions,
         "createWorkflowDispatch",
@@ -147,11 +153,13 @@ describe("API", () => {
       );
     });
 
-    it("should restate the server requirement for a 400 rejecting the unknown field", async () => {
-      // Servers predating `return_run_details` reject it outright rather than
-      // ignoring it, so the empty 204 path is never reached.
+    it("should restate the server requirement for a 400 rejecting the API version", async () => {
+      // Servers predating the pinned version reject it outright rather than
+      // falling back, so the empty 204 path is never reached.
       const requestError = Object.assign(
-        new Error('Unknown request body field: "return_run_details"'),
+        new Error(
+          'The version you specified in the "X-GitHub-API-Version" request header, "2026-03-10", is not a supported version.',
+        ),
         { status: 400 },
       );
       vi.spyOn(
@@ -165,7 +173,7 @@ describe("API", () => {
       );
       // The original message is retained for diagnosis
       await expect(dispatchWorkflow()).rejects.toThrow(
-        'Unknown request body field: "return_run_details"',
+        "is not a supported version",
       );
 
       // Logging
