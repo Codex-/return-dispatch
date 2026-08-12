@@ -1,6 +1,8 @@
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+overrides:
+  changelogithub>changelogen: 0.6.2
 onlyBuiltDependencies:
   - esbuild
   - unrs-resolver
