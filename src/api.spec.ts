@@ -100,12 +100,16 @@ describe("API", () => {
         url: "https://github.com/owner/repo/actions/runs/123456",
       });
 
-      // Only the pinned API version returns the run details
-      expect(dispatchedRequest?.headers).toStrictEqual({
-        "x-github-api-version": "2026-03-10",
+      // Only the pinned API version returns the run details, and only the
+      // caller's inputs are forwarded
+      expect(dispatchedRequest).toStrictEqual({
+        owner: "owner",
+        repo: "repo",
+        workflow_id: "workflow",
+        ref: "ref",
+        inputs: { testInput: "test" },
+        headers: { "x-github-api-version": "2026-03-10" },
       });
-      // Only the caller's inputs are forwarded, nothing is injected
-      expect(dispatchedRequest?.inputs).toStrictEqual({ testInput: "test" });
 
       // Logging
       assertOnlyCalled(coreInfoLogMock);
