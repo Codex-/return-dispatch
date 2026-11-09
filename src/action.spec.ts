@@ -115,5 +115,26 @@ describe("Action", () => {
       callAndAssert('{"vegetable":null}', '"vegetable" value is null');
       callAndAssert('{"fruit":[]}', '"fruit" value is Array');
     });
+
+    it("should throw if the workflow inputs JSON is not an object", () => {
+      const debugMock = vi
+        .spyOn(core, "debug")
+        .mockImplementation(() => undefined);
+
+      const callAndAssert = (input: string, receivedType: string) => {
+        debugMock.mockClear();
+        mockEnvConfig.workflow_inputs = input;
+        expect(() => getConfig()).toThrow(
+          `Expected workflow_inputs to be a JSON object, received ${receivedType}`,
+        );
+        expect(debugMock).toHaveBeenCalledOnce();
+      };
+
+      callAndAssert("[1,2]", "Array");
+      callAndAssert("5", "number");
+      callAndAssert('"cake"', "string");
+      callAndAssert("true", "boolean");
+      callAndAssert("null", "null");
+    });
   });
 });

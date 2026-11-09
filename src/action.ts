@@ -63,11 +63,17 @@ function getWorkflowInputs(
   }
 
   try {
-    const parsedJson = JSON.parse(workflowInputs) as Record<string, unknown>;
-    for (const key of Object.keys(parsedJson)) {
-      const value = parsedJson[key];
-      const type =
-        value === null ? "null" : Array.isArray(value) ? "Array" : typeof value;
+    const parsedJson: unknown = JSON.parse(workflowInputs);
+    const parsedType = describeJsonType(parsedJson);
+    if (parsedType !== "object") {
+      throw new Error(
+        `Expected workflow_inputs to be a JSON object, received ${parsedType}`,
+      );
+    }
+
+    const inputs = parsedJson as Record<string, unknown>;
+    for (const [key, value] of Object.entries(inputs)) {
+      const type = describeJsonType(value);
 
       if (!["string", "number", "boolean"].includes(type)) {
         throw new Error(
@@ -75,7 +81,7 @@ function getWorkflowInputs(
         );
       }
     }
-    return parsedJson as ActionWorkflowInputs;
+    return inputs as ActionWorkflowInputs;
   } catch (error) {
     core.error("Failed to parse workflow_inputs JSON");
     if (error instanceof Error) {
@@ -83,6 +89,16 @@ function getWorkflowInputs(
     }
     throw error;
   }
+}
+
+function describeJsonType(value: unknown): string {
+  if (value === null) {
+    return "null";
+  }
+  if (Array.isArray(value)) {
+    return "Array";
+  }
+  return typeof value;
 }
 
 function tryGetWorkflowAsNumber(workflowInput: string): string | number {
