@@ -69,6 +69,16 @@ describe("Action", () => {
       expect(config.workflow).toStrictEqual(123456);
     });
 
+    it.each(["01-build.yml", "2024-release.yml", "0x1F", "12e3"])(
+      "should keep a workflow filename starting with digits as a string: %s",
+      (workflow) => {
+        mockEnvConfig.workflow = workflow;
+        const config: ActionConfig = getConfig();
+
+        expect(config.workflow).toStrictEqual(workflow);
+      },
+    );
+
     it("should handle no inputs being provided", () => {
       mockEnvConfig.workflow_inputs = "";
       const config: ActionConfig = getConfig();

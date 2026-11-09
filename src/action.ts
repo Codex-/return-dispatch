@@ -55,24 +55,6 @@ export function getConfig(): ActionConfig {
   };
 }
 
-function getNumberFromValue(value: string): number | undefined {
-  if (value === "") {
-    return undefined;
-  }
-
-  try {
-    const num = parseInt(value);
-
-    if (isNaN(num)) {
-      throw new Error("Parsed value is NaN");
-    }
-
-    return num;
-  } catch {
-    throw new Error(`Unable to parse value: ${value}`);
-  }
-}
-
 function getWorkflowInputs(
   workflowInputs: string,
 ): ActionWorkflowInputs | undefined {
@@ -104,12 +86,7 @@ function getWorkflowInputs(
 }
 
 function tryGetWorkflowAsNumber(workflowInput: string): string | number {
-  try {
-    // We can assume that the string is defined and not empty at this point.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return getNumberFromValue(workflowInput)!;
-  } catch {
-    // Assume using a workflow name instead of an ID.
-    return workflowInput;
-  }
+  // Only an all-digit input is an ID. parseInt would accept a numeric prefix
+  // and turn a filename such as "01-build.yml" into the ID 1.
+  return /^\d+$/.test(workflowInput) ? Number(workflowInput) : workflowInput;
 }
