@@ -39,7 +39,7 @@
     "@types/node": "24.19.2",
     "@typescript-eslint/eslint-plugin": "8.72.1",
     "@typescript-eslint/parser": "8.72.1",
-    "@vitest/coverage-v8": "4.1.12",
+    "@vitest/coverage-v8": "5.1.0",
     "chalk": "6.0.1",
     "changelogithub": "15.0.5",
     "esbuild": "0.28.2",
@@ -50,6 +50,6 @@
     "prettier": "3.9.10",
     "typescript": "5.9.3",
     "typescript-eslint": "8.72.1",
-    "vitest": "4.1.12"
+    "vitest": "5.1.0"
   }
 }
