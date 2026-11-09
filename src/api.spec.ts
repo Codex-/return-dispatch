@@ -153,7 +153,7 @@ describe("API", () => {
       );
     });
 
-    it("should restate the server requirement for a 400 rejecting the API version", async () => {
+    it("should hint at the server requirement for a 400 rejecting the API version", async () => {
       // Servers predating the pinned version reject it outright rather than
       // falling back, so the empty 204 path is never reached.
       const requestError = Object.assign(
@@ -169,11 +169,11 @@ describe("API", () => {
 
       // Behaviour
       await expect(dispatchWorkflow()).rejects.toThrow(
-        "Dispatch did not return the run details, this action requires github.com or GHES >=3.21",
+        "If the server is GitHub Enterprise Server older than 3.21, it does not support API version 2026-03-10",
       );
-      // The original message is retained for diagnosis
+      // The original message leads, since a 400 may be an ordinary bad request
       await expect(dispatchWorkflow()).rejects.toThrow(
-        "is not a supported version",
+        /^Dispatch was rejected with a 400: The version you specified/,
       );
 
       // Logging
