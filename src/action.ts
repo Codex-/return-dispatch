@@ -30,7 +30,7 @@ export interface ActionConfig {
   workflow: string | number;
 
   /**
-   * A flat JSON object, only supports strings (as per workflow inputs API).
+   * A flat JSON object, only supports strings, numbers, and booleans (as per workflow inputs API).
    */
   workflowInputs?: ActionWorkflowInputs;
 }
