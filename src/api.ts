@@ -64,8 +64,9 @@ const RUN_DETAILS_UNSUPPORTED =
 
 /**
  * Servers without `API_VERSION` reject the request with a 400 rather than
- * falling back, so the empty 204 path is never reached on them. Restate the
- * requirement, keeping the original message for diagnosis.
+ * falling back, so the empty 204 path is never reached on them. Lead with
+ * the original message and add the requirement as a hint, since a 400 can
+ * also be an ordinary bad request on a supported server.
  *
  * Matching on the status alone is deliberate. The 400 message shape is
  * undocumented and may differ between GHES versions.
@@ -79,9 +80,11 @@ function asUnsupportedRunDetailsError(error: unknown): Error | undefined {
     return undefined;
   }
 
-  return new Error(`${RUN_DETAILS_UNSUPPORTED} (${error.message})`, {
-    cause: error,
-  });
+  return new Error(
+    `Dispatch was rejected with a 400: ${error.message}. ` +
+      `If the server is GitHub Enterprise Server older than 3.21, it does not support API version ${API_VERSION}, which this action requires to return the run details`,
+    { cause: error },
+  );
 }
 
 /**

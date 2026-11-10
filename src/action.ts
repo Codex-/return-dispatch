@@ -30,7 +30,7 @@ export interface ActionConfig {
   workflow: string | number;
 
   /**
-   * A flat JSON object, only supports strings (as per workflow inputs API).
+   * A flat JSON object, only supports strings, numbers, and booleans (as per workflow inputs API).
    */
   workflowInputs?: ActionWorkflowInputs;
 }
@@ -55,24 +55,6 @@ export function getConfig(): ActionConfig {
   };
 }
 
-function getNumberFromValue(value: string): number | undefined {
-  if (value === "") {
-    return undefined;
-  }
-
-  try {
-    const num = parseInt(value);
-
-    if (isNaN(num)) {
-      throw new Error("Parsed value is NaN");
-    }
-
-    return num;
-  } catch {
-    throw new Error(`Unable to parse value: ${value}`);
-  }
-}
-
 function getWorkflowInputs(
   workflowInputs: string,
 ): ActionWorkflowInputs | undefined {
@@ -81,11 +63,17 @@ function getWorkflowInputs(
   }
 
   try {
-    const parsedJson = JSON.parse(workflowInputs) as Record<string, unknown>;
-    for (const key of Object.keys(parsedJson)) {
-      const value = parsedJson[key];
-      const type =
-        value === null ? "null" : Array.isArray(value) ? "Array" : typeof value;
+    const parsedJson: unknown = JSON.parse(workflowInputs);
+    const parsedType = describeJsonType(parsedJson);
+    if (parsedType !== "object") {
+      throw new Error(
+        `Expected workflow_inputs to be a JSON object, received ${parsedType}`,
+      );
+    }
+
+    const inputs = parsedJson as Record<string, unknown>;
+    for (const [key, value] of Object.entries(inputs)) {
+      const type = describeJsonType(value);
 
       if (!["string", "number", "boolean"].includes(type)) {
         throw new Error(
@@ -93,7 +81,7 @@ function getWorkflowInputs(
         );
       }
     }
-    return parsedJson as ActionWorkflowInputs;
+    return inputs as ActionWorkflowInputs;
   } catch (error) {
     core.error("Failed to parse workflow_inputs JSON");
     if (error instanceof Error) {
@@ -103,13 +91,18 @@ function getWorkflowInputs(
   }
 }
 
-function tryGetWorkflowAsNumber(workflowInput: string): string | number {
-  try {
-    // We can assume that the string is defined and not empty at this point.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return getNumberFromValue(workflowInput)!;
-  } catch {
-    // Assume using a workflow name instead of an ID.
-    return workflowInput;
+function describeJsonType(value: unknown): string {
+  if (value === null) {
+    return "null";
   }
+  if (Array.isArray(value)) {
+    return "Array";
+  }
+  return typeof value;
+}
+
+function tryGetWorkflowAsNumber(workflowInput: string): string | number {
+  // Only an all-digit input is an ID. parseInt would accept a numeric prefix
+  // and turn a filename such as "01-build.yml" into the ID 1.
+  return /^\d+$/.test(workflowInput) ? Number(workflowInput) : workflowInput;
 }

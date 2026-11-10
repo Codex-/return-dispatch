@@ -18,17 +18,14 @@ export async function main(): Promise<void> {
     core.debug(`Completed (${Date.now() - startTime}ms)`);
   } catch (error) {
     if (error instanceof Error) {
-      const failureMsg = `Failed: An unhandled error has occurred: ${error.message}`;
-      core.setFailed(failureMsg);
-      core.error(failureMsg);
+      core.setFailed(
+        `Failed: An unhandled error has occurred: ${error.message}`,
+      );
       core.debug(error.stack ?? "");
     } else {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      const failureMsg = `Failed: An unknown error has occurred: ${error}`;
-      core.setFailed(failureMsg);
-      core.error(failureMsg);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      core.debug(error as any);
+      core.setFailed(`Failed: An unknown error has occurred: ${error}`);
+      core.debug(String(error));
     }
   }
 }
