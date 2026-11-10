@@ -25,8 +25,7 @@ export async function main(): Promise<void> {
     } else {
       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       core.setFailed(`Failed: An unknown error has occurred: ${error}`);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      core.debug(error as any);
+      core.debug(String(error));
     }
   }
 }
