@@ -20,8 +20,7 @@ vi.mock("./action.ts");
 vi.mock("./api.ts");
 
 describe("main", () => {
-  const { coreDebugLogMock, coreErrorLogMock, assertOnlyCalled } =
-    mockLoggingFunctions();
+  const { coreDebugLogMock, assertOnlyCalled } = mockLoggingFunctions();
   const testCfg: action.ActionConfig = {
     ref: "test-ref",
     workflow: "test-workflow",
@@ -109,8 +108,7 @@ describe("main", () => {
     );
 
     // Logging
-    assertOnlyCalled(coreDebugLogMock, coreErrorLogMock);
-    expect(coreErrorLogMock).toHaveBeenCalledOnce();
+    assertOnlyCalled(coreDebugLogMock);
     expect(coreDebugLogMock.mock.calls[0]?.[0]).toStrictEqual(testError.stack);
   });
 
@@ -135,11 +133,7 @@ describe("main", () => {
     );
 
     // Logging
-    assertOnlyCalled(coreDebugLogMock, coreErrorLogMock);
-    expect(coreErrorLogMock).toHaveBeenCalledOnce();
-    expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-      `"Failed: An unhandled error has occurred: test error"`,
-    );
+    assertOnlyCalled(coreDebugLogMock);
     expect(coreDebugLogMock).toHaveBeenCalledOnce();
     expect(coreDebugLogMock.mock.calls[0]?.[0]).toStrictEqual(testError.stack);
   });
@@ -166,11 +160,7 @@ describe("main", () => {
     );
 
     // Logging
-    assertOnlyCalled(coreDebugLogMock, coreErrorLogMock);
-    expect(coreErrorLogMock).toHaveBeenCalledOnce();
-    expect(coreErrorLogMock.mock.calls[0]?.[0]).toMatchInlineSnapshot(
-      `"Failed: An unknown error has occurred: some other error"`,
-    );
+    assertOnlyCalled(coreDebugLogMock);
     expect(coreDebugLogMock).toHaveBeenCalledOnce();
     expect(coreDebugLogMock.mock.calls[0]?.[0]).toStrictEqual(testError);
   });
